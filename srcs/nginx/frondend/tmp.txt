@@ -1,0 +1,1 @@
+I guees it's a good choice to combine front + nginx
