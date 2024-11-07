@@ -1,6 +1,39 @@
 services:
-  database: // tmp
+  postgres:
+    build: ./postgres
+    container_name:  postgres
+    env_file: .env
+    networks:
+      - transcendance
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
-  backend: // tmp
+  backend:
+    build: ./backend
+    container_name: backend
+    env_file: .env
+    networks:
+      - transcendance
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - postgres
 
-  proxy+frond: // tmp
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    networks:
+      - transcendance
+    ports:
+      - "443:443"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    depends_on:
+      - backend
+
+networks:
+  transcendance:
+    driver: bridge
+
+volumes:
+  postgres_data:
