@@ -5,3 +5,7 @@ RUN openssl req -x509 -nodes -days 365 -newkey \
     /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost"
 
 COPY default.conf /etc/nginx/conf.d/default.conf
+
+RUN chmod -R 755 /usr/share/nginx/html
+
+COPY ./frontend /usr/share/nginx/html

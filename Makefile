@@ -26,6 +26,6 @@ fclean: clean
 	docker-compose -f $(DOCKER_COMPOSE_FILE) down -v
 	@docker system prune -f --volumes
 
-re: fclean all
+re: fclean build
 
 .PHONY: all check_env build down clean fclean re
