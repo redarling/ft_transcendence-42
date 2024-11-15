@@ -6,8 +6,8 @@ def api_root(request):
     return JsonResponse({"message": "Hello from Django API!"})
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('api/', api_root),
+    path('api/admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
     path('api/games/', include('games.urls')),
 ]

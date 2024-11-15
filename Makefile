@@ -17,11 +17,7 @@ down:
 	@echo "Stopping containers..."
 	docker compose -f $(DOCKER_COMPOSE_FILE) down
 
-clean:
-	@echo "Stopping containers..."
-	docker compose -f $(DOCKER_COMPOSE_FILE) down
-
-fclean: clean
+fclean: down
 	docker system prune -f -a
 	@if [ -n "$$(docker volume ls -q --filter dangling=true)" ]; then \
 		docker volume rm $$(docker volume ls -q --filter dangling=true); \
