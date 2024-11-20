@@ -21,11 +21,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         
     def create(self, validated_data):
         password = validated_data.pop('password')
-        avatar = validated_data.get('avatar', 'https://img.freepik.com/vecteurs-libre/homme-mafieux-mysterieux-portant-chapeau_52683-34829.jpg?t=st=1731605373~exp=1731608973~hmac=ac4171581866b46aae22583420c94f9e99b57b29d3b78d64602c459ae5a748b2&w=1380')
+        avatar = validated_data.get('avatar', 'http://surl.li/zcvukr')  # Default avatar if not provided
         validated_data['avatar'] = avatar
         
-        user = User.objects.create_user(password=password, **validated_data)
-        user.save()
+        # Using create_user to ensure password is hashed
+        user = User.objects.create_user(password=password, **validated_data)  # create_user hashes password
         return user
 
 class UserLoginSerializer(serializers.Serializer):
@@ -40,7 +40,6 @@ class UserLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Username and password are required.")
 
         return data
-
 
 class UserProfileSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(read_only=True)

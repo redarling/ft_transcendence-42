@@ -6,14 +6,13 @@ class UserManager(BaseUserManager):
     def create_user(self, username, email, password, **extra_fields):
         if not email:
             raise ValueError("Email is required.")
-            raise email
         if not username:
             raise ValueError("Username is required.")
         if not password:
             raise ValueError("Password is required.")
         email = self.normalize_email(email)
         user = self.model(username=username, email=email, **extra_fields)
-        user.set_password(password)
+        user.set_password(password)  # This ensures password is hashed
         user.save(using=self._db)
         return user
 
@@ -21,7 +20,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     online_status = models.BooleanField(default=False)
     avatar = models.URLField(null=True, blank=True)
-    password = models.CharField(max_length=255, null=True)
+    password = models.CharField(max_length=128, default='default_password', null=False)
     
     groups = models.ManyToManyField(
         'auth.Group',
@@ -55,6 +54,12 @@ class User(AbstractUser):
             self.online_status = False
             self.save(update_fields=['online_status'])
 
+class BlacklistedToken(models.Model):
+    token = models.CharField(max_length=512, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.token
 
 class UserStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='stats')

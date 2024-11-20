@@ -1,10 +1,13 @@
 from django.urls import path, include
-from .views import UserRegistrationAPIView, UserLoginAPIView, UserLogoutAPIView, UserProfileAPIView, UserUpdateAPIView, \
-    UserStatsAPIView, FriendshipAPIView, FriendListAPIView, FriendshipStatusAPIView, UserSearchAPIView
+from .views import UserRegistrationAPIView, UserLoginAPIView, \
+    UserLogoutAPIView, UserProfileAPIView, UserUpdateAPIView, \
+    UserStatsAPIView, FriendshipAPIView, FriendListAPIView, \
+    FriendshipStatusAPIView, UserSearchAPIView, UserTokenRefreshAPIView
 
 urlpatterns = [
     path('register/', UserRegistrationAPIView.as_view(), name='register'),
     path('login/', UserLoginAPIView.as_view(), name='login'),
+    path('token-refresh/', UserTokenRefreshAPIView.as_view(), name='token-refresh'),
     path('logout/', UserLogoutAPIView.as_view(), name='logout'),
     path('search-profile/', UserSearchAPIView.as_view(), name='user-search'),
     path('profile/<int:user_id>/', UserProfileAPIView.as_view(), name='view-profile'),

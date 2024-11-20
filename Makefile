@@ -26,6 +26,7 @@ fclean: down
 	fi
 	@echo "\033[93mAll the images have been deleted.\033[0m"
 
+reset: down build
 re: fclean build
 
 .PHONY: all check_env build down clean fclean re
