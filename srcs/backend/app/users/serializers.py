@@ -41,12 +41,18 @@ class UserLoginSerializer(serializers.Serializer):
 
         return data
 
+class UserProfileSearchSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'avatar']
+
 class UserProfileSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(read_only=True)
 
     class Meta:
         model = User
-        fields = ['username', 'avatar', 'online_status', 'email', 'stats']
+        fields = ['id', 'username', 'avatar', 'online_status', 'email']
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -64,6 +70,11 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'password', 'avatar']
 
+    def validate(self, attrs):
+        if not attrs:
+            raise serializers.ValidationError("At least one field is required for update.")
+        return attrs
+        
     def validate_username(self, value):
         if User.objects.filter(username=value).exclude(id=self.instance.id).exists():
             raise ValidationError("This username is already taken.")
