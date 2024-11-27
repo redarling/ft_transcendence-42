@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.db import models
+from django.db.models import Q
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -9,7 +10,7 @@ from rest_framework import permissions
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.generics import UpdateAPIView, RetrieveAPIView, ListAPIView
 from .models import User, UserStats, Friend, BlacklistedToken
 from .serializers import UserRegistrationSerializer, UserLoginSerializer, \
@@ -176,6 +177,10 @@ class UserProfileAPIView(RetrieveAPIView):
     def get_object(self):
         user_id = self.kwargs.get('user_id', None)
         if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
             return User.objects.get(id=user_id)
         return self.request.user
 
@@ -206,8 +211,7 @@ class UserUpdateAPIView(UpdateAPIView):
         return self.request.user
 
     def put(self, request, *args, **kwargs):
-        return Response(
-            {'error': 'PUT method is not allowed. Use PATCH instead.'},
+        return Response({'error': 'PUT method is not allowed. Use PATCH instead.'},
             status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def patch(self, request, *args, **kwargs):
@@ -217,13 +221,9 @@ class UserUpdateAPIView(UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response({
-            "username": instance.username,
-            "avatar": instance.avatar
-        }, status=status.HTTP_200_OK)
+        return Response({"username": instance.username, 
+            "avatar": instance.avatar}, status=status.HTTP_200_OK)
 
-
-# TODO: doesn't work yet
 class UserStatsAPIView(RetrieveAPIView):
     queryset = UserStats.objects.all()
     serializer_class = UserStatsSerializer
@@ -232,19 +232,34 @@ class UserStatsAPIView(RetrieveAPIView):
     def get_object(self):
         user_id = self.kwargs.get('user_id', None)
         if user_id:
-            user = User.objects.get(id=user_id)
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
             return user.stats
         return self.request.user.stats
 
-# TODO: more tests needed
 class FriendListAPIView(ListAPIView):
     serializer_class = FriendSerializer
 
     def get_queryset(self):
-        user = self.request.user
-        return Friend.objects.filter(user=user)
+        user_id = self.kwargs.get('user_id')
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                raise NotFound({'error': 'User not found.'})
+        else:
+            raise NotFound({'error': 'User ID is required.'})
 
-# TODO: more tests needed
+        friendships = Friend.objects.filter((Q(user=user) | Q(friend=user)) & Q(status='accepted'))
+
+        return [
+            {'friend': friendship.friend if friendship.user == user else friendship.user}
+            for friendship in friendships
+        ]
+
 class FriendshipAPIView(APIView):
     """
     API for managing friend requests and friendship statuses.
@@ -264,10 +279,15 @@ class FriendshipAPIView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'Friend not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Try to create a friend request
+        # Check if the user is trying to add themselves as a friend
         if user == friend:
             return Response({'error': 'You cannot add yourself as a friend.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Check if friendship already exists in any direction (either accepted or pending)
+        if Friend.objects.filter(user=user, friend=friend).exists() or Friend.objects.filter(user=friend, friend=user).exists():
+            return Response({'message': 'Friendship request already exists or is already accepted.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create the friendship if not exists
         friendship, created = Friend.add_friend(user, friend)
         if not created:
             return Response({'message': 'Friendship already exists or is pending.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -291,9 +311,11 @@ class FriendshipAPIView(APIView):
 
         # Try to delete the friendship
         try:
-            friendship = Friend.objects.get(user=user, friend=friend)
+            friendship = Friend.objects.get((Q(user=user) & Q(friend=friend)) | 
+                (Q(user=friend) & Q(friend=user)), status='accepted')
             friendship.delete()
-            return Response({'message': 'Friendship deleted.'}, status=status.HTTP_204_NO_CONTENT)
+            return Response({'message': 'Friendship deleted.'}, status=status.HTTP_200_OK)
+        
         except Friend.DoesNotExist:
             return Response({'error': 'Friendship does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
     
@@ -326,3 +348,19 @@ class FriendshipAPIView(APIView):
             return Response({'message': 'Friendship request declined.'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid action.'}, status=status.HTTP_400_BAD_REQUEST)
+
+class FriendRequestsAPIView(ListAPIView):
+    serializer_class = FriendSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Friend.objects.filter(friend=user, status='pending')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        if queryset.count() == 0:
+            return Response({"error": "No friend requests found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

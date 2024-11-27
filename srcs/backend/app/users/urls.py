@@ -2,7 +2,7 @@ from django.urls import path, include
 from .views import UserRegistrationAPIView, UserLoginAPIView, \
     UserLogoutAPIView, UserProfileAPIView, UserUpdateAPIView, \
     UserStatsAPIView, FriendshipAPIView, FriendListAPIView, \
-    UserSearchAPIView, UserTokenRefreshAPIView
+    UserSearchAPIView, UserTokenRefreshAPIView, FriendRequestsAPIView
 
 urlpatterns = [
     path('register/', UserRegistrationAPIView.as_view(), name='register'),
@@ -15,4 +15,5 @@ urlpatterns = [
     path('update/', UserUpdateAPIView.as_view(), name='update'),
     path('friends/<int:user_id>/', FriendListAPIView.as_view(), name='friends-list'),
     path('friendship/', FriendshipAPIView.as_view(), name='friendship'),
+    path('friendship-requests/', FriendRequestsAPIView.as_view(), name='friend-requests'),
 ]

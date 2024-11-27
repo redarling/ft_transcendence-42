@@ -102,19 +102,16 @@ class UserStatsSerializer(serializers.ModelSerializer):
                   'win_ratio', 'total_points_scored', 'total_points_against', 
                   'last_match_date', 'registered_at', 'tournaments_won']
 
+class UserShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'avatar', 'online_status']
+
 class FriendSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    friend = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    friend = UserShortSerializer()
 
     class Meta:
         model = Friend
-        fields = ['user', 'friend', 'status', 'created_at']
+        fields = ['friend']
 
-    def validate(self, data):
-        if data['user'] == data['friend']:
-            raise serializers.ValidationError("User cannot be friends with themselves.")
-        
-        if Friend.objects.filter(user=data['user'], friend=data['friend']).exists():
-            raise serializers.ValidationError("Friendship already exists.")
-        
-        return data
+
