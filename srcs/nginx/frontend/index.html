@@ -3,17 +3,32 @@
 	<head>
 		<meta charset="utf-8">
 		<title>⭐ The Pong Game ⭐</title>
-        <!-- To change and use installed dependencies -->
-        <script type="importmap">
-            {
-              "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@<0.170.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@<0.170.0/examples/jsm/"
-              }
-            }
-          </script>
+				<!-- To change and use installed dependencies -->
+				<script type="importmap">
+						{
+							"imports": {
+								"three": "https://cdn.jsdelivr.net/npm/three@<0.170.0/build/three.module.js",
+								"three/addons/": "https://cdn.jsdelivr.net/npm/three@<0.170.0/examples/jsm/"
+							}
+						}
+				</script>
+		<link href="styles/style.css" rel="stylesheet">
 	</head>
 	<body>
-		<script type="module" src="js/index.js"></script>
+		<canvas id="myCanvas" width="400" height="200" style="border:1px solid #000;"></canvas>
+		<script>
+				// Step 1: Get the canvas element and its 2D rendering context
+				const canvas = document.getElementById('myCanvas');
+				const ctx = canvas.getContext('2d');
+		
+				// Step 2: Set text properties
+				ctx.font = '30px Arial'; // Font size and family
+				ctx.fillStyle = 'blue'; // Text color
+		
+				// Step 3: Draw the text
+				ctx.fillText('Hello, world!', 50, 100); // Text, x-coordinate, y-coordinate
+			</script>			
+			<script type="module" src="js/index.js"></script>
+		</canvas>
 	</body>
 </html>

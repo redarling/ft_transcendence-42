@@ -4,7 +4,13 @@ canva
     height: 20px;
 }
 
-#game {
+body
+{
+    background-color: grey;
+}
+
+#game 
+{
     display: flex;
     width: 10px;
     height: 10px;
