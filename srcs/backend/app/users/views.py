@@ -1,32 +1,29 @@
-from django.shortcuts import render
 from django.db import models
 from django.db.models import Q
-from datetime import datetime, timedelta
-from django.conf import settings
 from django.contrib.auth import authenticate
-from rest_framework import viewsets
 from rest_framework import status
 from rest_framework import permissions
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.generics import UpdateAPIView, RetrieveAPIView, ListAPIView
 from .models import User, UserStats, Friend, BlacklistedToken
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, \
-    UserProfileSerializer, UserProfileSearchSerializer, UserUpdateSerializer, \
-    UserStatsSerializer, FriendSerializer
-import jwt
+from .serializers import (UserRegistrationSerializer, UserProfileSerializer, 
+                          UserProfileSearchSerializer, UserUpdateSerializer, 
+                            UserStatsSerializer, FriendSerializer)
 from .jwt_logic import generate_jwt, decode_jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+from .session_id import generate_session_id
+from django.utils import timezone
+from datetime import timedelta
 
 class UserRegistrationAPIView(APIView):
     permission_classes = [permissions.AllowAny]
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
+            serializer.save()
             return Response({'message': 'User successfully registered.'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -49,22 +46,39 @@ class UserLoginAPIView(APIView):
             # Authentication failed
             return Response({"error": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
         
-        user.set_online()
-        # Access token (15 minutes)
+        # Check if the user already has an active session
+        if user.active_session_id:
+            # If the session is more than 10 minutes old, consider it expired
+            inactivity_limit = timezone.now() - timedelta(minutes=10)
+            if user.last_activity < inactivity_limit:
+                # Session expired due to inactivity
+                user.active_session_id = None
+                user.save(update_fields=['active_session_id', 'last_activity'])
+            else:
+                return Response({"error": "You are already logged in on another device."}, status=status.HTTP_403_FORBIDDEN)
         
+        session_id = generate_session_id()
+        user.active_session_id = session_id
+        user.update_last_activity()
+        user.set_online()
+        user.save(update_fields=['active_session_id', 'last_activity', 'online_status'])
+
+        # Access token (15 minutes)
         access_payload = {
             "user_id": user.id,
             "username": user.username,
-            "type": "access"
+            "type": "access",
+            "session_id": session_id
         }
-        access_token = generate_jwt(access_payload, expiration_minutes=15)  # 15 minutes
+        access_token = generate_jwt(access_payload, expiration_minutes=15, session_id=session_id)  # 15 minutes
         
         # Refresh token (7 days)
         refresh_payload = {
             "user_id": user.id,
-            "type": "refresh"
+            "type": "refresh",
+            "session_id": session_id
         }
-        refresh_token = generate_jwt(refresh_payload, expiration_minutes=7 * 24 * 60)  # 7 days
+        refresh_token = generate_jwt(refresh_payload, expiration_minutes=7 * 24 * 60, session_id=session_id)  # 7 days
         
         return Response(
             {
@@ -79,7 +93,7 @@ class UserTokenRefreshAPIView(APIView):
     """
     Handles refreshing of JWT tokens.
     """
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         refresh_token = request.data.get('refresh_token')
         if not refresh_token:
             return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -88,23 +102,33 @@ class UserTokenRefreshAPIView(APIView):
             return Response({"error": "This refresh token has been revoked."}, status=status.HTTP_401_UNAUTHORIZED)
     
         try:
+            # Decode the refresh token
             payload = decode_jwt(refresh_token)
             if payload.get("type") != "refresh":
                 return Response({"error": "Invalid token type."}, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Generate new access token
+
+            # Fetch user and check the session ID
+            user = User.objects.get(id=payload["user_id"])
+            if user.active_session_id != payload.get("session_id"):
+                return Response({"error": "Session mismatch. Please log in again."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Generate new access token with the same session_id
             access_payload = {
-                "user_id": payload["user_id"],
-                "username": payload.get("username", ""),
-                "type": "access"
+                "user_id": user.id,
+                "username": user.username,
+                "type": "access",
+                "session_id": user.active_session_id  # Use the current active session ID
             }
-            access_token = generate_jwt(access_payload, expiration_minutes=15)  # 15 minutes
+            access_token = generate_jwt(access_payload, expiration_minutes=15, session_id=user.active_session_id)
             
             return Response({"access_token": access_token}, status=status.HTTP_200_OK)
         except ExpiredSignatureError:
             return Response({"error": "Refresh token has expired."}, status=status.HTTP_401_UNAUTHORIZED)
         except InvalidTokenError:
             return Response({"error": "Invalid refresh token."}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_400_BAD_REQUEST)
+
 
 # TODO: delete old revoked tokens from BlacklistedToken
 class UserLogoutAPIView(APIView):
@@ -121,17 +145,27 @@ class UserLogoutAPIView(APIView):
             token_type, token = auth_header.split(' ')
             if token_type.lower() != 'bearer':
                 raise AuthenticationFailed("Invalid token header format.")
-            
-            BlacklistedToken.objects.create(token=token)
 
+            # Decode the refresh token to get user information
             payload = decode_jwt(refresh_token)
             if payload.get("type") != "refresh":
                 return Response({"error": "Invalid token type."}, status=status.HTTP_400_BAD_REQUEST)
 
-            BlacklistedToken.objects.create(token=refresh_token)
+            # Get the user from the refresh token
+            user = User.objects.get(id=payload["user_id"])
 
-            user = request.user
+            # Ensure the session is still valid
+            if user.active_session_id != payload.get("session_id"):
+                return Response({"error": "Session mismatch. Please log in again."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Reset the session_id and set user to offline
+            user.active_session_id = None  # Reset session ID on logout
             user.set_offline()
+            user.save(update_fields=['active_session_id', 'online_status'])
+
+            # Blacklist both the access and refresh tokens
+            BlacklistedToken.objects.create(token=token)
+            BlacklistedToken.objects.create(token=refresh_token)
 
             return Response({"message": "Successfully logged out."}, status=status.HTTP_200_OK)
 
@@ -139,6 +173,8 @@ class UserLogoutAPIView(APIView):
             return Response({"error": "One of the tokens has already expired."}, status=status.HTTP_400_BAD_REQUEST)
         except InvalidTokenError:
             return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -155,7 +191,7 @@ class UserSearchAPIView(ListAPIView):
 
         return User.objects.filter(username__icontains=query).exclude(id=current_user.id)
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request):
         queryset = self.get_queryset()
 
         if queryset.count() == 0 and not request.query_params.get('search', '').strip():
@@ -175,13 +211,12 @@ class UserProfileAPIView(RetrieveAPIView):
         return {'request': self.request}
 
     def get_object(self):
-        user_id = self.kwargs.get('user_id', None)
+        user_id = self.kwargs.get('user_id')
         if user_id:
             try:
-                user = User.objects.get(id=user_id)
+                return User.objects.get(id=user_id)
             except User.DoesNotExist:
-                return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
-            return User.objects.get(id=user_id)
+                raise NotFound(detail="User not found.")
         return self.request.user
 
     def retrieve(self, request, *args, **kwargs):
@@ -210,11 +245,11 @@ class UserUpdateAPIView(UpdateAPIView):
     def get_object(self):
         return self.request.user
 
-    def put(self, request, *args, **kwargs):
+    def put(self):
         return Response({'error': 'PUT method is not allowed. Use PATCH instead.'},
             status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def patch(self, request, *args, **kwargs):
+    def patch(self, request, **kwargs):
         partial = kwargs.pop('partial', True)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -264,7 +299,7 @@ class FriendshipAPIView(APIView):
     """
     API for managing friend requests and friendship statuses.
     """
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         """
         Send a friend request.
         """
@@ -319,7 +354,7 @@ class FriendshipAPIView(APIView):
         except Friend.DoesNotExist:
             return Response({'error': 'Friendship does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
     
-    def patch(self, request, *args, **kwargs):
+    def patch(self, request):
         """
         Accept or decline a friend request.
         """
@@ -356,7 +391,7 @@ class FriendRequestsAPIView(ListAPIView):
         user = self.request.user
         return Friend.objects.filter(friend=user, status='pending')
 
-    def list(self, request, *args, **kwargs):
+    def list(self):
         queryset = self.get_queryset()
 
         if queryset.count() == 0:

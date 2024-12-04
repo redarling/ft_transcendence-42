@@ -5,6 +5,8 @@ from .models import User, BlacklistedToken
 from django.core.exceptions import ValidationError
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from .jwt_logic import decode_jwt
+from django.utils import timezone
+from datetime import timedelta
 
 class UserAuthentication(BaseBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
@@ -54,6 +56,16 @@ class AccessTokenAuthentication(BaseAuthentication):
             if not user.is_active:
                 raise AuthenticationFailed('User is inactive.')
 
+            if payload.get('session_id') != user.active_session_id:
+                    raise AuthenticationFailed("Session is no longer active.")
+            
+            # Check if the user has been inactive for too long
+            inactivity_limit = timedelta(minutes=10)  # 10 minutes of inactivity
+            if timezone.now() - user.last_activity > inactivity_limit:
+                # If the user has been inactive for more than 10 minutes, treat it as logged out
+                raise AuthenticationFailed("Session has expired due to inactivity.")
+            # Update last activity timestamp
+            user.update_last_activity()
             return (user, None)
         except (ExpiredSignatureError, InvalidTokenError) as e:
             raise AuthenticationFailed(str(e))

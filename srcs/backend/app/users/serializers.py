@@ -28,19 +28,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(password=password, **validated_data)  # create_user hashes password
         return user
 
-class UserLoginSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=255, required=True)
-    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
-
-    def validate(self, data):
-        username = data.get('username')
-        password = data.get('password')
-
-        if not username or not password:
-            raise serializers.ValidationError("Username and password are required.")
-
-        return data
-
 class UserProfileSearchSerializer(serializers.ModelSerializer):
 
     class Meta:

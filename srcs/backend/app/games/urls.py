@@ -1,29 +1,19 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import MatchViewSet, TournamentViewSet
-
-router = DefaultRouter()
-router.register(r'matches', MatchViewSet)
-router.register(r'tournaments', TournamentViewSet)
+from django.urls import path
+from .views import (MatchHistoryAPIView, MatchStatsAPIView, UpdateMatchHistoryAPIView,
+                    OnlineMatchAPIView, TournamentCreationAPIView, JoinTournamentAPIView, 
+                    InviteTournamentAPIView, StartTournamentAPIView)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('match-history/<int:id>/', MatchHistoryAPIView.as_view(), name='match-history'),
+    path('update-match-history/<int:id>/', UpdateMatchHistoryAPIView.as_view(), name='update-match-history'),
+    path('match-stats/<int:id>/', MatchStatsAPIView.as_view(), name='match-stats'),
 
-    # Matches creation
-    #path('create-match/1v1/offline', MatchViewSet.as_view({'post': 'create_offline_match'})),
-    #path('create-match/1v1/online', MatchViewSet.as_view({'post': 'create_online_match'})),
-    #path('create-mathc/1v1/bot', MatchViewSet.as_view({'post': 'create_bot_match'})),
+    path('matchmaking/', OnlineMatchAPIView.as_view(), name='matchmaking'),
 
-    # Update match
-    #path('update-match/', MatchUpdateViewSet.as_view({'post': 'update_match'})),
-    #path('update-match/<int:id>/', MatchUpdateViewSet.as_view({'post': 'update_match'})),
-    
-
-    # Tournaments creation
-    #path('create-tournament/', TournamentViewSet.as_view({'post': 'create_tournament'})),
-    #path('join-tournament/', TournamentViewSet.as_view({'post': 'join_tournament'})),
-    #path('invite-tournament/', TournamentViewSet.as_view({'post': 'invite_tournament'})),
-
+    path('create-tournament/', TournamentCreationAPIView.as_view(), name='create-tournament'),
+    path('join-tournament/', JoinTournamentAPIView.as_view(), name='join-tournament'),
+    path('invite-tournament/', InviteTournamentAPIView.as_view(), name='invite-tournament'),
+    path('start-tournament/', StartTournamentAPIView.as_view(), name='start-tournament'),
 ]
 
 

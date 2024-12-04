@@ -1,5 +1,6 @@
 import jwt
-import datetime
+from django.utils import timezone
+from datetime import timedelta
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
@@ -24,22 +25,21 @@ PUBLIC_KEY = public_key.public_bytes(
     format=serialization.PublicFormat.SubjectPublicKeyInfo
 )
 
-# Function to generate a JWT token
-def generate_jwt(payload: dict, expiration_minutes: int) -> str:
+def generate_jwt(payload: dict, expiration_minutes: int, session_id: str = None) -> str:
     """
     Generate a JWT token with the given payload and expiration time.
 
     :param payload: Dictionary containing user data (e.g., {"user_id": 1})
     :param expiration_minutes: Token's lifespan in minutes
+    :param session_id: Session ID to include in the token
     :return: A JWT token string
     """
+    payload['session_id'] = session_id
+    payload['exp'] = timezone.now() + timedelta(minutes=expiration_minutes)
 
-    payload['exp'] = datetime.datetime.utcnow() + datetime.timedelta(minutes=expiration_minutes)
-    
     token = jwt.encode(payload, PRIVATE_KEY, algorithm='RS256')
     return token
 
-# TODO: Verifying that a token has not actually been modified or tampered with?
 def decode_jwt(token: str) -> dict:
     """
     Decode and verify the given JWT token using the public key.
