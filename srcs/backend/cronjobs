@@ -1,1 +1,0 @@
-*/5 * * * * root /usr/local/bin/python /app/manage.py update_user_status >> /var/log/cron.log 2>&1

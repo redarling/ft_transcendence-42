@@ -159,9 +159,8 @@ class UserLogoutAPIView(APIView):
                 return Response({"error": "Session mismatch. Please log in again."}, status=status.HTTP_400_BAD_REQUEST)
 
             # Reset the session_id and set user to offline
-            user.active_session_id = None  # Reset session ID on logout
             user.set_offline()
-            user.save(update_fields=['active_session_id', 'online_status'])
+            user.invalidate_session()
 
             # Blacklist both the access and refresh tokens
             BlacklistedToken.objects.create(token=token)

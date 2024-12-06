@@ -7,7 +7,7 @@ def api_root(request):
 
 urlpatterns = [
     path('api/', api_root),
-    path('api/admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
     path('api/games/', include('games.urls')),
 ]

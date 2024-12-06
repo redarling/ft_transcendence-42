@@ -1,18 +1,18 @@
 FROM python:3.11
 
-RUN apt update && apt install -y postgresql-client cron
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 COPY requirements.txt /app/
+
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . /app/
+COPY . .
 
-COPY ./cronjobs /etc/cron.d/cronjobs
+EXPOSE 8000
 
-RUN chmod 0644 /etc/cron.d/cronjobs
-
-RUN crontab /etc/cron.d/cronjobs
-
-CMD cron && python app/manage.py makemigrations && python app/manage.py migrate && python app/manage.py runserver 0.0.0.0:8000
+CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && daphne -b backend -p 8000 core.asgi:application"]
