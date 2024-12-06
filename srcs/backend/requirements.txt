@@ -5,6 +5,6 @@ djangorestframework
 django-cors-headers
 pyjwt
 cryptography
-channels
-channels_redis
+channels==4.2.0
+channels_redis==4.2.1
 
