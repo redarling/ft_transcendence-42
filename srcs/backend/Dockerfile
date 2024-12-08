@@ -1,12 +1,16 @@
 FROM python:3.11
 
-RUN apt update && apt install -y postgresql-client
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY requirements.txt /app/
+COPY . .
+
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . /app/
+EXPOSE 8000
 
-CMD ["sh", "-c", "python app/manage.py makemigrations && python app/manage.py migrate && python app/manage.py runserver 0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && daphne -b backend -p 8000 core.asgi:application"]
