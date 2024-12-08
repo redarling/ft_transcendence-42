@@ -23,7 +23,7 @@ class User(AbstractUser):
     avatar = models.URLField(null=True, blank=True)
     password = models.CharField(max_length=128, default='default_password', null=False)
     active_session_id = models.CharField(max_length=128, null=True, blank=True)
-    last_activity = models.DateTimeField(null=True, blank=True)
+    last_activity = models.DateTimeField(null=True, blank=True, default=now)
     
     groups = models.ManyToManyField(
         'auth.Group',
@@ -64,13 +64,6 @@ class User(AbstractUser):
     def invalidate_session(self):
         self.active_session_id = None
         self.save(update_fields=['active_session_id'])
-
-class BlacklistedToken(models.Model):
-    token = models.CharField(max_length=512, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.token
 
 class UserStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='stats')

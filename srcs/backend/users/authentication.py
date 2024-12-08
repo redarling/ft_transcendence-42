@@ -1,7 +1,7 @@
 from django.contrib.auth.backends import BaseBackend
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-from .models import User, BlacklistedToken
+from .models import User
 from django.core.exceptions import ValidationError
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from .jwt_logic import decode_jwt
@@ -39,12 +39,12 @@ class AccessTokenAuthentication(BaseAuthentication):
             return None
         
         try:
-            token_type, token = auth_header.split(' ')
+            try:
+                token_type, token = auth_header.split(' ', 1)
+            except ValueError:
+                raise AuthenticationFailed('Invalid Authorization header format.')
             if token_type.lower() != 'bearer':
                 raise AuthenticationFailed('Invalid token header format.')
-
-            if BlacklistedToken.objects.filter(token=token).exists():
-                raise AuthenticationFailed("This token has been revoked.")
 
             # Decode the JWT
             payload = decode_jwt(token)
