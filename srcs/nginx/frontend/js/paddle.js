@@ -52,4 +52,8 @@ export class Paddle {
     getPosZ() {
         return this.#mesh.position.z;
     }
+
+    setPosZ(z) {
+        this.#mesh.position.z = z;
+    }
 }

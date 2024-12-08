@@ -56,7 +56,7 @@ export class Ball {
         this.#velocityZ = this.#initialVelocityZ;
         this.#timesHit = 0;
     }
-
+    
     switchDirectionZ() {
         this.#directionZ *= -1;
     }
@@ -103,5 +103,13 @@ export class Ball {
 
     getDirectionZ() {
         return this.#directionZ;
+    }
+
+    getVelocityX() {
+        return this.#velocityX;
+    }
+
+    getVelocityZ() {
+        return this.#velocityZ;
     }
 }

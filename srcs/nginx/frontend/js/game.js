@@ -5,6 +5,9 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Ball } from './ball.js';
 import { Paddle } from './paddle.js';
 import { Score } from './score.js';
+import { AI } from './ai.js';
+
+import { againstBot } from './index.js';
 
 const ASPECT_RATIO = window.innerWidth / window.innerHeight;
 const CAMERA_FOV = 75;
@@ -13,7 +16,7 @@ const CAMERA_POSY = 5;
 const MIN_RENDERED_DISTANCE = 0.1;
 const MAX_RENDERED_DISTANCE = 1000;
 
-const FIELD_DIMENSION_Z = 6;
+export const FIELD_DIMENSION_Z = 6;
 
 const STADIUM_MODEL_PATH = '../public/scene.glb';
 const STADIUM_SCALE = 0.5;
@@ -37,7 +40,7 @@ const PADDLE_COLOR = 0xffffff;
 const PADDLE_SPEED = 0.06;
 const PADDLE_DIMENSION_X = 0.2;
 const PADDLE_DIMENSION_Y = 0.2;
-const PADDLE_DIMENSION_Z = 1;
+export const PADDLE_DIMENSION_Z = 1;
 const PADDLE_LEFT_POSX = -4.8;
 const PADDLE_LEFT_POSY = 0.2;
 const PADDLE_LEFT_POSZ = 0;
@@ -54,10 +57,13 @@ const SCORE_RIGHT_POS = {x: 0.5, y: 1, z: -3};
 const SCORE_FONT_SIZE = 1;
 const SCORE_FONT_DEPTH = 0.2;
 const SCORE_FONT_COLOR = 0xffffff;
+const MAX_SCORE = 11;
 
 const keyPressed = new Set();
 window.addEventListener('keydown', (e) => keyPressed.add(e.key));
 window.addEventListener('keyup', (e) => keyPressed.delete(e.key));
+
+let reward = 0;
 
 export class Game {
 
@@ -72,6 +78,7 @@ export class Game {
     #paddleRight;
     #score;
     // -------------
+    #ai;
 
     constructor() {
         this.initScene();
@@ -120,6 +127,10 @@ export class Game {
             fontDepth: SCORE_FONT_DEPTH,
             color: SCORE_FONT_COLOR
         });
+
+        if (againstBot === true) {
+            this.#ai = new AI(this.#paddleRight);
+        }
     }
 
     initScene() {
@@ -152,11 +163,11 @@ export class Game {
     refreshPaddlePos(paddle, bindUp, bindDown) {
         if (keyPressed.has(bindUp)) { // Move the paddle up
             if (paddle.getPosZ() - (PADDLE_DIMENSION_Z / 2) > -(FIELD_DIMENSION_Z / 2)) {
-                paddle.moveUp();
+                paddle.moveUp(); // change to simulating keyboard
             }
         } else if (keyPressed.has(bindDown)) { // Move the paddle up
             if (paddle.getPosZ() + (PADDLE_DIMENSION_Z / 2) < FIELD_DIMENSION_Z / 2) {
-                paddle.moveDown();
+                paddle.moveDown(); // change to simulating keyboard
             }
         }
     }
@@ -176,12 +187,13 @@ export class Game {
             (this.#ball.getPosZ()) <= (this.#paddleLeft.getPosZ() + (PADDLE_DIMENSION_Z / 2))) {
                 this.#ball.handlePaddleHit(true);
         }
-    
+
         // Check the position of the ball with the position of the right paddle to detect collision and switch the ball X direction
         if ((this.#ball.getPosX() + BALL_RADIUS) >= (this.#paddleRight.getPosX() - (PADDLE_DIMENSION_X / 2)) && 
             (this.#ball.getPosZ()) >= (this.#paddleRight.getPosZ() - (PADDLE_DIMENSION_Z / 2)) &&
             (this.#ball.getPosZ()) <= (this.#paddleRight.getPosZ() + (PADDLE_DIMENSION_Z / 2))) {
                 this.#ball.handlePaddleHit(false);
+                reward++;
         }
 
         // The ball has crossed the X position of the left paddle, so the right player has scored
@@ -189,6 +201,7 @@ export class Game {
             this.#score.scoreRight();
             this.#ball.reset();
             this.#ball.switchDirectionX();
+            reward++;
         }
 
         // The ball has crossed the X position of the right paddle, so the left player has scored
@@ -196,17 +209,89 @@ export class Game {
             this.#score.scoreLeft();
             this.#ball.reset();
             this.#ball.switchDirectionX();
+            reward--;
         }
+    }
+
+    // States:
+    // 0 -> ball in front of the paddle
+    // 1 -> ball is over the paddle
+    // 2 -> ball is under the paddle
+    getState() {
+        if (this.#ball.getPosZ() >= this.#paddleRight.getPosZ() - (PADDLE_DIMENSION_Z / 2) &&
+            this.#ball.getPosZ() <= this.#paddleRight.getPosZ() + (PADDLE_DIMENSION_Z / 2)) {
+            return 0;
+        } else if (this.#ball.getPosZ() < this.#paddleRight.getPosZ() - (PADDLE_DIMENSION_Z / 2)) {
+            return 1;
+        } else if (this.#ball.getPosZ() > this.#paddleRight.getPosZ() + (PADDLE_DIMENSION_Z / 2)) {
+            return 2;
+        }
+        return 0;
+    }
+
+    getDistanceReward() {
+        let distanceReward = 0;
+    
+        // Calculate the distance on the z-axis between the ball and the paddle
+        const zDistance = Math.abs(this.#ball.getPosZ() - this.#paddleRight.getPosZ());
+    
+        // Additional reward based on the z-axis distance
+        distanceReward -= zDistance / PADDLE_DIMENSION_Z;
+    
+        return distanceReward;
+    }
+
+    coach() {
+        if (this.#ball.getPosZ() > this.#paddleLeft.getPosZ()) {
+            this.#paddleLeft.moveDown();
+        } else if (this.#ball.getPosZ() < this.#paddleLeft.getPosZ()) {
+            this.#paddleLeft.moveUp();
+        }
+    }
+
+    clearGame() {
+        this.#scene.clear();
+        this.#renderer.clear();
+        const canvas = this.#renderer.domElement;
+        canvas.parentNode.removeChild(canvas);
     }
 
     // Main game loop
     loop() {
         const animate = () => {
+            if (this.#score.getScoreLeft() === MAX_SCORE || this.#score.getScoreRight() === MAX_SCORE) {
+                let playerWhoWon = this.#score.getScoreLeft() === MAX_SCORE ? "left" : "right";
+                alert(`The ${playerWhoWon} player won!`);
+                this.#renderer.setAnimationLoop(null);
+                this.clearGame();
+                return;
+            }
+
+            let currentState;
+            let action;
+
+            if (againstBot === true) {
+                currentState = this.getState(); // get the actual state
+                action = this.#ai.chooseAction(currentState); // chose the action based on this state
+                
+                this.#ai.performAction(action); // perform the action we have chosen
+            }
+
             this.#renderer.render(this.#scene, this.#camera); // render the whole scene (new mesh positions ...)
             this.#controls.update();
             this.refreshPaddlePos(this.#paddleLeft, PADDLE_LEFT_BIND_UP, PADDLE_LEFT_BIND_DOWN);
             this.refreshPaddlePos(this.#paddleRight, PADDLE_RIGHT_BIND_UP, PADDLE_RIGHT_BIND_DOWN);
             this.refreshBallPos();
+
+            // this.coach();
+
+            if (againstBot === true) {
+                const nextState = this.getState();
+                reward += this.getDistanceReward();
+                this.#ai.updateQ(currentState, action, reward, nextState);
+                reward = 0;
+            }
+            this.#renderer.setAnimationLoop(animate);
         };
         this.#renderer.setAnimationLoop(animate);
     }
