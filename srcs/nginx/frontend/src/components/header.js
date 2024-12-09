@@ -8,11 +8,9 @@
 // 		console.error("Failed to load header: template or app not found");
 // }
 
-export async function loadHeader() 
-{
-	const app = document.getElementById("app"); // Target container
-	try 
-    {
+export async function loadHeader() {
+	const header = document.getElementById("header"); // Target container
+	try {
 		// Fetch the HTML content of header.html
 		const response = await fetch("../html/header.html"); // Adjust the path as needed
 		if (!response.ok) {
@@ -20,11 +18,10 @@ export async function loadHeader()
 		}
 		// Get the HTML text and insert it into the container
 		const html = await response.text();
-		app.innerHTML = html;
+		header.innerHTML = html;
 	} 
-    catch (error) 
-    {
+	catch (error) {
 		console.error(error);
-		app.innerHTML = `<p>Failed to load the header. Please try again later.</p>`;
+		header.innerHTML = `<p>Failed to load the header. Please try again later.</p>`;
 	}
 }

@@ -15,7 +15,7 @@ const MAX_RENDERED_DISTANCE = 1000;
 
 const FIELD_DIMENSION_Z = 6;
 
-const STADIUM_MODEL_PATH = '../public/scene.glb';
+const STADIUM_MODEL_PATH = '../assets/scene.glb';
 const STADIUM_SCALE = 0.5;
 
 const LIGHT_COLOR = 0xffffff;

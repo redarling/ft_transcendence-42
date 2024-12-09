@@ -1,7 +1,7 @@
 export function loadHomePage() 
 {
 	// Assuming a root div with id="app"
-	const root = document.getElementById("header");
+	const root = document.getElementById("main");
 	root.innerHTML = `
 	  <div class="container">
 		<h1>Welcome to Transcendence</h1>
@@ -12,7 +12,8 @@ export function loadHomePage()
 	`;
 
 	// Add event listeners if necessary
-	document.getElementById("start-button").addEventListener("click", () => {
+	document.getElementById("start-button").addEventListener("click", () => 
+	{
 		console.log("Game started!");
 	});
 }
