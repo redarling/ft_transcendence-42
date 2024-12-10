@@ -1,7 +1,7 @@
 .DS_Store
 .vscode
 myenv
-app
+app/
 __pycache__/
 *.pyc
 *.py
