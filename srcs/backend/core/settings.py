@@ -63,7 +63,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'users.middleware.UpdateLastActivityMiddleware',
-    'users.middleware.OnlineStatusMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -119,6 +118,18 @@ LOGGING = {
             'level': 'INFO',
         },
     },
+}
+
+# Redis Configuration
+REDIS_HOST = 'redis'
+REDIS_PORT = 6379
+REDIS_DB = 0
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',
+    }
 }
 
 

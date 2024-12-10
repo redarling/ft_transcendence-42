@@ -1,7 +1,7 @@
 from django.db import models, transaction
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.utils.timezone import now
+from .redis_manager import UserActivityRedisManager
 
 class UserManager(BaseUserManager):
     def create_user(self, username, email, password, **extra_fields):
@@ -23,7 +23,6 @@ class User(AbstractUser):
     avatar = models.URLField(null=True, blank=True)
     password = models.CharField(max_length=128, default='default_password', null=False)
     active_session_id = models.CharField(max_length=128, null=True, blank=True)
-    last_activity = models.DateTimeField(null=True, blank=True, default=now)
     
     groups = models.ManyToManyField(
         'auth.Group',
@@ -56,14 +55,16 @@ class User(AbstractUser):
         if self.online_status:
             self.online_status = False
             self.save(update_fields=['online_status'])
-    
-    def update_last_activity(self):
-        self.last_activity = now()
-        self.save(update_fields=['last_activity'])
 
     def invalidate_session(self):
         self.active_session_id = None
         self.save(update_fields=['active_session_id'])
+    
+    def update_last_activity(self):
+        UserActivityRedisManager.update_last_activity(self.id)
+    
+    def check_last_activity_key(self):
+        return UserActivityRedisManager.is_active(self.id)
 
 class UserStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='stats')

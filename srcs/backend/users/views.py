@@ -48,19 +48,13 @@ class UserLoginAPIView(APIView):
         
         # Check if the user already has an active session
         if user.active_session_id:
-            # If the session is more than 10 minutes old, consider it expired
-            inactivity_limit = timezone.now() - timedelta(minutes=10)
-            if user.last_activity < inactivity_limit:
-                # Session expired due to inactivity
-                user.active_session_id = None
-                user.save(update_fields=['active_session_id', 'last_activity'])
-            else:
-                return Response({"error": "You are already logged in on another device."}, status=status.HTTP_403_FORBIDDEN)
+            if user.check_last_activity_key():
+                return Response({"error": "You are already logged in. Please log out from other devices to continue."}, status=status.HTTP_403_FORBIDDEN)
         
         session_id = generate_session_id()
         user.active_session_id = session_id
-        user.last_activity = timezone.now()
-        user.save(update_fields=['active_session_id', 'last_activity', 'online_status'])
+        user.update_last_activity()
+        user.save(update_fields=['active_session_id'])
 
         # Access token (15 minutes)
         access_payload = {

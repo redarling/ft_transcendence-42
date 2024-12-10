@@ -3,11 +3,13 @@ from urllib.parse import parse_qs
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from django.contrib.auth.models import AnonymousUser
 from channels.middleware import BaseMiddleware
-from django.utils.deprecation import MiddlewareMixin
 from django.http import JsonResponse
 from .models import User
 from channels.db import database_sync_to_async
 from .jwt_logic import decode_jwt
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TokenAuthMiddleware(BaseMiddleware):
     """
@@ -34,41 +36,34 @@ class TokenAuthMiddleware(BaseMiddleware):
         return await super().__call__(scope, receive, send)
 
 class UpdateLastActivityMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        response = self.get_response(request)
-
-        if request.user.is_authenticated:
-            request.user.last_activity = now()
-            request.user.save(update_fields=["last_activity"])
-
-        return response
-
-class OnlineStatusMiddleware(MiddlewareMixin): #dosent work
     """
-    Middleware to check if a user is online and prevent HTTP actions from inactive users
+    Middleware to update user's last activity and check online status.
     """
-
     EXEMPT_PATHS = [
         '/api/users/login/',
         '/api/users/register/',
         '/api/users/refresh-token/',
     ]
 
-    def process_request(self, request):
-        if request.path in self.EXEMPT_PATHS:
-            return None
+    def __init__(self, get_response):
+        self.get_response = get_response
 
-        user = request.user
-        if isinstance(user, AnonymousUser):
-            return None
+    def __call__(self, request):
+        response = self.get_response(request)
 
-        if not user.is_online:
-            return JsonResponse(
-                {"detail": "User is not online. Please reconnect to the WebSocket."},
-                status=403
-            )
-        return None
+        self.handle_authenticated_user(request)
+
+        return response
+
+    def handle_authenticated_user(self, request):
+        """Checks the online status and updates the user's activity."""
+        if request.user.is_authenticated:
+            if request.path not in self.EXEMPT_PATHS:
+                if not getattr(request.user, 'online_status', False):
+                    return JsonResponse(
+                        {"detail": "User is not online. Please reconnect to the WebSocket."},
+                        status=403
+                    )
+            request.user.update_last_activity()
+
 
