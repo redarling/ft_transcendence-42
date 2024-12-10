@@ -1,52 +1,82 @@
-import Home from './components/home.js';
-import About from './components/about.js';
-import Contact from './components/contact.js';
+import Home from "../pages/home.js";
+import Login from "../pages/login.js";
+import loadGame from "../game/index.js";
+import { isAuthenticated } from "./api.js";
 
-// Function to handle navigation
-function navigateTo(url) {
-    history.pushState(null, null, url);
-    router();
+// function renderPage(pageName) {
+// 	const root = document.getElementById("app"); // Main content container
+// 	root.innerHTML = ""; // Clear current content
+
+// 	switch (pageName) {
+// 		case "home":
+// 			root.appendChild(Home());
+// 			break;
+// 		case "login":
+// 			root.appendChild(Login());
+// 			break;
+// 		case "game":
+// 			if (!isAuthenticated()) {
+// 				window.history.pushState(null, null, "/login");
+// 				root.appendChild(Login());
+// 			} else {
+// 				root.appendChild(loadGame());
+// 			}
+// 			break;
+// 		default:
+// 			root.innerHTML = "<h1>404 - Page Not Found</h1>";
+// 	}
+// }
+
+// export function router() {
+// 	const routes = {
+// 		"/": "home",
+// 		"/login": "login",
+// 		"/game": "game",
+// 	};
+// 	const route = routes[window.location.pathname];
+// 	renderPage(route || "home");
+// }
+
+// window.onpopstate = router;
+
+
+// ANOTHER Alternative
+
+// router.js
+export const routes = {
+	'/': 'home',
+	'/login': 'login',
+	'/game': 'game',
+};
+
+export const render = (route) => {
+	const app = document.getElementById('app');
+	app.innerHTML = ''; // Clear current content
+	switch (route) {
+		case '/':
+			app.innerHTML = `
+				<header>${Header()}</header>
+				<main>${Home()}</main>
+				<footer>${Footer()}</footer>`;
+			break;
+		case '/login':
+			app.innerHTML = `
+				<header>${Header()}</header>
+				<main>${Login()}</main>`;
+			break;
+		case '/game':
+			app.innerHTML = `
+				<main>${Game()}</main>`;
+			break;
+		default:
+			app.innerHTML = `
+				<main><h1>404 - Page Not Found</h1></main>`;
+	}
+};
+
+export default function router() {
+	const route = routes[window.location.pathname];
+	render(route || '/');
 }
 
-// Function to handle routing
-async function router() {
-    const routes = [
-        { path: "/", view: () => console.log("Viewing Home") },
-        { path: "/about", view: About },
-        { path: "/contact", view: () => console.log("Viewing Contact") }
-    ];
-
-    // Test each route for potential match
-    const potentialMatches = routes.map(route => {
-        return {
-            route: route,
-            isMatch: location.pathname === route.path
-        };
-    });
-
-    let match = potentialMatches.find(potentialMatch => potentialMatch.isMatch);
-
-    if (!match) {
-        match = {
-            route: routes[0],
-            isMatch: true
-        };
-    }
-
-    document.querySelector('#app').innerHTML = await match.route.view();
-}
-
-// Event listener for navigation links
-document.addEventListener("DOMContentLoaded", () => {
-    document.body.addEventListener("click", e => {
-        if (e.target.matches("[data-link]")) {
-            e.preventDefault();
-            navigateTo(e.target.href);
-        }
-    });
-
-    router();
-});
-
-// Handle back/forward navigation
-window.addEventListener("popstate", router);
+window.onpopstate = router;

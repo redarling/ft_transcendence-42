@@ -1,4 +1,4 @@
-export function loadHomePage() 
+export default function loadHomePage() 
 {
 	// Assuming a root div with id="app"
 	const root = document.getElementById("main");

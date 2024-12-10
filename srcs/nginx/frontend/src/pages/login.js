@@ -1,4 +1,4 @@
-export function loadLoginPage() 
+export default function loadLoginPage() 
 {
     return `
         <section>
