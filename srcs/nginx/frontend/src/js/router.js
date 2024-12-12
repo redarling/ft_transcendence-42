@@ -1,7 +1,7 @@
-import Home from "../pages/home.js";
-import Login from "../pages/login.js";
-import loadGame from "../game/index.js";
-import { isAuthenticated } from "./api.js";
+// import Home from "../pages/home.js";
+// import Login from "../pages/login.js";
+// import loadGame from "../game/index.js";
+// import { isAuthenticated } from "./api.js";
 
 // function renderPage(pageName) {
 // 	const root = document.getElementById("app"); // Main content container
