@@ -121,42 +121,15 @@ class UserTokenRefreshAPIView(APIView):
 
 class UserLogoutAPIView(APIView):
     def post(self, request):
-        auth_header = request.headers.get('Authorization')
-        refresh_token = request.data.get('refresh_token')
-
-        if not auth_header:
-            return Response({"error": "Access token is required."}, status=status.HTTP_400_BAD_REQUEST)
-        if not refresh_token:
-            return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
-        
         try:
-            token_type, token = auth_header.split(' ')
-            if token_type.lower() != 'bearer':
-                raise AuthenticationFailed("Invalid token header format.")
+            user = request.user
 
-            # Decode the refresh token to get user information
-            payload = decode_jwt(refresh_token)
-            if payload.get("type") != "refresh":
-                return Response({"error": "Invalid token type."}, status=status.HTTP_400_BAD_REQUEST)
+            if not user or not user.is_authenticated:
+                return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
 
-            # Get the user from the refresh token
-            user = User.objects.get(id=payload["user_id"])
-
-            # Ensure the session is still valid
-            if user.active_session_id != payload.get("session_id"):
-                return Response({"error": "Session mismatch. Please log in again."}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Reset the session_id
             user.invalidate_session()
 
             return Response({"message": "Successfully logged out."}, status=status.HTTP_200_OK)
-
-        except ExpiredSignatureError:
-            return Response({"error": "One of the tokens has already expired."}, status=status.HTTP_400_BAD_REQUEST)
-        except InvalidTokenError:
-            return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
-        except User.DoesNotExist:
-            return Response({"error": "User not found."}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

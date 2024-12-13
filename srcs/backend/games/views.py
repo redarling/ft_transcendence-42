@@ -3,7 +3,6 @@ from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-#from rest_framework.views import APIView
 #from rest_framework.generics import UpdateAPIView, RetrieveAPIView, ListAPIView
 from .models import Tournament, MatchHistory, MatchPlayerStats, TournamentParticipant, Round, Match
 from users.models import User, Friend, UserStats

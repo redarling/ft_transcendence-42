@@ -9,7 +9,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  redis: # for Django Channels (multiplayer)
+  redis: # for Django Channels (multiplayer) and caching
     image: redis:7.0
     container_name: redis
     networks:
