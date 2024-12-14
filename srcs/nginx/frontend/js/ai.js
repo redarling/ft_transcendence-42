@@ -1,136 +1,125 @@
-const eventPressP = new KeyboardEvent('keydown', {
-    key: 'p',
-    code: 'KeyP',
-    keyCode: 80,
-    bubbles: true,
-    cancelable: true
-});
-
-const eventReleaseP = new KeyboardEvent('keyup', {
-    key: 'p',
-    code: 'KeyP',
-    keyCode: 80,
-    bubbles: true,
-    cancelable: true
-});
-
-const eventPressM = new KeyboardEvent('keydown', {
-    key: 'm',
-    code: 'KeyM',
-    keyCode: 77,
-    bubbles: true,
-    cancelable: true
-});
-
-const eventReleaseM = new KeyboardEvent('keyup', {
-    key: 'm',
-    code: 'KeyM',
-    keyCode: 77,
-    bubbles: true,
-    cancelable: true
-});
-
 import { FIELD_DIMENSION_Z } from "./game.js";
-import { PADDLE_DIMENSION_Z } from "./game.js";
+import { BALL_RADIUS } from "./game.js";
 
-const QMAP_PATH = "../public/easy.json";
+const eventPressP = createKeyboardEvent('p', 'keydown');
+const eventReleaseP = createKeyboardEvent('p', 'keyup');
+const eventPressM = createKeyboardEvent('m', 'keydown');
+const eventReleaseM = createKeyboardEvent('m', 'keyup');
 
-const TRAINING = false;
-  
+function createKeyboardEvent(key, eventType) {
+    return new KeyboardEvent(eventType, {
+        key: key,
+        code: `Key${key.toUpperCase()}`,
+        keyCode: key.charCodeAt(0),
+        bubbles: true,
+        cancelable: true
+    });
+}
+
 export class AI {
-    constructor(paddle) {
-        if (TRAINING === true) {
-            this.Q = {};
-        } else {
-            this.loadQMapFromFile(QMAP_PATH); // TODO: Make 3 buttons to chose the difficulty of the bot (easy to do)
-        }
-        this.alpha = 0.4; // Increased learning rate
-        this.gamma = 0.7; // Discount factor
-        this.epsilon = 1; // Exploration rate
-        this.epsilonDecay = 0.99; // Decay rate for epsilon
-        this.minEpsilon = 0.01; // Minimum value for epsilon
-        this.paddle = paddle;
-        this.timesQTableUpdated = 0;
+    #paddle;
+    #ball;
+    #difficulty; // 1 = easy, 2 = medium, 3 = hard
+    #lastStateRefresh;
+
+    constructor(paddle, ball, difficulty) {
+        this.#paddle = paddle;
+        this.#ball = ball;
+        this.#difficulty = difficulty;
+        this.#lastStateRefresh = 0;
     }
 
-    saveQMapToFile(filename) {
-        const qMapJson = JSON.stringify(this.Q);
-        const blob = new Blob([qMapJson], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-
-    loadQMapFromFile(filePath) {
-        try {
-            const response = fetch(filePath);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+    async #predictBallTrajectory() {
+        // Snapshot of the game state
+        let ballPosX = this.#ball.getPosX();
+        let ballPosZ = this.#ball.getPosZ();
+        let ballDirectionX = this.#ball.getDirectionX();
+        let ballDirectionZ = this.#ball.getDirectionZ();
+        const ballVelocityX = this.#ball.getVelocityX();
+        const ballVelocityZ = this.#ball.getVelocityZ();
+        const agentPaddlePosX = this.#paddle.getPosX();
+    
+        // Calculate time to reach the paddle
+        const timeToPaddle = (agentPaddlePosX - ballPosX) / (ballDirectionX * ballVelocityX);
+    
+        // Calculate new Z position considering reflections
+        let newBallPosZ = ballPosZ + ballDirectionZ * ballVelocityZ * timeToPaddle;
+    
+        // Wall bounces
+        const fieldHalfWidth = FIELD_DIMENSION_Z / 2;
+        while (newBallPosZ + BALL_RADIUS >= fieldHalfWidth || newBallPosZ - BALL_RADIUS <= -fieldHalfWidth) {
+            if (newBallPosZ + BALL_RADIUS >= fieldHalfWidth) {
+                newBallPosZ = 2 * fieldHalfWidth - newBallPosZ - 2 * BALL_RADIUS;
+            } else if (newBallPosZ - BALL_RADIUS <= -fieldHalfWidth) {
+                newBallPosZ = -2 * fieldHalfWidth - newBallPosZ + 2 * BALL_RADIUS;
             }
-            const qMapJson = response.json();
-            this.Q = qMapJson;
-        } catch (error) {
-            console.error('Error loading Q-map:', error);
-            this.Q = {}; // Initialize with an empty Q-table if loading fails
+            ballDirectionZ = -ballDirectionZ;
         }
+    
+        return newBallPosZ;
     }
 
-    decreaseExplorationRate() {
-        this.epsilon = Math.max(this.epsilon * this.epsilonDecay, this.minEpsilon);
+    #addNoiseToPrediction(nextZPos) {
+        let noiseLevel = 0;
+        console.log(`${this.#difficulty}`);
+        switch (this.#difficulty) {
+            case 1:
+                noiseLevel = 0.7;
+                break;
+            case 2:
+                noiseLevel = 0.4;
+                break;
+            case 3:
+                noiseLevel = 0;
+                break;
+            default:
+                noiseLevel = 0;
+        }
+         // Generate noise from -noiseLevel to noiseLevel
+        let noise = (Math.random() - 0.5) * 2 * noiseLevel;
+        return nextZPos + noise;
     }
 
-    performAction(action) {
-        if (action === 0) { // Move up
-            if (this.paddle.getPosZ() - (PADDLE_DIMENSION_Z / 2) > -(FIELD_DIMENSION_Z / 2)) {
-                document.dispatchEvent(eventPressP);
-                setTimeout(() => {
-                    document.dispatchEvent(eventReleaseP);
-                }, 100);
+    // drawTrajectory(points) {
+    //     if (this.#trajectoryLine) {
+    //         this.#scene.remove(this.#trajectoryLine);
+    //     }
+
+    //     const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    //     const material = new THREE.LineBasicMaterial( { color: 0x0000ff } );
+    //     this.#trajectoryLine = new THREE.Line(geometry, material);
+
+    //     this.#scene.add(this.#trajectoryLine);
+    // }
+
+    async moveToTargetedPos(nextZPos) {
+        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+        const timeout = 2000; // Maximum time to move the paddle (in ms)
+        const startTime = Date.now();
+    
+        if (nextZPos < this.#paddle.getPosZ()) {
+            document.dispatchEvent(eventPressP);
+            while (nextZPos < this.#paddle.getPosZ()) {
+                if (Date.now() - startTime > timeout) break;
+                await delay(10);
             }
-        } else if (action === 1) { // Move down
-            if (this.paddle.getPosZ() + (PADDLE_DIMENSION_Z / 2) < FIELD_DIMENSION_Z / 2) {
-                document.dispatchEvent(eventPressM);
-                setTimeout(() => {
-                    document.dispatchEvent(eventReleaseM);
-                }, 100);
+            document.dispatchEvent(eventReleaseP);
+        } else if (nextZPos > this.#paddle.getPosZ()) {
+            document.dispatchEvent(eventPressM);
+            while (nextZPos > this.#paddle.getPosZ()) {
+                if (Date.now() - startTime > timeout) break;
+                await delay(10);
             }
+            document.dispatchEvent(eventReleaseM);
         }
     }
-
-    // Choose an action using epsilon-greedy policy
-    chooseAction(state) {
-        if (!this.Q[state]) { // the state has not been explored yet 
-            this.Q[state] = [0, 0, 0];
-        }
-
-        this.decreaseExplorationRate();
-
-        if (TRAINING === true) {
-            if (Math.random() < this.epsilon) { // choosing to explore (random choice)
-                return Math.floor(Math.random() * 2);
-            }
-        }
-        return this.Q[state].indexOf(Math.max(...this.Q[state]));
-    }
-
-    // Update the Q-table
-    updateQ(state, action, reward, nextState) {        
-        if (!this.Q[nextState]) this.Q[nextState] = [0, 0, 0];
-        
-        const maxNextQ = Math.max(...this.Q[nextState]);
-        const oldQ = this.Q[state][action];
-        
-        // Q-learning update rule
-        this.Q[state][action] = oldQ + this.alpha * (reward + this.gamma * maxNextQ - oldQ);
-        if (TRAINING === true) {
-            this.timesQTableUpdated++;
-            console.log(this.timesQTableUpdated);
-            if (this.timesQTableUpdated === 100000) {
-                this.saveQMapToFile("easy");
-            }
+    
+    async makeDecision() {
+        if (!this.#lastStateRefresh || Date.now() - this.#lastStateRefresh >= 1000) {
+            this.#lastStateRefresh = Date.now();
+            let nextZPos = await this.#predictBallTrajectory();
+            nextZPos = this.#addNoiseToPrediction(nextZPos);
+            await this.moveToTargetedPos(nextZPos);
         }
     }
 }

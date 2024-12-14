@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+// import { PADDLE_DIMENSION_Z } from './game'; // circular dependency
+const PADDLE_DIMENSION_Z = 1; // solution (circular dependencie)
+// TODO: Create a file having all the game settings to avoid similar problems in the future.
 
 export class Paddle {
     #scene;
@@ -51,6 +54,14 @@ export class Paddle {
 
     getPosZ() {
         return this.#mesh.position.z;
+    }
+
+    getUpperEdgeZPos() {
+        return this.#mesh.position.z - (PADDLE_DIMENSION_Z / 2);
+    }
+
+    getLowerEdgeZPos() {
+        return this.#mesh.position.z + (PADDLE_DIMENSION_Z / 2);
     }
 
     setPosZ(z) {

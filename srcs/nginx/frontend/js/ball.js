@@ -15,8 +15,11 @@ export class Ball {
     #initialPosZ;
     #initialVelocityX;
     #initialVelocityZ;
+    #kickOffTimeOut;
+    #kickOffFlag;
+    #velocityMultiplier;
 
-    constructor({scene, radius, posX, posY, posZ, velocity, soundEffectPath, texturePath}) {
+    constructor({scene, radius, posX, posY, posZ, velocity, soundEffectPath, texturePath, kickOffTimeOut, velocityMultiplier}) {
         this.#scene = scene;
         this.#radius = radius;
         this.#directionX = 1; // To change if we want someone to serve
@@ -31,6 +34,9 @@ export class Ball {
         this.#initialVelocityX = velocity;
         this.#initialVelocityZ = velocity;
         this.initMesh(posX, posY, posZ, texturePath);
+        this.#kickOffTimeOut = kickOffTimeOut;
+        this.#velocityMultiplier = velocityMultiplier;
+        this.#kickOffFlag = false;
     }
 
     initMesh(posX, posY, posZ, texturePath) {
@@ -44,8 +50,10 @@ export class Ball {
     }
 
     move() {
-        this.#mesh.position.x += this.#velocityX * this.#directionX;
-        this.#mesh.position.z += this.#velocityZ * this.#directionZ;
+        if (!this.#kickOffFlag) {
+            this.#mesh.position.x += this.#velocityX * this.#directionX;
+            this.#mesh.position.z += this.#velocityZ * this.#directionZ;
+        }
     }
 
     reset() {
@@ -55,6 +63,10 @@ export class Ball {
         this.#velocityX = this.#initialVelocityX;
         this.#velocityZ = this.#initialVelocityZ;
         this.#timesHit = 0;
+        this.#kickOffFlag = true;
+        setTimeout(() => {
+            this.#kickOffFlag = false;
+        }, this.#kickOffTimeOut);
     }
     
     switchDirectionZ() {
@@ -70,13 +82,12 @@ export class Ball {
         // To resolve it, we simply check if the ball's direction matches the paddle it hits.
         // It's impossible for the ball to be moving left and hit the right paddle.
         if (hitLeftPaddle && this.#directionX === -1 || !hitLeftPaddle && this.#directionX === 1) {
-
             this.#directionX *= -1;
             this.#timesHit += 1;
 
             if (this.#timesHit % 3 === 0) {
-                this.#velocityX += 0.02;
-                this.#velocityZ += 0.02;
+                this.#velocityX *= this.#velocityMultiplier;
+                this.#velocityZ *= this.#velocityMultiplier;
             }
 
             if (this.#soundEffect) {

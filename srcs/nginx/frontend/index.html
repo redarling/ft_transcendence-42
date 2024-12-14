@@ -6,10 +6,26 @@
 
         <h1>⭐ The Pong Game ⭐</h1>
         <h2>Play</h2>
-        <button id="playAgainstBot">Play against a bot</button>
-        <button id="playLocally">Play locally</button>
+        <fieldset>
+            <legend>Play against an AI</legend>
+            <div>
+                <input type="radio" id="difficultyEasy" name="difficulty" value="easy" checked>
+                <label for="difficultyEasy"> Easy </label>
 
-        <!-- To change and use installed dependencies -->
+                <input type="radio" id="difficultyMedium" name="difficulty" value="medium">
+                <label for="difficultymedium"> Medium </label>
+
+                <input type="radio" id="difficultyHard" name="difficulty" value="hard">
+                <label for="difficultyHard"> Hard </label>
+            </div>
+            <button id="playAgainstBot">Play</button>
+        </fieldset>
+
+        <fieldset>
+            <legend>Play locally</legend>
+                <button id="playLocally">Play</button>
+        </fieldset>
+
         <script type="importmap">
             {
               "imports": {
