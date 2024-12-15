@@ -1,18 +1,9 @@
-export default function loadLoginPage() 
-{
-    return `
-        <section>
-            <h1>Login</h1>
-            <form>
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-                <br>
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-                <br>
-                <button type="submit">Login</button>
-            </form>
-        </section>
+export default function renderLogin() {
+    const main = document.getElementById("main");
+    main.innerHTML = `
+        <div class="d-flex flex-column justify-content-center align-items-center" style="height: 80vh;">
+            <h1>* GONP *</h1>
+            <button type="button" class="btn btn-primary mt-3">Login with 42 ID</button>
+        </div>
     `;
 }
-

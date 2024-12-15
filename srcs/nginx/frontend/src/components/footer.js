@@ -1,17 +1,6 @@
-// src/components/footer.js
-export default function loadFooter() {
-	const footer = document.createElement("footer");
+export default function renderFooter() {
+	const footer = document.getElementById("footer");
 	footer.innerHTML = `
-        <p>© 2024 Pong Project</p>
-    `;
-	const existingFooter = document.querySelector("footer");
-
-	if (existingFooter) {
-		// Replace the existing header
-		existingFooter.replaceWith(footer);
-	} 
-	else {
-		// Add the header to the top of the body
-		document.body.prepend(footer);
-	}
+    	<footer class="bg-light text-center py-3" style="height: 10vh;">© 2024 Pong Project</footer>
+		`;
 }

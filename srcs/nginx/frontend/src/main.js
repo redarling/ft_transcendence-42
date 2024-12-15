@@ -1,16 +1,18 @@
-// import loadHeader from "./components/header.js";
-// import loadFooter from "./components/footer.js";
-// import router from "./js/router.js";
+import renderHeader from "./components/header.js";
+import renderFooter from "./components/footer.js";
+import renderHome from "./pages/home.js"
+import renderSettings from "./pages/settings.js"
+import renderLogin from "./pages/login.js"
 
 function router() {
 	// Define routes as an object mapping paths to components or functions
 	// url path : function to launch to display and update the dom
 	const routes = {
+		"/login": renderLogin,
 		"/": renderHome,
 		"/home": renderHome,
-		"/login": renderLogin,
-		"/game": renderGame,
 		"/settings": renderSettings,
+		// "/game": renderGame,
 	};
 
 	// get the current path of the website (allow to modify the dom website when the path is modified)
@@ -24,35 +26,33 @@ function router() {
 	renderFunction();
 }
 
+function renderStaticElements() {
+	renderHeader();
+	renderFooter();
+}
+
+function createDivBlocks() {
+	const app = document.getElementById("app");
+	app.innerHTML = `
+		<div id="header"></div>
+		<div id="main"></div>
+		<div id="footer"></div>
+		`
+}
+
 function updateDomContent() {
+	// Initialization
+	createDivBlocks();
+	renderStaticElements();
+	router();
 
-	// Load global CSS or other assets.
-
-	// Initialize the DOM with any global components.
-	// const app = document.getElementById("app");
-	// const header = loadHeader();
-	// const footer = loadFooter();
-	// document.body.prepend(header);
-	// document.body.appendChild(footer);
-
-	// Call the router to render the initial page.
-	// router();
-
-
-// continue on it:
-history.pushState()
-
-	document.addEventListener("click", (event) => {
-		document.getElementById("app").innerHTML = `
-			<h1>Game</h1>
-			<p>Game content</p>
-		`;
-	});
-
-
-
-
-	// Attach any global event listeners, if needed.
+	// Detect dom updates
 }
 
 document.addEventListener("DOMContentLoaded", updateDomContent);
+
+// Load global CSS or other assets.
+// Initialize the DOM with any global components.
+// const app = document.getElementById("app");
+// document.body.prepend(header);
+// document.body.appendChild(footer);
