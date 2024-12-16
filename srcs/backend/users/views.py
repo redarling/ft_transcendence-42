@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import AuthenticationFailed, NotFound
+from rest_framework.exceptions import NotFound
 from rest_framework.generics import UpdateAPIView, RetrieveAPIView, ListAPIView
 from .models import User, UserStats, Friend
 from .serializers import (UserRegistrationSerializer, UserProfileSerializer, 
@@ -14,8 +14,6 @@ from .serializers import (UserRegistrationSerializer, UserProfileSerializer,
 from .jwt_logic import generate_jwt, decode_jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from .session_id import generate_session_id
-from django.utils import timezone
-from datetime import timedelta
 
 class UserRegistrationAPIView(APIView):
     permission_classes = [permissions.AllowAny]

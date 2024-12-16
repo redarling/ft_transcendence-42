@@ -10,8 +10,8 @@ class Match(models.Model):
     score_player2 = models.IntegerField(default=0)
     match_status = models.CharField(
         max_length=12,
-        choices=[('pending', 'Pending'), ('in_progress', 'In Progress'), ('completed', 'Completed')],
-        default='pending'
+        choices=[('in_progress', 'In Progress'), ('completed', 'Completed')],
+        default='in_progress'
     )
     winner = models.ForeignKey(User, related_name='matches_won', null=True, blank=True, on_delete=models.SET_NULL)
     started_at = models.DateTimeField(null=True, blank=True)

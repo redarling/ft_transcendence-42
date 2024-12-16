@@ -6,6 +6,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
+WEBSOCKET_API_TOKEN = os.getenv('WEBSOCKET_API_TOKEN')
+
 DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True' # change to False upon project finalization
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
