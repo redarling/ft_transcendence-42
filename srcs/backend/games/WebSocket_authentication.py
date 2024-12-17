@@ -12,5 +12,6 @@ class WebSocketTokenAuthentication(BaseAuthentication):
 
 class IsAuthenticatedWebSocket(BasePermission):
     def has_permission(self, request, view):
-        return request.auth is not None
+        websocket_token = request.headers.get("X-WebSocket-Token")
+        return websocket_token == settings.WEBSOCKET_API_TOKEN
 

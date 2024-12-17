@@ -3,13 +3,17 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.exceptions import NotFound
 #from rest_framework.generics import UpdateAPIView, RetrieveAPIView, ListAPIView
 from .models import Tournament, MatchHistory, MatchPlayerStats, TournamentParticipant, Round, Match
 from users.models import User, Friend, UserStats
 from django.utils import timezone
 from .serializers import UserMatchHistorySerializer, MatchSerializer, MatchPlayerStatsSerializer
 from .WebSocket_authentication import WebSocketTokenAuthentication, IsAuthenticatedWebSocket
+from datetime import timedelta
+import logging
 
+logger = logging.getLogger(__name__)
 ########################################################################################################
 #                                  MATCH SESSION                                                       #
 ########################################################################################################
@@ -84,7 +88,7 @@ class MatchEndAPIView(APIView):
         "player1_total_hits", "player2_total_hits", "player1_serves", "player2_serves",
         "player1_successful_serves", "player2_successful_serves", 
         "player1_longest_rally", "player2_longest_rally", 
-        "player1_overtime_points", "player2_overtime_points", "total_duration"
+        "player1_overtime_points", "player2_overtime_points"
         ]
 
         if any(request.data.get(field) is None for field in required_fields):
@@ -109,12 +113,20 @@ class MatchEndAPIView(APIView):
         # Fetch players
         player1 = match.first_player
         player2 = match.second_player
+        total_duration_seconds = (finished_at - match.started_at).total_seconds()
+        total_duration = timedelta(seconds=total_duration_seconds)
 
+        logger.info(f"player1.id: {player1.id}, player2.id: {player2.id}")
         # Update match details
         match.score_player1 = score_player1
         match.score_player2 = score_player2
         match.finished_at = finished_at
         match.match_status = "completed"
+
+        try:
+            winner_id = int(winner_id)
+        except ValueError:
+            return Response({"detail": "Invalid winner ID format."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Determine winner
         if winner_id == player1.id:
@@ -130,15 +142,15 @@ class MatchEndAPIView(APIView):
         self.update_player_stats(
             match=match,
             player=player1,
-            points_scored=score_player1,
-            points_against=score_player2,
+            points_scored=int(score_player1),
+            points_against=int(score_player2),
             is_winner=(winner_id == player1.id),
         )
         self.update_player_stats(
             match=match,
             player=player2,
-            points_scored=score_player2,
-            points_against=score_player1,
+            points_scored=int(score_player2),
+            points_against=int(score_player1),
             is_winner=(winner_id == player2.id),
         )
 
@@ -159,7 +171,7 @@ class MatchEndAPIView(APIView):
                 successful_serves=request.data.get("player1_successful_serves", 0),
                 longest_rally=request.data.get("player1_longest_rally", 0),
                 overtime_points=request.data.get("player1_overtime_points", 0),
-                total_duration=request.data.get("total_duration", None),
+                total_duration=total_duration,
             ),
             MatchPlayerStats(
                 match=match,
@@ -170,7 +182,7 @@ class MatchEndAPIView(APIView):
                 successful_serves=request.data.get("player2_successful_serves", 0),
                 longest_rally=request.data.get("player2_longest_rally", 0),
                 overtime_points=request.data.get("player2_overtime_points", 0),
-                total_duration=request.data.get("total_duration", None),
+                total_duration=total_duration,
             ),
         ])
 
@@ -196,11 +208,14 @@ class MatchEndAPIView(APIView):
 ########################################################################################################
 class UserMatchHistoryAPIView(APIView):
 
-    def get(self, id):
+    def get(self, request, id):
         """
         Get the match history for a specific user.
         """
-        user = get_object_or_404(User, id=id)
+        try:
+            user = User.objects.get(id=id)
+        except User.DoesNotExist:
+            raise NotFound({'error': 'User not found.'})
         
         matches_history = MatchHistory.objects.filter(user=user)
         

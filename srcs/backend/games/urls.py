@@ -6,10 +6,10 @@ from .views import (MatchStartAPIView, MatchEndAPIView, UserMatchHistoryAPIView,
 urlpatterns = [
     
     path('match/start/', MatchStartAPIView.as_view(), name='match-start'),
-    path('match/end/', MatchEndAPIView.as_view(), name='match-end'),
+    path('match/finish/', MatchEndAPIView.as_view(), name='match-end'),
 
     path('match-history/<int:id>/', UserMatchHistoryAPIView.as_view(), name='match-history'),
-    path('match-stats/<int:id>/', MatchStatsAPIView.as_view(), name='match-stats'),
+    path('match-stats/<int:match_id>/', MatchStatsAPIView.as_view(), name='match-stats'),
 
     path('tournament/create/', CreateTournamentAPIView.as_view(), name='create-tournament'),
     path('tournament/join/', JoinTournamentAPIView.as_view(), name='join-tournament'),

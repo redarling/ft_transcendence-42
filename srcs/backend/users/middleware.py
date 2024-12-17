@@ -43,6 +43,8 @@ class UpdateLastActivityMiddleware:
         '/api/users/login/',
         '/api/users/register/',
         '/api/users/refresh-token/',
+        '/api/games/match/start/',
+        '/api/games/match/finish/',
     ]
 
     def __init__(self, get_response):
@@ -51,19 +53,23 @@ class UpdateLastActivityMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
 
-        self.handle_authenticated_user(request)
+        response_check_online_status = self.handle_authenticated_user(request)
+
+        if response_check_online_status:
+            return response_check_online_status
 
         return response
 
     def handle_authenticated_user(self, request):
         """Checks the online status and updates the user's activity."""
-        if request.user.is_authenticated:
-            if request.path not in self.EXEMPT_PATHS:
+        if request.path not in self.EXEMPT_PATHS:
+            if request.user.is_authenticated:
                 if not getattr(request.user, 'online_status', False):
                     return JsonResponse(
                         {"detail": "User is not online. Please reconnect to the WebSocket."},
                         status=403
                     )
-            request.user.update_last_activity()
+                request.user.update_last_activity()
+        return None
 
 

@@ -215,7 +215,6 @@ class UserUpdateAPIView(UpdateAPIView):
 class UserStatsAPIView(RetrieveAPIView):
     queryset = UserStats.objects.all()
     serializer_class = UserStatsSerializer
-    permission_classes = [permissions.AllowAny]
 
     def get_object(self):
         user_id = self.kwargs.get('user_id', None)
