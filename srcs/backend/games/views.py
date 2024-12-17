@@ -38,7 +38,13 @@ class MatchStartAPIView(APIView):
 
         if not match_type or match_type not in dict(Match.MATCH_TYPES):
             return Response({"detail": "Invalid match type."}, status=status.HTTP_400_BAD_REQUEST)
-
+        
+        try:
+            first_player_id = int(first_player_id)
+            second_player_id = int(second_player_id)
+        except ValueError:
+            return Response({"detail": "Invalid ID format."}, status=status.HTTP_400_BAD_REQUEST)
+        
         # Check if players exist
         player_1 = self.get_user_or_404(first_player_id)
         player_2 = self.get_user_or_404(second_player_id)
@@ -69,8 +75,7 @@ class MatchStartAPIView(APIView):
         try:
             return User.objects.get(id=user_id)
         except User.DoesNotExist:
-            raise Response({'error': f'User with ID {user_id} does not exist.'}, 
-                           status=status.HTTP_404_NOT_FOUND)
+            raise NotFound(detail=f'User with ID {user_id} does not exist.')
 
 class MatchEndAPIView(APIView):
     """
@@ -116,7 +121,6 @@ class MatchEndAPIView(APIView):
         total_duration_seconds = (finished_at - match.started_at).total_seconds()
         total_duration = timedelta(seconds=total_duration_seconds)
 
-        logger.info(f"player1.id: {player1.id}, player2.id: {player2.id}")
         # Update match details
         match.score_player1 = score_player1
         match.score_player2 = score_player2
@@ -125,8 +129,10 @@ class MatchEndAPIView(APIView):
 
         try:
             winner_id = int(winner_id)
+            score_player1 = int(score_player1)
+            score_player2 = int(score_player2)
         except ValueError:
-            return Response({"detail": "Invalid winner ID format."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Invalid data format."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Determine winner
         if winner_id == player1.id:
@@ -142,15 +148,15 @@ class MatchEndAPIView(APIView):
         self.update_player_stats(
             match=match,
             player=player1,
-            points_scored=int(score_player1),
-            points_against=int(score_player2),
+            points_scored=score_player1,
+            points_against=score_player2,
             is_winner=(winner_id == player1.id),
         )
         self.update_player_stats(
             match=match,
             player=player2,
-            points_scored=int(score_player2),
-            points_against=int(score_player1),
+            points_scored=score_player2,
+            points_against=score_player1,
             is_winner=(winner_id == player2.id),
         )
 
@@ -208,7 +214,7 @@ class MatchEndAPIView(APIView):
 ########################################################################################################
 class UserMatchHistoryAPIView(APIView):
 
-    def get(self, request, id):
+    def get(self, id):
         """
         Get the match history for a specific user.
         """
