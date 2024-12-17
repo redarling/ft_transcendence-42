@@ -1,19 +1,22 @@
 from django.urls import path
-from .views import (MatchHistoryAPIView, MatchStatsAPIView, UpdateMatchHistoryAPIView,
-                    OnlineMatchAPIView, TournamentCreationAPIView, JoinTournamentAPIView, 
-                    InviteTournamentAPIView, StartTournamentAPIView)
+from .views import (MatchStartAPIView, MatchEndAPIView, UserMatchHistoryAPIView, MatchStatsAPIView, 
+                    CreateTournamentAPIView, JoinTournamentAPIView, InviteTournamentAPIView, 
+                    StartTournamentAPIView, CancelTournamentAPIView, SearchTournamentAPIView)
 
 urlpatterns = [
-    path('match-history/<int:id>/', MatchHistoryAPIView.as_view(), name='match-history'),
-    path('update-match-history/<int:id>/', UpdateMatchHistoryAPIView.as_view(), name='update-match-history'),
-    path('match-stats/<int:id>/', MatchStatsAPIView.as_view(), name='match-stats'),
+    
+    path('match/start/', MatchStartAPIView.as_view(), name='match-start'),
+    path('match/finish/', MatchEndAPIView.as_view(), name='match-end'),
 
-    path('matchmaking/', OnlineMatchAPIView.as_view(), name='matchmaking'),
+    path('match-history/<int:id>/', UserMatchHistoryAPIView.as_view(), name='match-history'),
+    path('match-stats/<int:match_id>/', MatchStatsAPIView.as_view(), name='match-stats'),
 
-    path('create-tournament/', TournamentCreationAPIView.as_view(), name='create-tournament'),
-    path('join-tournament/', JoinTournamentAPIView.as_view(), name='join-tournament'),
-    path('invite-tournament/', InviteTournamentAPIView.as_view(), name='invite-tournament'),
-    path('start-tournament/', StartTournamentAPIView.as_view(), name='start-tournament'),
+    path('tournament/create/', CreateTournamentAPIView.as_view(), name='create-tournament'),
+    path('tournament/join/', JoinTournamentAPIView.as_view(), name='join-tournament'),
+    path('tournament/invite/', InviteTournamentAPIView.as_view(), name='invite-tournament'),
+    path('tournament/start/', StartTournamentAPIView.as_view(), name='start-tournament'),
+    path('tournament/cancel/', CancelTournamentAPIView.as_view(), name='cancel-tournament'),
+    path('tournament/search/', SearchTournamentAPIView.as_view(), name='search-tournament'),
 ]
 
 
