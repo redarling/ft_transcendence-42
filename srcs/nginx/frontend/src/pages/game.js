@@ -1,3 +1,5 @@
+import renderFooter from '../components/footer.js';
+import renderHeader from '../components/header.js';
 import { Game } from '../game/game.js';
 
 export let againstBot;
@@ -5,36 +7,96 @@ export let botDifficulty;
 
 export default function renderGame() {
 	const main = document.getElementById("main");
-	main.innerHTML = `
-        <h2>Play</h2>
-        <fieldset>
-            <legend>Play against an AI</legend>
-            <div>
-                <input type="radio" id="difficultyEasy" name="difficulty" value="easy" checked>
-                <label for="difficultyEasy"> Easy </label>
+    main.innerHTML = `
+        <div class="container-fluid game-mode-container">
+            <div class="row w-100 align-items-center d-flex justify-content-evenly">
+                <div class="col-md-4 text-center">
+                    <div class="card game-card mb-4">
+                        <div class="card-body">
+                            <h3 class="card-title mb-4">Online Matchmaking</h3>
+                            <button type="button" class="btn btn-primary btn-lg btn-game-mode" id="matchmakingBtn">
+                                Find Match
+                            </button>
+                            <p class="text-muted mt-3">Play against random online opponents</p>
+                        </div>
+                    </div>
+                </div>
 
-                <input type="radio" id="difficultyMedium" name="difficulty" value="medium">
-                <label for="difficultymedium"> Medium </label>
+                <div class="col-auto d-none d-md-flex d-flex justify-content-center">
+                    <div class="vertical-divider"></div>
+                </div>
+                
 
-                <input type="radio" id="difficultyHard" name="difficulty" value="hard">
-                <label for="difficultyHard"> Hard </label>
+                <div class="col-md-4 text-center">
+                    <div class="card game-card mb-4">
+                        <div class="card-body">
+                            <h3 class="card-title mb-4">Play Against Bot</h3>
+                            <div class="difficulty-group">
+                                <h5 class="botDifficultyTitle">Bot Difficulty</h5>
+                                <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                                    <input type="radio" class="btn-check" name="btnradio" id="botDifficultyEasy" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="botDifficultyEasy">Easy</label>
+
+                                    <input type="radio" class="btn-check" name="btnradio" id="botDifficultyMedium" autocomplete="off" checked>
+                                    <label class="btn btn-outline-primary" for="botDifficultyMedium">Medium</label>
+                                
+                                    <input type="radio" class="btn-check" name="btnradio" id="botDifficultyHard" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="botDifficultyHard">Hard</label>
+                                </div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-success btn-lg btn-game-mode" id="localBotPlayBtn">
+                                Play Against Bot
+                            </button>
+                            <p class="text-muted mt-3">Challenge an AI opponent</p>
+                        </div>
+                    </div>
+                    <div class="card game-card">
+                        <div class="card-body">
+                            <h3 class="card-title mb-4">Local Multiplayer</h3>
+                            <button type="button" class="btn btn-warning btn-lg btn-game-mode" id="localMultiplayerBtn">
+                                Play Local Multiplayer
+                            </button>
+                            <p class="text-muted mt-3">Challenge a friend on the same device</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button id="playAgainstBot">Play</button>
-        </fieldset>
+        </div>
+    `;
 
-        <fieldset>
-            <legend>Play locally</legend>
-                <button id="playLocally">Play</button>
-        </fieldset>
-    `
-    const playAgainstBotButton = document.getElementById('playAgainstBot');
-    const playLocallyButton = document.getElementById('playLocally');
+    const playAgainstBotButton = document.getElementById('localBotPlayBtn');
+    const playLocallyButton = document.getElementById('localMultiplayerBtn');
 
-    const difficultyEasyRadio = document.getElementById('difficultyEasy');
-    const difficultyMediumRadio = document.getElementById('difficultyMedium');
-    const difficultyHardRadio = document.getElementById('difficultyHard');
+    const difficultyEasyRadio = document.getElementById('botDifficultyEasy');
+    const difficultyMediumRadio = document.getElementById('botDifficultyMedium');
+    const difficultyHardRadio = document.getElementById('botDifficultyHard');
+
+    let game = null;
 
     const startGame = (isThereBot) => {
+
+        document.getElementById('main').innerHTML= '';
+        document.getElementById('header').innerHTML= '';
+        document.getElementById('footer').innerHTML= '';
+
+        const mainDiv = document.getElementById('main');
+
+        // Create a button to leave the game
+        const leaveButton = document.createElement('button');
+        leaveButton.id = 'leaveButton';
+        leaveButton.innerText = 'Quit';
+        mainDiv.appendChild(leaveButton);
+
+        leaveButton.addEventListener('click', () => {
+            if (game) {
+                game.clear();
+            }
+            renderHeader();
+            renderGame();
+            renderFooter();
+        });
+
         againstBot = isThereBot;
         if (againstBot) {
             if (difficultyEasyRadio.checked) {
@@ -45,10 +107,11 @@ export default function renderGame() {
                 botDifficulty = 3;
             }
         }
-        const game = new Game();
+        game = new Game();
         game.loop();
     };
 
     playAgainstBotButton.addEventListener('click', () => startGame(true));
     playLocallyButton.addEventListener('click', () => startGame(false));
+
 }
