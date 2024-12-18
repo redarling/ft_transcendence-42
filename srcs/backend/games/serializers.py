@@ -53,5 +53,16 @@ class MatchPlayerStatsSerializer(serializers.ModelSerializer):
             'total_hits', 'longest_rally', 'overtime_points', 'total_duration'
         ]
 
+class TournamentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tournament
+        fields = ['id', 'title', 'description', 'created_at', 'updated_at', 'creator']
 
+class TournamentParticipantSerializer(serializers.ModelSerializer):
+    user_username = serializers.CharField(source='user.username', read_only=True)
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
+
+    class Meta:
+        model = TournamentParticipant
+        fields = ['user_id', 'user_username', 'tournament_alias']
         
