@@ -1,16 +1,23 @@
 from django.db import IntegrityError
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound
-#from rest_framework.generics import UpdateAPIView, RetrieveAPIView, ListAPIView
+from rest_framework.generics import UpdateAPIView, RetrieveAPIView, ListAPIView
 from .models import Tournament, MatchHistory, MatchPlayerStats, TournamentParticipant, Round, Match
 from users.models import User, Friend, UserStats
 from django.utils import timezone
-from .serializers import UserMatchHistorySerializer, MatchSerializer, MatchPlayerStatsSerializer
+from .serializers import (UserMatchHistorySerializer, MatchSerializer, 
+                          MatchPlayerStatsSerializer, TournamentSerializer,
+                          TournamentParticipantSerializer)
+from users.serializers import UserProfileSearchSerializer
 from .WebSocket_authentication import WebSocketTokenAuthentication, IsAuthenticatedWebSocket
+# from channels.layers import get_channel_layer
+# from asgiref.sync import async_to_sync
 from datetime import timedelta
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -238,13 +245,17 @@ class MatchStatsAPIView(APIView):
 
         # Check if the user is a participant in the match
         if request.user not in [match.first_player, match.second_player]:
-            return Response({"detail": "You are not authorized to view this match's statistics."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                            {"detail": "You are not authorized to view this match's statistics."},
+                            status=status.HTTP_403_FORBIDDEN)
 
         # Get the user's stats for the match
         try:
             player_stats = MatchPlayerStats.objects.get(match=match, player=request.user)
         except MatchPlayerStats.DoesNotExist:
-            return Response({"detail": "Statistics for this user in the match not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                            {"detail": "Statistics for this user in the match not found."},
+                            status=status.HTTP_404_NOT_FOUND)
 
         # Serialize and return the player's statistics
         serializer = MatchPlayerStatsSerializer(player_stats)
@@ -255,25 +266,268 @@ class MatchStatsAPIView(APIView):
 #                                  TOURNAMENT SYSTEM                                                   #
 ########################################################################################################
 class CreateTournamentAPIView(APIView):
+
     def post(self, request):
-        return Response({'error': 'Stay tuned... It doesnt work yet'}, status=status.HTTP_403_FORBIDDEN)
+        """
+        New tournament creation.
+        """
+        user = request.user
+        title = request.data.get("title")
+        description = request.data.get("description")
+
+        if not title or not description:
+            return Response({"detail": "Missing title or description"}, status=status.HTTP_400_BAD_REQUEST)
+
+        tournament = Tournament.objects.create(
+            title=title,
+            description=description,
+            creator=user,
+            created_at=timezone.now(),
+            updated_at=timezone.now(),
+        )
+
+        serializer = TournamentSerializer(tournament)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 class JoinTournamentAPIView(APIView):
+
     def post(self, request):
-        return Response({'error': 'Stay tuned... It doesnt work yet'}, status=status.HTTP_403_FORBIDDEN)
+        """
+        Joining a tournament.
+        """
+        user = request.user
+        tournament_id = request.data.get("tournament_id")
+        tournament_alias = request.data.get("tournament_alias")
+
+        if not tournament_id or not tournament_alias:
+            return Response({"detail": "Tournament ID and alias are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            tournament = Tournament.objects.get(id=tournament_id)
+        except Tournament.DoesNotExist:
+            return Response({"detail": "Tournament doesn't exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        if tournament.status != 'pending':
+            return Response({"detail": "You can't join this tournament."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the user has already joined
+        if TournamentParticipant.objects.filter(tournament=tournament, user=user).exists():
+            return Response(
+                            {"detail": "You are already participating in this tournament"}
+                            , status=status.HTTP_400_BAD_REQUEST)
+
+        # Create a participant
+        participant = TournamentParticipant.objects.create(
+            tournament=tournament,
+            user=user,
+            tournament_alias=tournament_alias
+        )
+        TournamentParticipant.save(participant)
+
+        return Response({"detail": "You have successfully joined the tournament."}, status=status.HTTP_200_OK)
+
+class ListTournamentParticipantsAPIView(APIView):
+
+    def get(self, tournament_id):
+        """
+        Retrieve the list of participants for a specific tournament.
+        """
+        try:
+            tournament = Tournament.objects.get(id=tournament_id)
+
+            participants = TournamentParticipant.objects.filter(tournament=tournament)
+            serializer = TournamentParticipantSerializer(participants, many=True)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Tournament.DoesNotExist:
+            return Response({"error": "Tournament not found."}, status=status.HTTP_404_NOT_FOUND)
+
+class GetOnlineFriendsAPIView(APIView):
     
+    def get(self, request):
+        """
+        Get a list of online friends who are online and not already participating in a specific tournament.
+        """
+        user = request.user
+        tournament_id = request.query_params.get('tournament_id')
+
+        if not tournament_id:
+            return Response(
+                {"error": "The 'tournament_id' query parameter is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get the IDs of users participating in the tournament
+        participants = TournamentParticipant.objects.filter(
+            tournament_id=tournament_id
+        ).values_list('user_id', flat=True)
+
+        # Find friends who:
+        # - Are friends of the user
+        # - Have accepted the friendship (status='accepted')
+        # - Are online (friend__online_status=True)
+        # - Are not already participating in the specified tournament
+        online_friends = Friend.objects.filter(
+            user=user,
+            status='accepted',
+            friend__online_status=True
+        ).exclude(friend__id__in=participants).select_related('friend')
+
+        if not online_friends.exists():
+            return Response(
+                {"error": "No eligible friends found online."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = UserProfileSearchSerializer(
+            [friend.friend for friend in online_friends], 
+            many=True
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class InviteTournamentAPIView(APIView):
     def post(self, request):
         return Response({'error': 'Stay tuned... It doesnt work yet'}, status=status.HTTP_403_FORBIDDEN)
 
+#####################################################################################
 class StartTournamentAPIView(APIView):
     def post(self, request):
         return Response({'error': 'Stay tuned... It doesnt work yet'}, status=status.HTTP_403_FORBIDDEN)
+#####################################################################################
+
+class LeaveTournamentAPIView(APIView):
+    def post(self, request):
+        """
+        Allow a user to leave a tournament if it hasn't started yet.
+        """
+        user = request.user
+        tournament_id = request.data.get('tournament_id')
+
+        if not tournament_id:
+            return Response(
+                {"error": "The 'tournament_id' field is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            tournament = Tournament.objects.get(id=tournament_id)
+        except Tournament.DoesNotExist:
+            return Response(
+                {"error": "Tournament not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if tournament.creator == user:
+            return Response(
+                {"error": "You cannot leave the tournament as you are the creator."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if tournament.status != 'pending':
+            return Response(
+                {"error": "You cannot leave a tournament that has already started."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            participant = TournamentParticipant.objects.get(tournament=tournament, user=user)
+        except TournamentParticipant.DoesNotExist:
+            return Response(
+                {"error": "You are not a participant in this tournament."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Remove the participant
+        with transaction.atomic():
+            participant.delete()
+
+        return Response(
+            {"message": "You have successfully left the tournament."},
+            status=status.HTTP_200_OK
+        )
 
 class CancelTournamentAPIView(APIView):
-    def post(self, request):
-        return Response({'error': 'Stay tuned... It doesnt work yet'}, status=status.HTTP_403_FORBIDDEN)
     
-class SearchTournamentAPIView(APIView):
     def post(self, request):
-        return Response({'error': 'Stay tuned... It doesnt work yet'}, status=status.HTTP_403_FORBIDDEN)
+        """
+        Cancel a tournament and delete all related data if it hasn't started yet.
+        """
+        user = request.user
+        tournament_id = request.data.get('tournament_id')
+
+        if not tournament_id:
+            return Response(
+                {"error": "The 'tournament_id' field is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            tournament = Tournament.objects.get(id=tournament_id, creator=user)
+        except Tournament.DoesNotExist:
+            return Response(
+                {"error": "Tournament not found or you are not the creator."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if tournament.status != 'pending':
+            return Response(
+                {"error": "Only tournaments in 'pending' status can be cancelled."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        participants = TournamentParticipant.objects.filter(tournament=tournament)
+
+        # TODO: Notify participants via WebSocket
+        #channel_layer = get_channel_layer()
+        #for participant in participants:
+        #    async_to_sync(channel_layer.group_send)(
+        #        f"tournament_{tournament.id}",
+        #        {
+        #            "type": "tournament_cancelled",
+        #            "message": "The tournament has been cancelled by the creator."
+        #        }
+        #    )
+
+        # Delete all related data in a single transaction
+        with transaction.atomic():
+            participants.delete()
+            tournament.delete()
+
+        return Response(
+            {"message": "Tournament and all related data have been successfully deleted."},
+            status=status.HTTP_200_OK
+        )
+
+class SearchTournamentAPIView(ListAPIView):
+    serializer_class = TournamentSerializer
+
+    def get_queryset(self):
+        current_user = self.request.user
+        query = self.request.query_params.get('title', '').strip()
+
+        if not query:
+            return Tournament.objects.none()
+
+        return Tournament.objects.filter(
+            status='pending',
+            title__icontains=query
+        ).exclude(creator=current_user)
+
+    def list(self):
+        query = self.request.query_params.get('title', '').strip()
+
+        if not query:
+            return Response({"error": "The 'title' query parameter is required."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = self.get_queryset()
+
+        if not queryset.exists():
+            return Response({"error": "No tournaments found matching the 'title' query."},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
