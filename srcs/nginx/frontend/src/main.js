@@ -51,6 +51,9 @@ function updateDomContent() {
 
 document.addEventListener("DOMContentLoaded", updateDomContent); // Once the page is loaded
 
+
+
+
 // Load global CSS or other assets.
 // Initialize the DOM with any global components.
 // const app = document.getElementById("app");

@@ -1,3 +1,4 @@
+
 export default function renderHeader() {
     const header = document.getElementById("header");
     header.innerHTML = `
@@ -19,7 +20,7 @@ export default function renderHeader() {
                         <a class="nav-link" href="game">Game</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="settings">Settings</a>
+                        <a class="nav-link" href="settings"">Settings</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="login">Logout</a>
