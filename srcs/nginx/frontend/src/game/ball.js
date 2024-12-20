@@ -96,6 +96,13 @@ export class Ball {
         }
     }
 
+    dispose() {
+        if (this.#soundEffect) {
+            this.#soundEffect.pause();
+            this.#soundEffect = null;
+        }
+    }
+
     getPosX() {
         return this.#mesh.position.x;
     }

@@ -144,7 +144,10 @@ export class Game {
         this.#camera.position.y = CAMERA_POSY;
         this.#renderer = new THREE.WebGLRenderer();
         this.#renderer.setSize(window.innerWidth, window.innerHeight); // resolution of the rendered objects in the scene
-        document.body.appendChild(this.#renderer.domElement); // add the canvas to the DOM
+
+        const mainDiv = document.getElementById("main");
+        mainDiv.appendChild(this.#renderer.domElement); // add the canvas to the DOM
+
         this.#controls = new OrbitControls(this.#camera, this.#renderer.domElement); // functionality to move around with the mouse
 
         // Lighting
@@ -213,22 +216,23 @@ export class Game {
         }
     }
 
-    clearGame() {
-        this.#scene.clear();
+    clear() {
+        this.#renderer.setAnimationLoop(null); // stop animation loop
+        this.#ball.dispose(); // dispose the ressources (ball hit sound)
         this.#renderer.clear();
+
+        // Remove the canva from the dom
         const canvas = this.#renderer.domElement;
         canvas.parentNode.removeChild(canvas);
     }
 
     // Main game loop
     loop() {
-
         const animate = () => {
             if (this.#score.getScoreLeft() === MAX_SCORE || this.#score.getScoreRight() === MAX_SCORE) {
                 let playerWhoWon = this.#score.getScoreLeft() === MAX_SCORE ? "left" : "right";
                 alert(`The ${playerWhoWon} player won!`);
-                this.#renderer.setAnimationLoop(null);
-                this.clearGame();
+                this.clear();
                 return;
             }
     

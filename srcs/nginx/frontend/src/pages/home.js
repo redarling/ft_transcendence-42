@@ -5,8 +5,8 @@ export default function renderHome() {
 		<!-- Hero Section -->
 		<section class="text-center bg-light py-5 rounded shadow">
 			<h1 class="display-4 fw-bold">Welcome to Pong Project!</h1>
-			<p class="lead text-muted">Experience the ultimate online Pong battles with friends or random players across the globe.</p>
-			<a href="#play-now" class="btn btn-primary btn-lg mt-3">Play Now</a>
+			<p class="lead text-muted">Experience the ultimate online Pong battles with friends or with ai opponent.</p>
+			<a href="game" class="btn btn-primary btn-lg mt-3">Play Now</a>
 		</section>
 
 		<!-- Features Section -->
@@ -16,7 +16,7 @@ export default function renderHome() {
 			<div class="col-md-4">
 				<i class="bi bi-people-fill text-primary fs-1"></i>
 				<h3 class="mt-3">Multiplayer</h3>
-				<p>Challenge players worldwide in real-time Pong matches.</p>
+				<p>Challenge friends in real-time Pong matches.</p>
 			</div>
 			<!-- Feature 2 -->
 			<div class="col-md-4">
@@ -27,8 +27,8 @@ export default function renderHome() {
 			<!-- Feature 3 -->
 			<div class="col-md-4">
 				<i class="bi bi-chat-dots-fill text-info fs-1"></i>
-				<h3 class="mt-3">Live Chat</h3>
-				<p>Connect with your opponents and friends during the game.</p>
+				<h3 class="mt-3">AI opponent</h3>
+				<p>Improve your skills training with ai of different level.</p>
 			</div>
 			</div>
 		</section>
@@ -36,7 +36,43 @@ export default function renderHome() {
 		<!-- Call to Action -->
 		<section class="text-center mt-5">
 			<p class="lead">Are you ready to start your Pong journey?</p>
-			<a href="#get-started" class="btn btn-outline-secondary btn-lg">Get Started</a>
+			<a href="game" class="btn btn-outline-secondary btn-lg text-black">Get Started</a>
+		</section>
+
+		<!-- Creators pres -->
+		<section class="text-center bg-light mt-5 py-5 rounded shadow">
+			<h3>An original game by</h3>
+			<div class="row py-4">
+				<!-- Creator 1 -->
+				<div class="col-md-4 d-flex justify-content-center align-items-center">
+					<div class="card text-center py-3" style="width: 350px; height: 320px;">
+						<img src="./src/assets/images/creators/imehdid.jpg" style="width: 220px; height: 220px;" class="rounded-circle mx-auto" alt="Creator 1">
+						<ul class="list-unstyled mt-3">
+							<li>- Game developer</li>
+							<li>- AI developer</li>
+						</ul>
+					</div>
+				</div>
+				<!-- Creator 2 -->
+				<div class="col-md-4 d-flex justify-content-center align-items-center">
+					<div class="card text-center py-3" style="width: 350px; height: 320px;">
+					<img src="./src/assets/images/creators/mbriand.png" style="width: 220px; height: 220px;" class="rounded-circle mx-auto" alt="Creator 2">
+					<ul class="list-unstyled mt-3">
+						<li>- Front-end developer</li>
+						<li>- Back-end developer</li>
+					</ul>
+				</div>
+				</div>
+				<!-- Creator 3 -->
+				<div class="col-md-4 d-flex justify-content-center align-items-center">
+						<div class="card text-center py-3" style="width: 350px; height: 320px;">
+						<img src="./src/assets/images/creators/asyvash.jpg" style="width: 220px; height: 220px;" class="rounded-circle mx-auto" alt="Creator 1">
+						<ul class="list-unstyled mt-3">
+							<li>- API developer</li>
+							<li>- Back-end developer</li>
+						</ul>
+					</div>
+				</div>
 		</section>
 		</main>
 	`;

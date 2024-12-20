@@ -46,11 +46,13 @@ function updateDomContent() {
 	createDivBlocks();
 	renderStaticElements();
 	router();
-
 	// Detect dom updates
 }
 
-document.addEventListener("DOMContentLoaded", updateDomContent);
+document.addEventListener("DOMContentLoaded", updateDomContent); // Once the page is loaded
+
+
+
 
 // Load global CSS or other assets.
 // Initialize the DOM with any global components.

@@ -61,7 +61,6 @@ export class AI {
 
     #addNoiseToPrediction(nextZPos) {
         let noiseLevel = 0;
-        console.log(`${this.#difficulty}`);
         switch (this.#difficulty) {
             case 1:
                 noiseLevel = 0.7;
@@ -92,7 +91,7 @@ export class AI {
     //     this.#scene.add(this.#trajectoryLine);
     // }
 
-    async moveToTargetedPos(nextZPos) {
+    async #moveToTargetedPos(nextZPos) {
         const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
         const timeout = 2000; // Maximum time to move the paddle (in ms)
         const startTime = Date.now();
@@ -119,7 +118,7 @@ export class AI {
             this.#lastStateRefresh = Date.now();
             let nextZPos = await this.#predictBallTrajectory();
             nextZPos = this.#addNoiseToPrediction(nextZPos);
-            await this.moveToTargetedPos(nextZPos);
+            await this.#moveToTargetedPos(nextZPos);
         }
     }
 }
