@@ -106,11 +106,6 @@ class TournamentInvitation(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     inviter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_invitations')
     invitee = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_invitations')
-    status = models.CharField(
-        max_length=10,
-        choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('rejected', 'Rejected')],
-        default='pending'
-    )
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:

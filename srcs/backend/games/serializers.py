@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Match, MatchHistory, MatchPlayerStats, Tournament, TournamentParticipant
+from .models import Match, MatchHistory, MatchPlayerStats, Tournament, TournamentParticipant, TournamentInvitation
 
 class MatchSerializer(serializers.ModelSerializer):
     class Meta:
@@ -65,4 +65,16 @@ class TournamentParticipantSerializer(serializers.ModelSerializer):
     class Meta:
         model = TournamentParticipant
         fields = ['user_id', 'user_username', 'tournament_alias']
+
+class InvitationTournamentSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source='tournament.title')
+    description = serializers.CharField(source='tournament.description')
+    tournament_id = serializers.IntegerField(source='tournament.id')
+    inviter_id = serializers.IntegerField(source='inviter.id', read_only=True)
+    invited_by = serializers.CharField(source='inviter.username', read_only=True)
+
+    class Meta:
+        model = TournamentInvitation
+        fields = ['tournament_id', 'title', 'description', 'invited_by', 'inviter_id']
+
         

@@ -6,21 +6,23 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import UpdateAPIView, RetrieveAPIView, ListAPIView
-from .models import Tournament, MatchHistory, MatchPlayerStats, TournamentParticipant, Round, Match
+from .models import Tournament, MatchHistory, MatchPlayerStats, TournamentParticipant, Round, Match, TournamentInvitation
 from users.models import User, Friend, UserStats
 from django.utils import timezone
 from .serializers import (UserMatchHistorySerializer, MatchSerializer, 
                           MatchPlayerStatsSerializer, TournamentSerializer,
-                          TournamentParticipantSerializer)
+                          TournamentParticipantSerializer, InvitationTournamentSerializer)
 from users.serializers import UserProfileSearchSerializer
 from .WebSocket_authentication import WebSocketTokenAuthentication, IsAuthenticatedWebSocket
 # from channels.layers import get_channel_layer
 # from asgiref.sync import async_to_sync
 from datetime import timedelta
+from .utils import validate_required_fields
 
 import logging
 
 logger = logging.getLogger(__name__)
+
 ########################################################################################################
 #                                  MATCH SESSION                                                       #
 ########################################################################################################
@@ -33,17 +35,16 @@ class MatchStartAPIView(APIView):
         Creates a match entry in the database for two players.
         This View could be executed only by the WebSocket server.
         """
+        validation_error = validate_required_fields(request.data, ["first_player_id", "second_player_id", "match_type"])
+        if validation_error:
+            return validation_error
         
         first_player_id = request.data.get("first_player_id")
         second_player_id = request.data.get("second_player_id")
         match_type = request.data.get("match_type")
         started_at = timezone.now()
 
-        # Validate input data
-        if not first_player_id or not second_player_id:
-            return Response({"detail": "Both player IDs are required."}, status=status.HTTP_400_BAD_REQUEST)
-
-        if not match_type or match_type not in dict(Match.MATCH_TYPES):
+        if match_type not in dict(Match.MATCH_TYPES):
             return Response({"detail": "Invalid match type."}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
@@ -95,16 +96,16 @@ class MatchEndAPIView(APIView):
 
     def post(self, request):
         # Validate required fields
-        required_fields = [
-        "match_id", "score_player1", "score_player2", "winner_id",
-        "player1_total_hits", "player2_total_hits", "player1_serves", "player2_serves",
-        "player1_successful_serves", "player2_successful_serves", 
-        "player1_longest_rally", "player2_longest_rally", 
-        "player1_overtime_points", "player2_overtime_points"
-        ]
-
-        if any(request.data.get(field) is None for field in required_fields):
-            return Response({"detail": "Missing required fields."}, status=status.HTTP_400_BAD_REQUEST)
+        validation_error = validate_required_fields(request.data, ["match_id", "score_player1", 
+                                                                   "score_player2", "winner_id",
+                                                                    "player1_total_hits", "player2_total_hits", 
+                                                                    "player1_serves", "player2_serves", 
+                                                                    "player1_successful_serves", 
+                                                                    "player2_successful_serves",
+                                                                    "player1_longest_rally", "player2_longest_rally", 
+                                                                    "player1_overtime_points", "player2_overtime_points"])
+        if validation_error:
+            return validation_error
         
         match_id = request.data.get("match_id")
         score_player1 = request.data.get("score_player1")
@@ -271,12 +272,13 @@ class CreateTournamentAPIView(APIView):
         """
         New tournament creation.
         """
+        validation_error = validate_required_fields(request.data, ["title", "description"])
+        if validation_error:
+            return validation_error
+
         user = request.user
         title = request.data.get("title")
         description = request.data.get("description")
-
-        if not title or not description:
-            return Response({"detail": "Missing title or description"}, status=status.HTTP_400_BAD_REQUEST)
 
         tournament = Tournament.objects.create(
             title=title,
@@ -288,19 +290,21 @@ class CreateTournamentAPIView(APIView):
 
         serializer = TournamentSerializer(tournament)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
+# TODO: Restrict the number of 64 participants
 class JoinTournamentAPIView(APIView):
 
     def post(self, request):
         """
         Joining a tournament.
         """
+        validation_error = validate_required_fields(request.data, ["tournament_id", "tournament_alias"])
+        if validation_error:
+            return validation_error
+        
         user = request.user
         tournament_id = request.data.get("tournament_id")
         tournament_alias = request.data.get("tournament_alias")
-
-        if not tournament_id or not tournament_alias:
-            return Response({"detail": "Tournament ID and alias are required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             tournament = Tournament.objects.get(id=tournament_id)
@@ -387,30 +391,95 @@ class GetOnlineFriendsAPIView(APIView):
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
 class InviteTournamentAPIView(APIView):
-    def post(self, request):
-        return Response({'error': 'Stay tuned... It doesnt work yet'}, status=status.HTTP_403_FORBIDDEN)
+    """
+    Invite a single friend to join a specific tournament.
+    """
 
-#####################################################################################
+    def post(self, request):
+        validation_error = validate_required_fields(request.data, ["tournament_id", "friend_id"])
+        if validation_error:
+            return validation_error
+
+        tournament_id = request.data.get('tournament_id')
+        friend_id = request.data.get('friend_id')
+
+        try:
+            tournament = Tournament.objects.get(id=tournament_id, status='pending')
+        except Tournament.DoesNotExist:
+            return Response(
+                {"error": "Tournament not found or is not in a pending state."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            friend = User.objects.get(id=friend_id)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Friend not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Check if the friend is already a participant or has been invited
+        if TournamentParticipant.objects.filter(tournament=tournament, user=friend).exists():
+            return Response(
+                {"error": f"{friend.username} is already a participant in this tournament."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if TournamentInvitation.objects.filter(tournament=tournament, invitee=friend).exists():
+            return Response(
+                {"error": f"{friend.username} has already been invited to this tournament."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Create the invitation
+        TournamentInvitation.objects.create(
+            tournament=tournament,
+            inviter=request.user,
+            invitee=friend
+        )
+
+        # TODO: Notify the friend via WebSocket
+        return Response(
+            {"message": f"Invitation sent to {friend.username}."},
+            status=status.HTTP_200_OK
+        )
+
+class InvitationListTournamentAPIView(APIView):
+    """
+    List all tournament invitations for the requesting user.
+    """
+
+    def get(self, request):
+        user = request.user
+
+        # Fetch tournaments where the user has received invitations
+        invitations = TournamentInvitation.objects.filter(
+            invitee=user
+        ).exclude(tournament__participants__user=user)
+
+        serializer = InvitationTournamentSerializer(invitations, many=True)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+# TODO: Do not forget to delete TournamentInvitation object after starting a tournament
 class StartTournamentAPIView(APIView):
     def post(self, request):
         return Response({'error': 'Stay tuned... It doesnt work yet'}, status=status.HTTP_403_FORBIDDEN)
-#####################################################################################
 
+# TODO: WebSocket should nofity about a user who left the tournament
 class LeaveTournamentAPIView(APIView):
     def post(self, request):
         """
         Allow a user to leave a tournament if it hasn't started yet.
         """
+        validation_error = validate_required_fields(request.data, ["tournament_id"])
+        if validation_error:
+            return validation_error
+        
         user = request.user
         tournament_id = request.data.get('tournament_id')
-
-        if not tournament_id:
-            return Response(
-                {"error": "The 'tournament_id' field is required."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
         try:
             tournament = Tournament.objects.get(id=tournament_id)
@@ -455,14 +524,12 @@ class CancelTournamentAPIView(APIView):
         """
         Cancel a tournament and delete all related data if it hasn't started yet.
         """
+        validation_error = validate_required_fields(request.data, ["tournament_id"])
+        if validation_error:
+            return validation_error
+        
         user = request.user
         tournament_id = request.data.get('tournament_id')
-
-        if not tournament_id:
-            return Response(
-                {"error": "The 'tournament_id' field is required."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
         try:
             tournament = Tournament.objects.get(id=tournament_id, creator=user)
@@ -479,6 +546,7 @@ class CancelTournamentAPIView(APIView):
             )
 
         participants = TournamentParticipant.objects.filter(tournament=tournament)
+        tournament_invitations = TournamentInvitation.objects.filter(tournament=tournament)
 
         # TODO: Notify participants via WebSocket
         #channel_layer = get_channel_layer()
@@ -495,6 +563,7 @@ class CancelTournamentAPIView(APIView):
         with transaction.atomic():
             participants.delete()
             tournament.delete()
+            tournament_invitations.delete()
 
         return Response(
             {"message": "Tournament and all related data have been successfully deleted."},
