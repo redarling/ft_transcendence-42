@@ -45,8 +45,9 @@ export default function renderHome() {
 			<div class="row py-4">
 				<!-- Creator 1 -->
 				<div class="col-md-4 d-flex justify-content-center align-items-center">
-					<div class="card text-center py-3" style="width: 350px; height: 320px;">
-						<img src="./src/assets/images/creators/imehdid.jpg" style="width: 220px; height: 220px;" class="rounded-circle mx-auto" alt="Creator 1">
+					<div class="card text-center py-3" style="width: 350px; height: 380px;">
+						<img src="./src/assets/images/creators/imehdid.jpg" style="width: 220px; height: 220px;" class="rounded-circle mb-3 mx-auto" alt="Creator 1">
+						<h5>Ismael M.</h5>
 						<ul class="list-unstyled mt-3">
 							<li>- Game developer</li>
 							<li>- AI developer</li>
@@ -55,8 +56,9 @@ export default function renderHome() {
 				</div>
 				<!-- Creator 2 -->
 				<div class="col-md-4 d-flex justify-content-center align-items-center">
-					<div class="card text-center py-3" style="width: 350px; height: 320px;">
-					<img src="./src/assets/images/creators/mbriand.png" style="width: 220px; height: 220px;" class="rounded-circle mx-auto" alt="Creator 2">
+					<div class="card text-center py-3" style="width: 350px; height: 380px;">
+					<img src="./src/assets/images/creators/mbriand.png" style="width: 220px; height: 220px;" class="rounded-circle mb-3 mx-auto" alt="Creator 2">
+					<h5>Maxime B.</h5>
 					<ul class="list-unstyled mt-3">
 						<li>- Front-end developer</li>
 						<li>- Back-end developer</li>
@@ -65,12 +67,13 @@ export default function renderHome() {
 				</div>
 				<!-- Creator 3 -->
 				<div class="col-md-4 d-flex justify-content-center align-items-center">
-						<div class="card text-center py-3" style="width: 350px; height: 320px;">
-						<img src="./src/assets/images/creators/asyvash.jpg" style="width: 220px; height: 220px;" class="rounded-circle mx-auto" alt="Creator 1">
-						<ul class="list-unstyled mt-3">
-							<li>- API developer</li>
-							<li>- Back-end developer</li>
-						</ul>
+					<div class="card text-center py-3" style="width: 350px; height: 380px;">
+					<img src="./src/assets/images/creators/asyvash.jpg" style="width: 220px; height: 220px;" class="rounded-circle mb-3 mx-auto" alt="Creator 1">
+					<h5 >Andrii S.</h5>
+					<ul class="list-unstyled mt-3">
+						<li>- API developer</li>
+						<li>- Back-end developer</li>
+					</ul>
 					</div>
 				</div>
 		</section>
