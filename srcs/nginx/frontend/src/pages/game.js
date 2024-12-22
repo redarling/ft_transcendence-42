@@ -75,7 +75,7 @@ export default function renderGame() {
     let game = null;
 
     const startGame = (isThereBot) => {
-
+        
         document.getElementById('main').innerHTML= '';
         document.getElementById('header').innerHTML= '';
         document.getElementById('footer').innerHTML= '';
