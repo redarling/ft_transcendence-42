@@ -7,4 +7,5 @@ pyjwt
 cryptography
 channels==4.2.0
 channels_redis==4.2.1
+aiohttp
 

@@ -1,6 +1,7 @@
 import renderFooter from '../components/footer.js';
 import renderHeader from '../components/header.js';
 import { Game } from '../game/game.js';
+import { findMatch } from '../online_gaming/matchmakingHandler.js';
 
 export let againstBot;
 export let botDifficulty;
@@ -114,4 +115,10 @@ export default function renderGame() {
     playAgainstBotButton.addEventListener('click', () => startGame(true));
     playLocallyButton.addEventListener('click', () => startGame(false));
 
+    // Event listener for matchmaking button
+    const matchmakingButton = document.getElementById('matchmakingBtn');
+    matchmakingButton.addEventListener('click', () => {
+        findMatch();
+    });
+    
 }

@@ -14,8 +14,6 @@ from .serializers import (UserMatchHistorySerializer, MatchSerializer,
                           TournamentParticipantSerializer, InvitationTournamentSerializer)
 from users.serializers import UserProfileSearchSerializer
 from .WebSocket_authentication import WebSocketTokenAuthentication, IsAuthenticatedWebSocket
-# from channels.layers import get_channel_layer
-# from asgiref.sync import async_to_sync
 from datetime import timedelta
 from .utils import validate_required_fields
 
