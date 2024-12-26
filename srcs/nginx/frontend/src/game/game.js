@@ -18,6 +18,8 @@ const CAMERA_POSZ = 5;
 const CAMERA_POSY = 5;
 const MIN_RENDERED_DISTANCE = 0.1;
 const MAX_RENDERED_DISTANCE = 1000;
+const FPS = 60;
+const INTERVAL = 1000 / FPS;
 
 const STADIUM_MODEL_PATH = './src/assets/3d-models/game/scene.glb';
 const STADIUM_SCALE = 0.5;
@@ -34,13 +36,13 @@ export const BALL_RADIUS = FIELD_DIMENSION_Z / 30;
 const BALL_INITIAL_X = 0;
 const BALL_INITIAL_Y = 0.22;
 const BALL_INITIAL_Z = 0;
-const BALL_VELOCITY = 0.03;
+const BALL_VELOCITY = 0.06;
 const BALL_SOUND_EFFECT_PATH = './src/assets/sound/ball_hit.wav';
 const BALL_TEXTURE_PATH = './src/assets/3d-models/game/ball_texture.jpg'
 const BALL_VELOCITY_MULTIPLIER = 1.3; // to adjust
 
 const PADDLE_COLOR = 0xffffff;
-const PADDLE_SPEED = 0.06;
+const PADDLE_SPEED = 0.12;
 export const PADDLE_DIMENSION_X = 0.2;
 export const PADDLE_DIMENSION_Y = 0.2;
 export const PADDLE_DIMENSION_Z = 1;
@@ -228,24 +230,30 @@ export class Game {
 
     // Main game loop
     loop() {
-        const animate = () => {
-            if (this.#score.getScoreLeft() === MAX_SCORE || this.#score.getScoreRight() === MAX_SCORE) {
-                let playerWhoWon = this.#score.getScoreLeft() === MAX_SCORE ? "left" : "right";
-                alert(`The ${playerWhoWon} player won!`);
-                this.clear();
-                return;
+        let lastTime = 0;
+        const animate = (time) => {
+            const delta = time - lastTime;
+
+            if (delta > INTERVAL) {
+                lastTime = time - (delta % INTERVAL);
+
+                if (this.#score.getScoreLeft() === MAX_SCORE || this.#score.getScoreRight() === MAX_SCORE) {
+                    let playerWhoWon = this.#score.getScoreLeft() === MAX_SCORE ? "left" : "right";
+                    alert(`The ${playerWhoWon} player won!`);
+                    this.clear();
+                    return;
+                }
+
+                if (againstBot) {
+                    this.#ai.makeDecision();
+                }
+        
+                this.#renderer.render(this.#scene, this.#camera);
+                this.#controls.update();
+                this.refreshPaddlePos(this.#paddleLeft, PADDLE_LEFT_BIND_UP, PADDLE_LEFT_BIND_DOWN);
+                this.refreshPaddlePos(this.#paddleRight, PADDLE_RIGHT_BIND_UP, PADDLE_RIGHT_BIND_DOWN);
+                this.refreshBallPos();
             }
-    
-            if (againstBot) {
-                this.#ai.makeDecision();
-            }
-    
-            this.#renderer.render(this.#scene, this.#camera);
-            this.#controls.update();
-            this.refreshPaddlePos(this.#paddleLeft, PADDLE_LEFT_BIND_UP, PADDLE_LEFT_BIND_DOWN);
-            this.refreshPaddlePos(this.#paddleRight, PADDLE_RIGHT_BIND_UP, PADDLE_RIGHT_BIND_DOWN);
-            this.refreshBallPos();
-    
             this.#renderer.setAnimationLoop(animate);
         };
         this.#renderer.setAnimationLoop(animate);
