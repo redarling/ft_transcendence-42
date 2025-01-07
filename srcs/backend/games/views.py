@@ -220,7 +220,7 @@ class MatchEndAPIView(APIView):
 ########################################################################################################
 class UserMatchHistoryAPIView(APIView):
 
-    def get(self, id):
+    def get(self, request, id):
         """
         Get the match history for a specific user.
         """

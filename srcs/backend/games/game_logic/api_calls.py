@@ -31,7 +31,6 @@ async def create_match_api(player1, player2, match_type):
         async with session.post(url, json=payload, headers=headers) as response:
             if response.status == 201:
                 match_data = await response.json()
-                logger.info(f"Match created successfully: {match_data}")
                 return match_data
             elif response.status == 400:
                 error_data = await response.json()

@@ -1,46 +1,250 @@
-import json
-from .channel_messages import remove_player_from_group, send_group_message
 import asyncio
+from .channel_messages import remove_player_from_group, send_group_message
+import random
+import logging
+from .api_calls import finish_match_api
+
+logger = logging.getLogger(__name__)
+
+FIELD_WIDTH = 10.0  # Horizontal field (x)
+FIELD_HEIGHT = 6.0  # Vertical field (z)
+PADDLE_HEIGHT = 1.0
+PADDLE_WIDTH = 0.2
+PADDLE_SPEED = 0.12
+BALL_RADIUS = FIELD_HEIGHT / 30
+BALL_INITIAL_VELOCITY = 0.06
+VELOCITY_MULTIPLIER = 1.3
+KICK_OFF_DELAY = 2  # seconds
+MAX_SCORE = 11
+WINNING_MARGIN = 2
+RATE = 1 / 60  # 60 FPS
 
 class MatchHandler:
-    def __init__(self, player1, player2, match_data, group_name):
-        self.player1 = player1
-        self.player2 = player2
-        self.match_data = match_data
+    def __init__(self, player1, player2, group_name, match_data, event_queue):
+        self.player1 = {"id": player1, "position": 0.0, "score": 0, "total_hits": 0, "serves": 0, "successful_serves": 0, "longest_rally": 0, "overtime_points": 0}
+        self.player2 = {"id": player2, "position": 0.0, "score": 0, "total_hits": 0, "serves": 0, "successful_serves": 0, "longest_rally": 0, "overtime_points": 0}
+        self.ball = {
+            "position": [0.0, 0.0],
+            "velocity": [BALL_INITIAL_VELOCITY, BALL_INITIAL_VELOCITY],
+            "direction": [1, 1],
+            "timesHit": 0,
+        }
         self.group_name = group_name
+        self.match_data = match_data
         self.running = False
-        self.score = {player1: 0, player2: 0}
+        self.event_queue = event_queue
+        self.event_processing_task = None
+        self.max_event_processing_rate = RATE
 
-    async def start(self):
-        """Start the match and notify players."""
+    async def start_match(self):
         self.running = True
-
-        # Notify players about match start
-        await send_group_message(self.group_name, {
+        await self.send_group_message({
             "event": "match_start",
             "match_data": self.match_data,
         })
+        await asyncio.sleep(KICK_OFF_DELAY)
 
-        #while self.running:
-            # Simulate game logic (e.g., ball position, scoring)
-            #await self.update_game_state()
-            #await asyncio.sleep(1)  # Delay for simulation
+        self.event_processing_task = asyncio.create_task(self.process_events())
 
-    #async def update_score(self, scorer):
-    #    self.score[scorer] += 1
-    #    if self.check_winner():
-    #        await self.end_match()
-    #    else:
-    #        await self.notify_clients()
+        await self.game_loop()
 
-    #def check_winner(self):
-    #    for player, points in self.score.items():
-    #        if points >= 11 and points - min(self.score.values()) >= 2:
-    #            self.winner = player
-    #            return True
-    #    return False
+    async def game_loop(self):
+        while self.running:
+            self.update_ball()
+            self.check_collisions()
+            self.check_goal()
+            if self.check_match_over():
+                await self.end_match()
+                break
+            await self.broadcast_state()
+            await asyncio.sleep(RATE)
 
-    #async def end_match(self):
-    #    await self.notify_players({"type": "match_end", "reason": "Match completed."})
-    #    remove_player_from_group(self.group_name, f"player_{self.player1}")
-    #    remove_player_from_group(self.group_name, f"player_{self.player2}")
+    async def process_events(self):
+        """
+        Listens to the event queue.
+        Wait for new events in the queue and process them at a fixed rate.
+        """
+        last_processed_time = asyncio.get_event_loop().time()
+
+        while self.running:
+            if not self.event_queue.empty():
+                event = await self.event_queue.get()
+                logger.info(f"Processing event: {event}")
+                if event["event"] == "player_disconnected":
+                    disconnected_player_id = event.get("player_id")
+                    if disconnected_player_id == self.player1["id"]:
+                        winner = self.player2["id"]
+                    else:
+                        winner = self.player1["id"]
+                    await self.end_match(winner)
+                    self.event_queue.task_done()
+                elif event["event"] == "player_action":
+                    player_id = event.get("player_id")
+                    direction = event.get("direction")
+                    await self.handle_player_action(player_id, direction)
+
+                self.event_queue.task_done()
+
+            current_time = asyncio.get_event_loop().time()
+            time_since_last_process = current_time - last_processed_time
+
+            if time_since_last_process < self.max_event_processing_rate:
+                await asyncio.sleep(self.max_event_processing_rate - time_since_last_process)
+            last_processed_time = current_time
+
+    async def handle_player_action(self, player_id, direction):
+        """
+        Handle player actions (move up/down).
+        """
+        if self.running:
+            if player_id == self.player1["id"]:
+                if direction == "up" and self.player1["position"] + PADDLE_HEIGHT / 2 < FIELD_HEIGHT / 2:
+                    self.player1["position"] += PADDLE_SPEED
+                elif direction == "down" and self.player1["position"] - PADDLE_HEIGHT / 2 > -FIELD_HEIGHT / 2:
+                    self.player1["position"] -= PADDLE_SPEED
+            elif player_id == self.player2["id"]:
+                if direction == "up" and self.player2["position"] + PADDLE_HEIGHT / 2 < FIELD_HEIGHT / 2:
+                    self.player2["position"] += PADDLE_SPEED
+                elif direction == "down" and self.player2["position"] - PADDLE_HEIGHT / 2 > -FIELD_HEIGHT / 2:
+                    self.player2["position"] -= PADDLE_SPEED
+
+            await self.broadcast_state()
+
+    def update_ball(self):
+        if self.ball.get("kick_off", False):
+            return
+
+        self.ball["position"][0] += self.ball["velocity"][0] * self.ball["direction"][0]
+        self.ball["position"][1] += self.ball["velocity"][1] * self.ball["direction"][1]
+
+    def check_collisions(self):
+        if abs(self.ball["position"][1]) + BALL_RADIUS >= FIELD_HEIGHT / 2:
+            self.ball["direction"][1] *= -1
+
+        if self.check_paddle_collision(self.player1, left=True):
+            self.handle_paddle_hit(left=True)
+        elif self.check_paddle_collision(self.player2, left=False):
+            self.handle_paddle_hit(left=False)
+
+    def check_paddle_collision(self, player, left):
+        paddle_x = -FIELD_WIDTH / 2 + PADDLE_WIDTH / 2 if left else FIELD_WIDTH / 2 - PADDLE_WIDTH / 2
+        paddle_z_min = player["position"] - PADDLE_HEIGHT / 2
+        paddle_z_max = player["position"] + PADDLE_HEIGHT / 2
+        ball_x = self.ball["position"][0]
+        ball_z = self.ball["position"][1]
+
+        if (left and self.ball["direction"][0] > 0) or (not left and self.ball["direction"][0] < 0):
+            return False
+
+        if (abs(ball_x - paddle_x) <= BALL_RADIUS and
+                paddle_z_min <= ball_z <= paddle_z_max):
+            return True
+        return False
+    
+    def handle_paddle_hit(self, left):
+        self.ball["direction"][0] *= -1
+        paddle = self.player1 if left else self.player2
+        distance_from_center = self.ball["position"][1] - paddle["position"]
+
+        self.ball["velocity"][1] += distance_from_center * 0.02
+        self.ball["timesHit"] = self.ball.get("timesHit", 0) + 1
+
+        paddle["total_hits"] += 1
+
+        if self.ball["timesHit"] == 1:
+            paddle["serves"] += 1
+            if self.ball["position"][0] * paddle["direction"] > 0:
+                paddle["successful_serves"] += 1
+
+        if self.ball["timesHit"] % 3 == 0:
+            self.ball["velocity"][0] *= VELOCITY_MULTIPLIER
+            self.ball["velocity"][1] *= VELOCITY_MULTIPLIER
+
+        if self.ball["timesHit"] > paddle["longest_rally"]:
+            paddle["longest_rally"] = self.ball["timesHit"]
+
+    def check_goal(self):
+        if abs(self.ball["position"][0]) > FIELD_WIDTH / 2:
+            if self.ball["position"][0] > 0:
+                self.player1["score"] += 1
+            else:
+                self.player2["score"] += 1
+            self.reset_ball()
+
+    def reset_ball(self):
+        self.ball["position"] = [0.0, 0.0]
+        self.ball["velocity"] = [BALL_INITIAL_VELOCITY, BALL_INITIAL_VELOCITY]
+        self.ball["direction"] = [random.choice([-1, 1]), random.choice([-1, 1])]
+        self.ball["timesHit"] = 0
+        self.ball["kick_off"] = True
+        asyncio.create_task(self.end_kick_off())
+
+    async def end_kick_off(self):
+        await asyncio.sleep(KICK_OFF_DELAY)
+        self.ball["kick_off"] = False
+
+    async def broadcast_state(self):
+        state = {
+            "event": "game_state",
+            "player1": self.player1,
+            "player2": self.player2,
+            "ball": self.ball,
+        }
+        await self.send_group_message(state)
+
+
+    def check_match_over(self):
+        if self.player1["score"] == 10 and self.player2["score"] == 10:
+            if (self.player1["score"] >= 12 and (self.player1["score"] - self.player2["score"]) >= 2):
+                self.player1["overtime_points"] += 1
+                return True
+            elif (self.player2["score"] >= 12 and (self.player2["score"] - self.player1["score"]) >= 2):
+                self.player2["overtime_points"] += 1
+                return True
+
+        if self.player1["score"] >= MAX_SCORE and (self.player1["score"] - self.player2["score"]) >= WINNING_MARGIN:
+            return True
+        if self.player2["score"] >= MAX_SCORE and (self.player2["score"] - self.player1["score"]) >= WINNING_MARGIN:
+            return True
+        return False
+
+
+    async def end_match(self, winner=None):
+        """
+        End the match.
+        """
+        if not winner:
+            if self.player1["score"] > self.player2["score"]:
+                winner = self.player1["id"]
+            else:
+                winner = self.player2["id"]
+        
+        finish_data = ({
+        "match_id": self.match_data["id"],
+        "score_player1": self.player1.get("score", 0),
+        "score_player2": self.player2.get("score", 0),
+        "winner_id": winner,
+        "player1_total_hits": self.player1.get("total_hits", 0),
+        "player2_total_hits": self.player2.get("total_hits", 0),
+        "player1_serves": self.player1.get("serves", 0),
+        "player2_serves": self.player2.get("serves", 0),
+        "player1_successful_serves": self.player1.get("successful_serves", 0),
+        "player2_successful_serves": self.player2.get("successful_serves", 0),
+        "player1_longest_rally": self.player1.get("longest_rally", 0),
+        "player2_longest_rally": self.player2.get("longest_rally", 0),
+        "player1_overtime_points": self.player1.get("overtime_points", 0),
+        "player2_overtime_points": self.player2.get("overtime_points", 0),
+        })
+
+        await self.send_group_message({
+            "event": "match_over",
+            "winner": winner,
+            "player1_score": self.player1["score"],
+            "player2_score": self.player2["score"],
+        })
+        
+        self.running = False
+        await finish_match_api(finish_data)
+
+    async def send_group_message(self, message):
+        await send_group_message(self.group_name, message)

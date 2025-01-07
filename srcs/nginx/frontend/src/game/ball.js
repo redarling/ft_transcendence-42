@@ -130,4 +130,14 @@ export class Ball {
     getVelocityZ() {
         return this.#velocityZ;
     }
+
+    setPosition(x, z) {
+        this.#mesh.position.x = x;
+        this.#mesh.position.z = z;
+    }
+
+    setDirection(x, z) {
+        this.#mesh.directionX = x;
+        this.#mesh.directionZ = z;
+    }
 }

@@ -1,8 +1,9 @@
-import { renderErrorPage, renderMatchPlaceholder, renderSearchingPage } from './renderPages.js';
+import { renderErrorPage, renderMatch, renderSearchingPage, handleMatchOver } from './renderPages.js';
 
 export async function findMatch() {
     const main = document.getElementById("main");
     const token = prompt("Please enter your JWT token:", "");
+    let playerId = null;
 
     if (!token) {
         alert("Token is required to connect.");
@@ -42,7 +43,24 @@ export async function findMatch() {
                     break;
 
                 case "match_start":
-                    renderMatchPlaceholder();
+                    if (!playerId) {
+                        console.error("playerId is not defined before starting the match.");
+                        renderErrorPage("Failed to start the match. Please try again.");
+                        return;
+                    }
+                    console.log("playerId:", playerId);
+                    renderMatch(socket, playerId);
+                    break;
+                
+                case "match_over":
+                    handleMatchOver(data, playerId);
+                    break;
+            
+                case "player_id":
+                    if (data.message)
+                        playerId = data.message;  
+                    else 
+                        renderErrorPage("Failed to start the match. Please try again.");
                     break;
 
                 default:

@@ -1,6 +1,7 @@
 import renderFooter from '../components/footer.js';
 import renderHeader from '../components/header.js';
 import renderGame from '../pages/game.js';
+import { Game } from '../game/onlineGame.js';
 
 function renderPageTemplate({ header = true, footer = true, content = '' }) {
     const main = document.getElementById("main");
@@ -64,14 +65,66 @@ export function renderErrorPage(message) {
     });
 }
 
-// Placeholder for redirection after match found
-export function renderMatchPlaceholder() {
-    const content = `
-        <div class="container text-center mt-5">
-            <h1 class="display-4">Match Found!</h1>
-            <p class="text-muted">Redirecting to your match...</p>
-        </div>
-    `;
+export function renderMatch(socket, playerId) {
 
-    renderPageTemplate({ content });
+    document.getElementById('main').innerHTML= '';
+    document.getElementById('header').innerHTML= '';
+    document.getElementById('footer').innerHTML= '';
+    console.log("Render playerId:", playerId);
+    const game = new Game(socket, playerId);
+    game.loop();
+}
+
+/**
+ * Handle the "match_over" event.
+ * @param {Object} data - The event data containing match results.
+ * @param {string} playerId - The ID of the current player.
+ */
+export function handleMatchOver(data, playerId) {
+    const winner = data.winner;
+    const player1Score = data.player1_score;
+    const player2Score = data.player2_score;
+    const isWinner = winner === playerId;
+
+    // Create modal for match results
+    const modal = document.createElement("div");
+    modal.id = "match-result-modal";
+    modal.style.position = "fixed";
+    modal.style.top = "0";
+    modal.style.left = "0";
+    modal.style.width = "100vw";
+    modal.style.height = "100vh";
+    modal.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+    modal.style.display = "flex";
+    modal.style.flexDirection = "column";
+    modal.style.justifyContent = "center";
+    modal.style.alignItems = "center";
+    modal.style.zIndex = "9999";
+    modal.style.color = "#fff";
+
+    const resultText = document.createElement("h1");
+    resultText.textContent = isWinner ? "YOU WON!" : "YOU LOST!";
+    resultText.style.marginBottom = "20px";
+
+    const scoreText = document.createElement("p");
+    scoreText.textContent = `Final Score: ${player1Score} - ${player2Score}`;
+    scoreText.style.marginBottom = "30px";
+
+    const returnButton = document.createElement("button");
+    returnButton.textContent = "RETURN";
+    returnButton.style.padding = "10px 20px";
+    returnButton.style.fontSize = "16px";
+    returnButton.style.cursor = "pointer";
+    returnButton.onclick = () => {
+        // Remove modal and redirect user to the main screen
+        modal.remove();
+        renderHeader();
+        renderGame();
+        renderFooter();
+    };
+
+    modal.appendChild(resultText);
+    modal.appendChild(scoreText);
+    modal.appendChild(returnButton);
+    document.body.appendChild(modal);
 }
