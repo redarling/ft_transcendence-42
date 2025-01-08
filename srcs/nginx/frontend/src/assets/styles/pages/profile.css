@@ -1,0 +1,11 @@
+
+.game-card {
+    background-color: #1E1E1E;
+    border-radius: 6px;
+}
+
+.user-stats-container {
+    background-color: #1E1E1E;
+    padding-left: 20%;
+    padding-right: 20%;
+}

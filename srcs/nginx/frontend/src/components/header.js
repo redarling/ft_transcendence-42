@@ -25,6 +25,9 @@ export default function renderHeader() {
                     <li class="nav-item">
                         <a class="nav-link" href="login">Logout</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="profile">Profile</a>
+                    </li>
                 </ul>
             </div>
         </nav>

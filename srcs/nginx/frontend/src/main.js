@@ -4,6 +4,7 @@ import renderHome from "./pages/home.js"
 import renderSettings from "./pages/settings.js"
 import renderLogin from "./pages/login.js"
 import renderGame from "./pages/game.js"
+import renderUserProfile from "./pages/profile.js"
 
 function router() {
 	// Define routes as an object mapping paths to components or functions
@@ -13,7 +14,8 @@ function router() {
 		"/": renderHome,
 		"/home": renderHome,
 		"/settings": renderSettings,
-		"/game": renderGame
+		"/game": renderGame,
+        "/profile": renderUserProfile,
 	};
 
 	// get the current path of the website (allow to modify the dom website when the path is modified)
