@@ -48,7 +48,6 @@ export async function findMatch() {
                         renderErrorPage("Failed to start the match. Please try again.");
                         return;
                     }
-                    console.log("playerId:", playerId);
                     renderMatch(socket, playerId);
                     break;
                 

@@ -70,7 +70,6 @@ export function renderMatch(socket, playerId) {
     document.getElementById('main').innerHTML= '';
     document.getElementById('header').innerHTML= '';
     document.getElementById('footer').innerHTML= '';
-    console.log("Render playerId:", playerId);
     const game = new Game(socket, playerId);
     game.loop();
 }

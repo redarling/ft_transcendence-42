@@ -77,7 +77,6 @@ export class Game {
     #playerId;
 
     constructor(socket, playerId) {
-        console.log("Initializing Game with playerId:", playerId);
         this.#socket = socket;
         this.#playerId = playerId;
         this.#socket.onmessage = (event) => this.handleServerMessage(JSON.parse(event.data));
@@ -174,7 +173,7 @@ export class Game {
     {
         this.#socket.send(JSON.stringify({
             event: "player_action",
-            playerId: this.#playerId,
+            playerId: this.#playerId, // add protection
             direction: direction
         }));
     }

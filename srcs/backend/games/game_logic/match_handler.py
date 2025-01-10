@@ -2,6 +2,7 @@ import asyncio
 from .channel_messages import remove_player_from_group, send_group_message
 import random
 import logging
+from .recovery_key_manager import RecoveryKeyManager
 from .api_calls import finish_match_api
 
 logger = logging.getLogger(__name__)
@@ -69,8 +70,8 @@ class MatchHandler:
         while self.running:
             if not self.event_queue.empty():
                 event = await self.event_queue.get()
-                logger.info(f"Processing event: {event}")
                 if event["event"] == "player_disconnected":
+                    logger.info(f"Processing event: {event}")
                     disconnected_player_id = event.get("player_id")
                     if disconnected_player_id == self.player1["id"]:
                         winner = self.player2["id"]
@@ -146,22 +147,27 @@ class MatchHandler:
         paddle = self.player1 if left else self.player2
         distance_from_center = self.ball["position"][1] - paddle["position"]
 
+        # Update ball velocity based on distance from paddle center
         self.ball["velocity"][1] += distance_from_center * 0.02
         self.ball["timesHit"] = self.ball.get("timesHit", 0) + 1
 
+        # Increment total hits for the paddle
         paddle["total_hits"] += 1
 
-        if self.ball["timesHit"] == 1:
+        # Count serve attempts and successful serves
+        if self.ball["timesHit"] == 1:  # First hit in rally
             paddle["serves"] += 1
-            if self.ball["position"][0] * paddle["direction"] > 0:
+            if (left and self.ball["direction"][0] > 0) or (not left and self.ball["direction"][0] < 0):
                 paddle["successful_serves"] += 1
 
+        # Update rally length
+        if self.ball["timesHit"] > paddle["longest_rally"]:
+            paddle["longest_rally"] = self.ball["timesHit"]
+
+        # Increase ball velocity every 3 hits
         if self.ball["timesHit"] % 3 == 0:
             self.ball["velocity"][0] *= VELOCITY_MULTIPLIER
             self.ball["velocity"][1] *= VELOCITY_MULTIPLIER
-
-        if self.ball["timesHit"] > paddle["longest_rally"]:
-            paddle["longest_rally"] = self.ball["timesHit"]
 
     def check_goal(self):
         if abs(self.ball["position"][0]) > FIELD_WIDTH / 2:
@@ -192,7 +198,6 @@ class MatchHandler:
         }
         await self.send_group_message(state)
 
-
     def check_match_over(self):
         if self.player1["score"] == 10 and self.player2["score"] == 10:
             if (self.player1["score"] >= 12 and (self.player1["score"] - self.player2["score"]) >= 2):
@@ -207,7 +212,6 @@ class MatchHandler:
         if self.player2["score"] >= MAX_SCORE and (self.player2["score"] - self.player1["score"]) >= WINNING_MARGIN:
             return True
         return False
-
 
     async def end_match(self, winner=None):
         """
@@ -245,6 +249,22 @@ class MatchHandler:
         
         self.running = False
         await finish_match_api(finish_data)
+
+        # Clean up: delete recovery key
+        try:
+            await RecoveryKeyManager.delete_recovery_key(self.group_name)
+            logger.info(f"Recovery key for match {self.match_data['id']} deleted successfully.")
+        except Exception as e:
+            logger.error(f"Failed to delete recovery key for match {self.match_data['id']}: {e}")
+
+        # Clean up: remove players from the channel
+        match_group = f"match_{self.match_data['id']}"
+        try:
+            await remove_player_from_group(match_group, f"player_{self.player1['id']}")
+            await remove_player_from_group(match_group, f"player_{self.player2['id']}")
+            logger.info(f"Players removed from match channel {match_group}.")
+        except Exception as e:
+            logger.error(f"Error removing players from match channel {match_group}: {e}")
 
     async def send_group_message(self, message):
         await send_group_message(self.group_name, message)
