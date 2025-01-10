@@ -1,11 +1,28 @@
+.profile-container {
+    background-color: #121212;
+}
 
 .game-card {
     background-color: #1E1E1E;
     border-radius: 6px;
 }
 
-.user-stats-container {
-    background-color: #1E1E1E;
-    padding-left: 20%;
-    padding-right: 20%;
+.win {
+    color: green;
+}
+
+.loss {
+    color: red;
+}
+
+.table tbody tr:hover {
+    cursor: pointer;
+}
+
+.game-history-table {
+    --bs-table-bg: #121212;
+    --bs-table-border-color: #676767;
+    --bs-table-color: #F8F9FA;
+    --bs-table-hover-color: #F8F9FA;
+    --bs-table-hover-bg: #242424;
 }

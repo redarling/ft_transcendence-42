@@ -1,8 +1,6 @@
-export default function renderUserStats() {
-	const main = document.getElementById("main");
-    main.innerHTML = `
-    <div
-    <div class="container-fluid user-stats-container">
+export default function UserStatsComponent() {
+    const userStatsSection = document.querySelector('#userStats');
+    userStatsSection.innerHTML = `
         <h5 class="text-light">MAIN STATISTICS</h5>
         <div class="row">
             <div class="col">
@@ -69,14 +67,13 @@ export default function renderUserStats() {
                 </div>
             </div>
         </div>
-    </div>
     `;
 
-    let radioRatioChart = document.getElementById('radioRatioChart');
-    let radioReactionTimeChart = document.getElementById('radioReactionTimeChart');
-    let radioTimesHitChart = document.getElementById('radioTimesHitChart');
-    let chartLeftButton = document.getElementById('chartLeft');
-    let chartRightButton = document.getElementById('chartRight');
+    const radioRatioChart = document.getElementById('radioRatioChart');
+    const radioReactionTimeChart = document.getElementById('radioReactionTimeChart');
+    const radioTimesHitChart = document.getElementById('radioTimesHitChart');
+    const chartLeftButton = document.getElementById('chartLeft');
+    const chartRightButton = document.getElementById('chartRight');
     const statsChart = document.getElementById('statsChart');
     
     //===----------------------------------------------------------------------===//
@@ -227,7 +224,4 @@ export default function renderUserStats() {
         activeChart.data.datasets[0].label = "Times Hit";
         activeChart.update();
     });
-    
-    
-
 }
