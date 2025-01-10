@@ -87,7 +87,7 @@ export default function UserStatsComponent() {
     };
     
     let matchHistory = [];
-    for (let i = 0; i < 42; ++i) {
+    for (let i = 0; i < 10; ++i) {
         matchHistory.push({ ...matchStats });
         matchStats.matchId += 1;
         matchStats.timeHit = Math.floor(Math.random() * 100);
@@ -143,6 +143,11 @@ export default function UserStatsComponent() {
     const matchesPerChart = 5;
     let right;
     let left;
+
+    if (matchHistory.length <= matchesPerChart) {
+        chartLeftButton.disabled = true;
+    }
+
     if ((matchHistory.length % matchesPerChart) != 0) {
         left = matchHistory.length - (matchHistory.length % matchesPerChart);
         right = left + matchesPerChart - 1;
