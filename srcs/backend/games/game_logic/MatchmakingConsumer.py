@@ -13,6 +13,15 @@ import asyncio
 
 logger = logging.getLogger(__name__)
 
+# TODO: 1) Match abandonement due to inactivity
+#       2) Cleanup consumer code + check for possible improvements
+#       3) Display usernames in the match, as well as finish page
+#       4) Notify properly a player when the opponent disconnects
+#       5) Ball interpolation + prediction. Optimization of the client side
+#       6) Prevent movement before KICKOFF
+#       7) Prevent cheating by sending opponent's moves to the server
+#       8) Add sound effects when ball hits
+#       9) Beautiful starting screen with a timer?
 class MatchmakingConsumer(AsyncWebsocketConsumer):
     queue = MatchmakingQueue()
     eventQueue = asyncio.Queue()
@@ -37,7 +46,6 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         self.player_id = None
         self.match_group = None
 
-    # TODO: rework it after redis recovery key implementation
     async def disconnect(self, close_code):
         """
         Handle client disconnection.
@@ -50,7 +58,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
             logger.info("User stopped matchmaking: %s", self.scope["user"])
             await self.channel_layer.group_discard(f"player_{self.user.id}", self.channel_name)
             if self.match_group:
-                # TODO: Rework
+                # TODO: Think about improment of this part if needed
                 await send_group_message(self.match_group, {"event": "error", "message": "User disconnected"})
                 await remove_player_from_group(self.match_group, f"player_{self.user.id}")
 
@@ -119,7 +127,6 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
                 "player2_username": match_data["player2_username"],
                 'opponent_username': match_data["player2_username"] if str(player_id) == match_data["player1_id"] else match_data["player1_username"],
             }))
-            #await self.add_player_to_group(player_id, match_group)
             await self.channel_layer.group_add(match_group, self.channel_name)
             logger.info(f"User {self.user.id} reconnected to match {match_group}")
 
@@ -183,7 +190,9 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
             self.disconnect_user(player2)
 
 ################################### UTILS ########################################################
-    
+# TODO: Move some of these methods to the separate files                                         #
+##################################################################################################
+
     async def send_error_to_players(self, player1, player2, error_message):
         """
         Notify players about an error during match creation.
@@ -272,8 +281,10 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         Check if players are still online.
         """
         while True:
-
-            # TODO: check if redis recovery key is still active, if not then break
+            match_data = await RecoveryKeyManager.get_recovery_key(self.match_group)
+            if not match_data:
+                logger.info(f"Match {self.match_group} key is no longer available. Task ending.")
+                break
 
             player_1_online = await self.is_player_online(player_id_1)
             if not player_1_online:

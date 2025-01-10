@@ -69,14 +69,10 @@ class MatchStartAPIView(APIView):
         if serializer.is_valid():
             try:
                 match = serializer.save()
-                # Add player usernames to the response data
-                response_data = serializer.data
-                response_data["player1_username"] = player_1.username
-                response_data["player2_username"] = player_2.username
-                
-                return Response(response_data, status=status.HTTP_201_CREATED)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
         
-            except IntegrityError:
+            except IntegrityError as e:
+                logger.error(f"Database error during match creation: {e}")
                 return Response({"detail": "Failed to create match due to a database error."},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

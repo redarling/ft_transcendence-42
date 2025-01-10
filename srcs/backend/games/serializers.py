@@ -2,6 +2,9 @@ from rest_framework import serializers
 from .models import Match, MatchHistory, MatchPlayerStats, Tournament, TournamentParticipant, TournamentInvitation
 
 class MatchSerializer(serializers.ModelSerializer):
+    player1_username = serializers.CharField(source='first_player.username', read_only=True)
+    player2_username = serializers.CharField(source='second_player.username', read_only=True)
+
     class Meta:
         model = Match
         fields = [
@@ -9,6 +12,8 @@ class MatchSerializer(serializers.ModelSerializer):
             'match_type',
             'first_player',
             'second_player',
+            'player1_username',
+            'player2_username',
             'score_player1',
             'score_player2',
             'match_status',
