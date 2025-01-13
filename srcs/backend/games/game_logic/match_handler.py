@@ -22,8 +22,8 @@ RATE = 1 / 60  # 60 FPS
 
 class MatchHandler:
     def __init__(self, player1, player2, group_name, match_data, event_queue):
-        self.player1 = {"id": player1, "position": 0.0, "score": 0, "total_hits": 0, "serves": 0, "successful_serves": 0, "longest_rally": 0, "overtime_points": 0}
-        self.player2 = {"id": player2, "position": 0.0, "score": 0, "total_hits": 0, "serves": 0, "successful_serves": 0, "longest_rally": 0, "overtime_points": 0}
+        self.player1 = {"id": player1, "position": 0.0, "score": 0, "total_hits": 0, "serves": 0, "successful_serves": 0, "longest_rally": 0}
+        self.player2 = {"id": player2, "position": 0.0, "score": 0, "total_hits": 0, "serves": 0, "successful_serves": 0, "longest_rally": 0}
         self.ball = {
             "position": [0.0, 0.0],
             "velocity": [BALL_INITIAL_VELOCITY, BALL_INITIAL_VELOCITY],
@@ -199,14 +199,6 @@ class MatchHandler:
         await self.send_group_message(state)
 
     def check_match_over(self):
-        if self.player1["score"] == 10 and self.player2["score"] == 10:
-            if (self.player1["score"] >= 12 and (self.player1["score"] - self.player2["score"]) >= 2):
-                self.player1["overtime_points"] += 1
-                return True
-            elif (self.player2["score"] >= 12 and (self.player2["score"] - self.player1["score"]) >= 2):
-                self.player2["overtime_points"] += 1
-                return True
-
         if self.player1["score"] >= MAX_SCORE and (self.player1["score"] - self.player2["score"]) >= WINNING_MARGIN:
             return True
         if self.player2["score"] >= MAX_SCORE and (self.player2["score"] - self.player1["score"]) >= WINNING_MARGIN:
@@ -236,8 +228,6 @@ class MatchHandler:
         "player2_successful_serves": self.player2.get("successful_serves", 0),
         "player1_longest_rally": self.player1.get("longest_rally", 0),
         "player2_longest_rally": self.player2.get("longest_rally", 0),
-        "player1_overtime_points": self.player1.get("overtime_points", 0),
-        "player2_overtime_points": self.player2.get("overtime_points", 0),
         })
 
         await self.send_group_message({

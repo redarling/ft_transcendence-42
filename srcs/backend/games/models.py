@@ -31,8 +31,6 @@ class MatchPlayerStats(models.Model):
     successful_serves = models.IntegerField(default=0)
     total_hits = models.IntegerField(default=0)
     longest_rally = models.IntegerField(default=0)
-    overtime_points = models.IntegerField(default=0)
-    total_duration = models.DurationField(null=True, blank=True)
 
     class Meta:
         unique_together = ('match', 'player')

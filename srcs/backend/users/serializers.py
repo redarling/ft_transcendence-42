@@ -85,8 +85,8 @@ class UserStatsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserStats
-        fields = ['user', 'total_matches', 'total_wins', 'total_losses', 
-                  'win_ratio', 'total_points_scored', 'total_points_against', 
+        fields = ['user', 'total_matches', 'total_wins', 'total_points_scored', 
+                  'total_points_against', 'current_win_streak', 'longest_win_streak',
                   'last_match_date', 'registered_at', 'tournaments_won']
 
 class UserShortSerializer(serializers.ModelSerializer):

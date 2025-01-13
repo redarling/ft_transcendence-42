@@ -4,7 +4,7 @@ from .models import Match, MatchHistory, MatchPlayerStats, Tournament, Tournamen
 class MatchSerializer(serializers.ModelSerializer):
     player1_username = serializers.CharField(source='first_player.username', read_only=True)
     player2_username = serializers.CharField(source='second_player.username', read_only=True)
-
+    
     class Meta:
         model = Match
         fields = [
@@ -55,7 +55,7 @@ class MatchPlayerStatsSerializer(serializers.ModelSerializer):
         model = MatchPlayerStats
         fields = [
             'player', 'player_username', 'points_scored', 'serves', 'successful_serves',
-            'total_hits', 'longest_rally', 'overtime_points', 'total_duration'
+            'total_hits', 'longest_rally'
         ]
 
 class TournamentSerializer(serializers.ModelSerializer):

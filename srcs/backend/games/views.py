@@ -102,8 +102,7 @@ class MatchEndAPIView(APIView):
                                                                     "player1_serves", "player2_serves", 
                                                                     "player1_successful_serves", 
                                                                     "player2_successful_serves",
-                                                                    "player1_longest_rally", "player2_longest_rally", 
-                                                                    "player1_overtime_points", "player2_overtime_points"])
+                                                                    "player1_longest_rally", "player2_longest_rally"])
         if validation_error:
             return validation_error
         
@@ -126,8 +125,6 @@ class MatchEndAPIView(APIView):
         # Fetch players
         player1 = match.first_player
         player2 = match.second_player
-        total_duration_seconds = (finished_at - match.started_at).total_seconds()
-        total_duration = timedelta(seconds=total_duration_seconds)
 
         # Update match details
         match.score_player1 = score_player1
@@ -154,14 +151,12 @@ class MatchEndAPIView(APIView):
 
         # Update individual player stats
         self.update_player_stats(
-            match=match,
             player=player1,
             points_scored=score_player1,
             points_against=score_player2,
             is_winner=(winner_id == player1.id),
         )
         self.update_player_stats(
-            match=match,
             player=player2,
             points_scored=score_player2,
             points_against=score_player1,
@@ -184,8 +179,6 @@ class MatchEndAPIView(APIView):
                 serves=request.data.get("player1_serves", 0),
                 successful_serves=request.data.get("player1_successful_serves", 0),
                 longest_rally=request.data.get("player1_longest_rally", 0),
-                overtime_points=request.data.get("player1_overtime_points", 0),
-                total_duration=total_duration,
             ),
             MatchPlayerStats(
                 match=match,
@@ -195,14 +188,12 @@ class MatchEndAPIView(APIView):
                 serves=request.data.get("player2_serves", 0),
                 successful_serves=request.data.get("player2_successful_serves", 0),
                 longest_rally=request.data.get("player2_longest_rally", 0),
-                overtime_points=request.data.get("player2_overtime_points", 0),
-                total_duration=total_duration,
             ),
         ])
 
         return Response({"detail": "Match has been successfully completed."}, status=status.HTTP_200_OK)
 
-    def update_player_stats(self, match, player, points_scored, points_against, is_winner):
+    def update_player_stats(self, player, points_scored, points_against, is_winner):
         """
         Updates UserStats for a given player based on match results.
         """
@@ -276,28 +267,28 @@ class MatchStatsAPIView(APIView):
 
     def get(self, request, match_id):
         """
-        Returns the statistics of the requesting user for a specific match.
+        Returns the statistics of both players for a specific match.
         """
         match = get_object_or_404(Match, id=match_id)
 
         # Check if the user is a participant in the match
         if request.user not in [match.first_player, match.second_player]:
             return Response(
-                            {"detail": "You are not authorized to view this match's statistics."},
-                            status=status.HTTP_403_FORBIDDEN)
+                {"detail": "You are not authorized to view this match's statistics."},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
-        # Get the user's stats for the match
-        try:
-            player_stats = MatchPlayerStats.objects.get(match=match, player=request.user)
-        except MatchPlayerStats.DoesNotExist:
+        # Get statistics for both players
+        players_stats = MatchPlayerStats.objects.filter(match=match)
+        if not players_stats.exists():
             return Response(
-                            {"detail": "Statistics for this user in the match not found."},
-                            status=status.HTTP_404_NOT_FOUND)
+                {"detail": "Statistics for this match not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
-        # Serialize and return the player's statistics
-        serializer = MatchPlayerStatsSerializer(player_stats)
+        # Serialize and return both players' statistics
+        serializer = MatchPlayerStatsSerializer(players_stats, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-       
 
 ########################################################################################################
 #                                  TOURNAMENT SYSTEM                                                   #

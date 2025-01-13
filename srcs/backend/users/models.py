@@ -70,10 +70,10 @@ class UserStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='stats')
     total_matches = models.IntegerField(default=0)
     total_wins = models.IntegerField(default=0)
-    total_losses = models.IntegerField(default=0)
-    win_ratio = models.FloatField(default=0.0)
     total_points_scored = models.IntegerField(default=0)
     total_points_against = models.IntegerField(default=0)
+    current_win_streak = models.IntegerField(default=0)
+    longest_win_streak = models.IntegerField(default=0)
     last_match_date = models.DateField(null=True, blank=True)
     registered_at = models.DateField(auto_now_add=True)
     tournaments_won = models.IntegerField(default=0)
@@ -86,23 +86,21 @@ class UserStats(models.Model):
     def __str__(self):
         return f"Stats for {self.user.username}"
 
-    def update_win_ratio(self):
-        if self.total_matches > 0:
-            self.win_ratio = self.total_wins / self.total_matches
-        else:
-            self.win_ratio = 0.0
-        self.save()
-
     def record_match(self, points_scored, points_against, is_win):
         self.total_matches += 1
         self.total_points_scored += points_scored
         self.total_points_against += points_against
         if is_win:
             self.total_wins += 1
+            self.current_win_streak += 1
         else:
-            self.total_losses += 1
-        self.update_win_ratio()
+            self.current_win_streak = 0
+        self.longest_win_streak = max(self.longest_win_streak, self.current_win_streak)
         self.last_match_date = timezone.now().date()
+        self.save()
+    
+    def record_tournament_win(self):
+        self.tournaments_won += 1
         self.save()
 
 class Friend(models.Model):
