@@ -271,13 +271,6 @@ class MatchStatsAPIView(APIView):
         """
         match = get_object_or_404(Match, id=match_id)
 
-        # Check if the user is a participant in the match
-        if request.user not in [match.first_player, match.second_player]:
-            return Response(
-                {"detail": "You are not authorized to view this match's statistics."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
         # Get statistics for both players
         players_stats = MatchPlayerStats.objects.filter(match=match)
         if not players_stats.exists():

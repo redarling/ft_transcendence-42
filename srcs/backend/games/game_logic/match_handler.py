@@ -16,6 +16,7 @@ BALL_RADIUS = FIELD_HEIGHT / 30
 BALL_INITIAL_VELOCITY = 0.06
 VELOCITY_MULTIPLIER = 1.3
 KICK_OFF_DELAY = 2  # seconds
+START_KICK_OFF = 5
 MAX_SCORE = 11
 WINNING_MARGIN = 2
 RATE = 1 / 60  # 60 FPS
@@ -36,16 +37,17 @@ class MatchHandler:
         self.event_queue = event_queue
         self.event_processing_task = None
         self.max_event_processing_rate = RATE
+        self.kick_off = True
 
     async def start_match(self):
-        self.running = True
         await self.send_group_message({
             "event": "match_start",
             "match_data": self.match_data,
         })
-        await asyncio.sleep(KICK_OFF_DELAY)
-
+        self.running = True
         self.event_processing_task = asyncio.create_task(self.process_events())
+        await asyncio.sleep(START_KICK_OFF)
+        self.kick_off = False
 
         await self.game_loop()
 
@@ -70,21 +72,29 @@ class MatchHandler:
         while self.running:
             if not self.event_queue.empty():
                 event = await self.event_queue.get()
-                if event["event"] == "player_disconnected":
-                    logger.info(f"Processing event: {event}")
-                    disconnected_player_id = event.get("player_id")
-                    if disconnected_player_id == self.player1["id"]:
-                        winner = self.player2["id"]
-                    else:
-                        winner = self.player1["id"]
-                    await self.end_match(winner)
-                    self.event_queue.task_done()
-                elif event["event"] == "player_action":
-                    player_id = event.get("player_id")
-                    direction = event.get("direction")
-                    await self.handle_player_action(player_id, direction)
 
-                self.event_queue.task_done()
+                if self.kick_off:
+                    if event["event"] == "player_action":
+                        self.event_queue.task_done()
+                        continue
+                try:
+                    if event["event"] == "player_disconnected":
+                        logger.info(f"Processing event: {event}")
+                        disconnected_player_id = event.get("player_id")
+                        if disconnected_player_id == self.player1["id"]:
+                            winner = self.player2["id"]
+                        else:
+                            winner = self.player1["id"]
+                        await self.end_match(winner)
+                    elif event["event"] == "player_action":
+                        player_id = event.get("player_id")
+                        direction = event.get("direction")
+                        await self.handle_player_action(player_id, direction)
+                except Exception as e:
+                    logger.error(f"Error processing event {event}: {e}")
+                finally:
+                    # Ensure task_done() is called only once per event
+                    self.event_queue.task_done()
 
             current_time = asyncio.get_event_loop().time()
             time_since_last_process = current_time - last_processed_time
@@ -215,6 +225,15 @@ class MatchHandler:
             else:
                 winner = self.player2["id"]
         
+        await self.send_group_message({
+            "event": "match_over",
+            "winner": winner,
+            "player1_score": self.player1["score"],
+            "player2_score": self.player2["score"],
+        })
+
+        self.running = False
+                
         finish_data = ({
         "match_id": self.match_data["id"],
         "score_player1": self.player1.get("score", 0),
@@ -229,25 +248,17 @@ class MatchHandler:
         "player1_longest_rally": self.player1.get("longest_rally", 0),
         "player2_longest_rally": self.player2.get("longest_rally", 0),
         })
-
-        await self.send_group_message({
-            "event": "match_over",
-            "winner": winner,
-            "player1_score": self.player1["score"],
-            "player2_score": self.player2["score"],
-        })
         
-        self.running = False
         await finish_match_api(finish_data)
 
-        # Clean up: delete recovery key
+        # Delete recovery key
         try:
             await RecoveryKeyManager.delete_recovery_key(self.group_name)
             logger.info(f"Recovery key for match {self.match_data['id']} deleted successfully.")
         except Exception as e:
             logger.error(f"Failed to delete recovery key for match {self.match_data['id']}: {e}")
 
-        # Clean up: remove players from the channel
+        # Remove players from the channel
         match_group = f"match_{self.match_data['id']}"
         try:
             await remove_player_from_group(match_group, f"player_{self.player1['id']}")

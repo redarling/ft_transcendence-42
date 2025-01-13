@@ -96,6 +96,12 @@ export class Ball {
         }
     }
 
+    playSoundEffect() {
+        if (this.#soundEffect) {
+            this.#soundEffect.play();
+        }
+    }
+    
     dispose() {
         if (this.#soundEffect) {
             this.#soundEffect.pause();

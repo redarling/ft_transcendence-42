@@ -5,18 +5,21 @@ export async function findMatch() {
     const token = prompt("Please enter your JWT token:", "");
     let playerId = null;
 
-    if (!token) {
+    if (!token)
+    {
         alert("Token is required to connect.");
         return;
     }
 
-    // Connect to the WebSocket
     const wsUrl = `wss://localhost:443/ws/matchmaking/?token=${encodeURIComponent(token)}`;
     let socket;
 
-    try {
+    try
+    {
         socket = new WebSocket(wsUrl);
-    } catch (error) {
+    }
+    catch (error)
+    {
         alert("Failed to connect to the server. Please try again later.");
         console.error("WebSocket error:", error);
         return;
@@ -30,10 +33,12 @@ export async function findMatch() {
 
     // Server's message event handler
     socket.onmessage = (message) => {
-        try {
+        try
+        {
             const data = JSON.parse(message.data);
 
-            switch (data.event) {
+            switch (data.event)
+            {
                 case "searching":
                     renderSearchingPage(socket);
                     break;
@@ -43,16 +48,16 @@ export async function findMatch() {
                     break;
 
                 case "match_start":
-                    if (!playerId) {
-                        console.error("playerId is not defined before starting the match.");
+                    if (!playerId)
+                    {
                         renderErrorPage("Failed to start the match. Please try again.");
                         return;
                     }
-                    renderMatch(socket, playerId);
-                    break;
-                
-                case "match_over":
-                    handleMatchOver(data, playerId);
+                    const player1Username = data.match_data.player1_username;
+                    const player2Username = data.match_data.player2_username;
+                    const player1Avatar = data.match_data.player1_avatar;
+                    const player2Avatar = data.match_data.player2_avatar;
+                    renderMatch(socket, playerId, player1Username, player2Username, player1Avatar, player2Avatar, true);
                     break;
             
                 case "player_id":
@@ -64,8 +69,11 @@ export async function findMatch() {
 
                 default:
                     console.warn("Unhandled event:", data);
+                    break;
             }
-        } catch (e) {
+        }
+        catch (e)
+        {
             console.error("Error parsing message:", message, e);
         }
     };

@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { handleMatchOver, disconnectionMessage } from '../online_gaming/renderPages.js';
 
 export const FIELD_DIMENSION_Z = 6;
 
 import { Ball } from './ball.js';
 import { Paddle } from './paddle.js';
 import { Score } from './score.js';
+import { Countdown } from './Countdown.js'; 
 
 const ASPECT_RATIO = window.innerWidth / window.innerHeight;
 const CAMERA_FOV = 75;
@@ -72,13 +74,17 @@ export class Game {
     #paddleLeft;
     #paddleRight;
     #score;
+    #playerNames
+    #countdown;
     // -------------
     #socket;
     #playerId;
+    #withCountdown;
 
-    constructor(socket, playerId) {
+    constructor(socket, playerId, withCountdown = true) {
         this.#socket = socket;
         this.#playerId = playerId;
+        this.#withCountdown = withCountdown;
         this.#socket.onmessage = (event) => this.handleServerMessage(JSON.parse(event.data));
         this.initScene();
 
@@ -128,6 +134,19 @@ export class Game {
             fontDepth: SCORE_FONT_DEPTH,
             color: SCORE_FONT_COLOR
         });
+
+        if (this.#withCountdown)
+        {
+            this.#countdown = new Countdown({
+                scene: this.#scene,
+                fontPath: './src/assets/fonts/Poppins ExtraBold_Regular.json',
+                fontSize: SCORE_FONT_SIZE,
+                fontDepth: SCORE_FONT_DEPTH,
+                color: SCORE_FONT_COLOR
+            });
+        }
+        else
+            this.#countdown = null; // No countdown
     }
 
     initScene() {
@@ -178,50 +197,76 @@ export class Game {
         }));
     }
     
-
     handleServerMessage(message) {
-        if (message.event === "game_state") {
-            console.log("Server state:", message);
-
+        if (message.event === "game_state")
+        {
             const { player1, player2, ball } = message;
 
-            if (this.#paddleLeft.getPosZ() !== player1.position) {
+            if (this.#paddleLeft.getPosZ() !== player1.position)
                 this.#paddleLeft.setPosZ(player1.position);
-            }
     
-            if (this.#paddleRight.getPosZ() !== player2.position) {
+            if (this.#paddleRight.getPosZ() !== player2.position)
                 this.#paddleRight.setPosZ(player2.position);
-            }
 
             this.#ball.setPosition(ball.position[0], ball.position[1]);
             this.#ball.setDirection(ball.direction[0], ball.direction[1]);
+            
+            this.checkCollision();
 
-            if (this.#score.getScoreLeft() !== player1.score) {
+            if (this.#score.getScoreLeft() !== player1.score)
                 this.#score.scoreLeft();
-            }
     
-            if (this.#score.getScoreRight() !== player2.score) {
+            if (this.#score.getScoreRight() !== player2.score)
                 this.#score.scoreRight();
-            }
+        }
+        else if (message.event === "match_over")
+        {
+            this.clear();
+            handleMatchOver(message.winner, message.player1_score, message.player2_score, this.#playerId);
+        }
+        else if (message.event == "disconnection")
+        {
+            disconnectionMessage();
         }
     }
 
-    clear() {
+    checkCollision()
+    {
+        if ((this.#ball.getPosX() - BALL_RADIUS) <= (this.#paddleLeft.getPosX() + (PADDLE_DIMENSION_X / 2)) && 
+            (this.#ball.getPosZ()) >= (this.#paddleLeft.getPosZ() - (PADDLE_DIMENSION_Z / 2)) &&
+            (this.#ball.getPosZ()) <= (this.#paddleLeft.getPosZ() + (PADDLE_DIMENSION_Z / 2)))
+                this.#ball.playSoundEffect();
+
+        if ((this.#ball.getPosX() + BALL_RADIUS) >= (this.#paddleRight.getPosX() - (PADDLE_DIMENSION_X / 2)) && 
+            (this.#ball.getPosZ()) >= (this.#paddleRight.getPosZ() - (PADDLE_DIMENSION_Z / 2)) &&
+            (this.#ball.getPosZ()) <= (this.#paddleRight.getPosZ() + (PADDLE_DIMENSION_Z / 2)))
+                this.#ball.playSoundEffect();
+    }
+
+    clear()
+    {
         this.#renderer.setAnimationLoop(null); // stop animation loop
         this.#ball.dispose(); // dispose the resources (ball hit sound)
         this.#renderer.clear();
+
+        const nicknamesDiv = document.getElementById('nicknames');
+        if (nicknamesDiv) {
+            nicknamesDiv.remove();
+        }
 
         // Remove the canvas from the DOM
         const canvas = this.#renderer.domElement;
         canvas.parentNode.removeChild(canvas);
     }
 
-    loop() {
-        let lastTime = 0;
-        const animate = (time) => {
+    loop()
+    {
+        let     lastTime = 0;
+        const   animate = (time) => {
             const delta = time - lastTime;
 
-            if (delta > INTERVAL) {
+            if (delta > INTERVAL)
+            {
                 lastTime = time - (delta % INTERVAL);
 
                 this.#renderer.render(this.#scene, this.#camera);

@@ -13,15 +13,12 @@ import asyncio
 
 logger = logging.getLogger(__name__)
 
-# TODO: 1) Match abandonement due to inactivity
-#       2) Cleanup consumer code + check for possible improvements
-#       3) Display usernames in the match, as well as finish page
-#       4) Notify properly a player when the opponent disconnects
-#       5) Ball interpolation + prediction. Optimization of the client side
-#       6) Prevent movement before KICKOFF
-#       7) Prevent cheating by sending opponent's moves to the server
-#       8) Add sound effects when ball hits
-#       9) Beautiful starting screen with a timer?
+#TODO:  1) Match abandonement due to inactivity
+#       2) Cleanup consumer code + check for possible improvements, fix bugs on collisions
+#       3) Fix bug on disconnection message
+#       4) Ball interpolation + prediction. Optimization of the client side
+#       5) Prevent cheating by sending opponent's moves to the server
+
 class MatchmakingConsumer(AsyncWebsocketConsumer):
     queue = MatchmakingQueue()
     eventQueue = asyncio.Queue()
@@ -59,7 +56,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_discard(f"player_{self.user.id}", self.channel_name)
             if self.match_group:
                 # TODO: Think about improment of this part if needed
-                await send_group_message(self.match_group, {"event": "error", "message": "User disconnected"})
+                await send_group_message(self.match_group, {"event": "disconnection", "message": "User disconnected"})
                 await remove_player_from_group(self.match_group, f"player_{self.user.id}")
 
     async def receive(self, text_data):
@@ -125,6 +122,8 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
                 "player2_id": match_data["player2_id"],
                 "player1_username": match_data["player1_username"],
                 "player2_username": match_data["player2_username"],
+                "player1_avatar": match_data["player1_avatar"],
+                "player2_avatar": match_data["player2_avatar"],
                 'opponent_username': match_data["player2_username"] if str(player_id) == match_data["player1_id"] else match_data["player1_username"],
             }))
             await self.channel_layer.group_add(match_group, self.channel_name)
@@ -177,7 +176,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
             match_group = f"match_{match_data['id']}"
             await self.create_match_group(player1, player2, match_group)
             
-            await RecoveryKeyManager.create_recovery_key(match_group, player1, match_data['player1_username'], player2, match_data['player2_username'])
+            await RecoveryKeyManager.create_recovery_key(match_group, player1, match_data['player1_username'], player2, match_data['player2_username'], match_data['player1_avatar'], match_data['player2_avatar'])
 
             match_handler = MatchHandler(player1, player2, match_group, match_data, self.eventQueue)
             asyncio.create_task(match_handler.start_match())

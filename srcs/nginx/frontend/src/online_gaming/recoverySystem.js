@@ -59,7 +59,8 @@ export async function connectToWebSocket(token, matchGroup)
                         playerId = data.player1_id;
                     else
                         playerId = data.player2_id;
-                    renderMatch(socket, playerId);
+                    console.log("Match recovered:", data.player1_username, data.player2_username);
+                    renderMatch(socket, playerId, data.player1_username, data.player2_username, data.player1_avatar, data.player2_avatar, false);
                     break;
             
                 case "match_over":

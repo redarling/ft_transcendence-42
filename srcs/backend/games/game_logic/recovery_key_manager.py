@@ -24,7 +24,7 @@ class RecoveryKeyManager:
         return cls._redis
 
     @classmethod
-    async def create_recovery_key(cls, match_group, player1_id, player1_username, player2_id, player2_username, ttl=3600):
+    async def create_recovery_key(cls, match_group, player1_id, player1_username, player2_id, player2_username, avatar1, avatar2, ttl=3600):
         """
         Creates a recovery key for the match with a specified TTL.
         """
@@ -36,6 +36,8 @@ class RecoveryKeyManager:
             "player1_username": player1_username,
             "player2_id": player2_id,
             "player2_username": player2_username,
+            "player1_avatar": avatar1,
+            "player2_avatar": avatar2,
         }
         await redis.set(key, json.dumps(value), ex=ttl)
 

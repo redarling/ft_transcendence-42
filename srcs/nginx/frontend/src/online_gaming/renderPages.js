@@ -65,24 +65,83 @@ export function renderErrorPage(message) {
     });
 }
 
-export function renderMatch(socket, playerId) {
+export function renderMatch(socket, playerId, player1Username, player2Username, player1Avatar, player2Avatar, isCountdown) {
 
-    document.getElementById('main').innerHTML= '';
-    document.getElementById('header').innerHTML= '';
-    document.getElementById('footer').innerHTML= '';
-    const game = new Game(socket, playerId);
+    document.getElementById('main').innerHTML = '';
+    document.getElementById('header').innerHTML = '';
+    document.getElementById('footer').innerHTML = '';
+
+    const nicknamesDiv = document.createElement('div');
+    nicknamesDiv.id = 'nicknames';
+    nicknamesDiv.style.position = 'absolute';
+    nicknamesDiv.style.top = '0';
+    nicknamesDiv.style.width = '100%';
+    nicknamesDiv.style.display = 'flex';
+    nicknamesDiv.style.justifyContent = 'space-between';
+    nicknamesDiv.style.padding = '10px';
+    nicknamesDiv.style.zIndex = '1000';
+
+    const player1Container = document.createElement('div');
+    player1Container.style.display = 'flex';
+    player1Container.style.alignItems = 'center';
+    player1Container.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    player1Container.style.padding = '10px';
+    player1Container.style.borderRadius = '8px';
+    player1Container.style.marginLeft = '10px';
+
+    const player1AvatarImg = document.createElement('img');
+    player1AvatarImg.src = player1Avatar;
+    player1AvatarImg.alt = `${player1Username} Avatar`;
+    player1AvatarImg.style.width = '50px';
+    player1AvatarImg.style.height = '50px';
+    player1AvatarImg.style.borderRadius = '50%';
+    player1AvatarImg.style.marginRight = '10px';
+
+    const player1Nickname = document.createElement('span');
+    player1Nickname.textContent = player1Username;
+    player1Nickname.style.color = '#fff';
+    player1Nickname.style.fontSize = '18px';
+    player1Nickname.style.fontWeight = 'bold';
+
+    player1Container.appendChild(player1AvatarImg);
+    player1Container.appendChild(player1Nickname);
+
+    const player2Container = document.createElement('div');
+    player2Container.style.display = 'flex';
+    player2Container.style.alignItems = 'center';
+    player2Container.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    player2Container.style.padding = '10px';
+    player2Container.style.borderRadius = '8px';
+    player2Container.style.marginRight = '10px';
+
+    const player2AvatarImg = document.createElement('img');
+    player2AvatarImg.src = player2Avatar;
+    player2AvatarImg.alt = `${player2Username} Avatar`;
+    player2AvatarImg.style.width = '50px';
+    player2AvatarImg.style.height = '50px';
+    player2AvatarImg.style.borderRadius = '50%';
+    player2AvatarImg.style.marginRight = '10px';
+
+    const player2Nickname = document.createElement('span');
+    player2Nickname.textContent = player2Username;
+    player2Nickname.style.color = '#fff';
+    player2Nickname.style.fontSize = '18px';
+    player2Nickname.style.fontWeight = 'bold';
+
+    player2Container.appendChild(player2AvatarImg);
+    player2Container.appendChild(player2Nickname);
+
+    nicknamesDiv.appendChild(player1Container);
+    nicknamesDiv.appendChild(player2Container);
+
+    document.body.appendChild(nicknamesDiv);
+
+    const game = new Game(socket, playerId, isCountdown);
     game.loop();
 }
 
-/**
- * Handle the "match_over" event.
- * @param {Object} data - The event data containing match results.
- * @param {string} playerId - The ID of the current player.
- */
-export function handleMatchOver(data, playerId) {
-    const winner = data.winner;
-    const player1Score = data.player1_score;
-    const player2Score = data.player2_score;
+export function handleMatchOver(winner, player1Score, player2Score, playerId)
+{
     const isWinner = winner === playerId;
 
     // Create modal for match results
@@ -126,4 +185,32 @@ export function handleMatchOver(data, playerId) {
     modal.appendChild(scoreText);
     modal.appendChild(returnButton);
     document.body.appendChild(modal);
+}
+
+export function disconnectionMessage()
+{
+    const notification = document.createElement("div");
+    notification.id = "disconnection-notification";
+    notification.style.position = "absolute";
+    notification.style.top = "20px";
+    notification.style.right = "20px";
+    notification.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
+    notification.style.color = "#fff";
+    notification.style.padding = "15px 20px";
+    notification.style.borderRadius = "8px";
+    notification.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+    notification.style.zIndex = "1000";
+    notification.style.fontSize = "16px";
+    notification.style.textAlign = "center";
+    notification.style.maxWidth = "300px";
+
+    notification.textContent = "Player disconnected. Match will be finished in 10 seconds if the player doesn't return.";
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        if (document.getElementById("disconnection-notification")) {
+            document.getElementById("disconnection-notification").remove();
+        }
+    }, 5000);
 }

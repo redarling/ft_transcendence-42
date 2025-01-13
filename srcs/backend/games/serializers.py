@@ -4,6 +4,8 @@ from .models import Match, MatchHistory, MatchPlayerStats, Tournament, Tournamen
 class MatchSerializer(serializers.ModelSerializer):
     player1_username = serializers.CharField(source='first_player.username', read_only=True)
     player2_username = serializers.CharField(source='second_player.username', read_only=True)
+    player1_avatar = serializers.CharField(source='first_player.avatar', read_only=True)
+    player2_avatar = serializers.CharField(source='second_player.avatar', read_only=True)
     
     class Meta:
         model = Match
@@ -14,6 +16,8 @@ class MatchSerializer(serializers.ModelSerializer):
             'second_player',
             'player1_username',
             'player2_username',
+            'player1_avatar',
+            'player2_avatar',
             'score_player1',
             'score_player2',
             'match_status',
