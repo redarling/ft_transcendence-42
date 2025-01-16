@@ -74,7 +74,6 @@ export class Game {
     #paddleLeft;
     #paddleRight;
     #score;
-    #playerNames
     #countdown;
     // -------------
     #socket;
