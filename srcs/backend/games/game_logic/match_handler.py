@@ -13,14 +13,14 @@ PADDLE_HEIGHT = 1.0
 PADDLE_WIDTH = 0.2
 PADDLE_SPEED = 0.12
 BALL_RADIUS = FIELD_HEIGHT / 30
-BALL_INITIAL_VELOCITY = 0.06
+BALL_INITIAL_VELOCITY = 0.12
 VELOCITY_MULTIPLIER = 1.3
 KICK_OFF_DELAY = 2  # seconds
 START_KICK_OFF = 5
 MAX_SCORE = 11
 WINNING_MARGIN = 2
-RATE = 1 / 60  # 60 FPS
-MAX_INACTIVITY_TIME = 10
+RATE = 1 / 30  # 30 FPS
+MAX_INACTIVITY_TIME = 20
 
 class MatchHandler:
     def __init__(self, player1, player2, group_name, match_data, event_queue):
@@ -212,13 +212,25 @@ class MatchHandler:
         self.ball["kick_off"] = False
 
     async def broadcast_state(self):
-        state = {
-            "event": "game_state",
-            "player1": self.player1,
-            "player2": self.player2,
-            "ball": self.ball,
+        static_state = {
+            "player1": {"position": self.player1["position"], "score": self.player1["score"]},
+            "player2": {"position": self.player2["position"], "score": self.player2["score"]},
         }
-        await self.send_group_message(state)
+
+        if static_state != getattr(self, "previous_static_state", None):
+            full_state = {
+                "event": "game_state",
+                "player1": self.player1,
+                "player2": self.player2,
+                "ball": self.ball,
+            }
+            await self.send_group_message(full_state)
+            self.previous_static_state = static_state
+        
+        else:
+            partial_state = {"event": "game_state", "ball": self.ball}
+            await self.send_group_message(partial_state)
+
 
     def check_match_over(self):
         if self.player1["score"] >= MAX_SCORE and (self.player1["score"] - self.player2["score"]) >= WINNING_MARGIN:

@@ -2,13 +2,12 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { handleMatchOver, disconnectionMessage } from '../online_gaming/renderPages.js';
-
-export const FIELD_DIMENSION_Z = 6;
-
 import { Ball } from './ball.js';
 import { Paddle } from './paddle.js';
 import { Score } from './score.js';
 import { Countdown } from './Countdown.js'; 
+
+export const FIELD_DIMENSION_Z = 6;
 
 const ASPECT_RATIO = window.innerWidth / window.innerHeight;
 const CAMERA_FOV = 75;
@@ -34,10 +33,10 @@ export const BALL_RADIUS = FIELD_DIMENSION_Z / 30;
 const BALL_INITIAL_X = 0;
 const BALL_INITIAL_Y = 0.22;
 const BALL_INITIAL_Z = 0;
-const BALL_VELOCITY = 0.06;
+const BALL_VELOCITY = 0.12;
 const BALL_SOUND_EFFECT_PATH = './src/assets/sound/ball_hit.wav';
 const BALL_TEXTURE_PATH = './src/assets/3d-models/game/ball_texture.jpg'
-const BALL_VELOCITY_MULTIPLIER = 1.3; // to adjust
+const BALL_VELOCITY_MULTIPLIER = 1.3;
 
 const PADDLE_COLOR = 0xffffff;
 const PADDLE_SPEED = 0.12;
@@ -64,26 +63,27 @@ window.addEventListener('keydown', (e) => keyPressed.add(e.key));
 window.addEventListener('keyup', (e) => keyPressed.delete(e.key));
 
 export class Game {
-    // ThreeJS Scene
     #scene;
     #camera;
     #renderer;
     #controls;
-    // -------------
     #ball;
     #paddleLeft;
     #paddleRight;
     #score;
     #countdown;
-    // -------------
+    #matchOver;
     #socket;
     #playerId;
     #withCountdown;
+    #interpolationTargets;
 
     constructor(socket, playerId, withCountdown = true) {
         this.#socket = socket;
         this.#playerId = playerId;
         this.#withCountdown = withCountdown;
+        this.#matchOver = false;
+        this.#interpolationTargets = { ball: null, paddleLeft: null, paddleRight: null };
         this.#socket.onmessage = (event) => this.handleServerMessage(JSON.parse(event.data));
         this.initScene();
 
@@ -145,7 +145,7 @@ export class Game {
             });
         }
         else
-            this.#countdown = null; // No countdown
+            this.#countdown = null;
     }
 
     initScene() {
@@ -155,21 +155,15 @@ export class Game {
         this.#camera.position.z = CAMERA_POSZ;
         this.#camera.position.y = CAMERA_POSY;
         this.#renderer = new THREE.WebGLRenderer();
-        this.#renderer.setSize(window.innerWidth, window.innerHeight); // resolution of the rendered objects in the scene
-
+        this.#renderer.setSize(window.innerWidth, window.innerHeight);
         const mainDiv = document.getElementById("main");
-        mainDiv.appendChild(this.#renderer.domElement); // add the canvas to the DOM
-
-        this.#controls = new OrbitControls(this.#camera, this.#renderer.domElement); // functionality to move around with the mouse
-
-        // Lighting
+        mainDiv.appendChild(this.#renderer.domElement);
+        this.#controls = new OrbitControls(this.#camera, this.#renderer.domElement);
         const ambientLight = new THREE.AmbientLight(LIGHT_COLOR, AMBIANT_LIGHT_INTENSITY);
         this.#scene.add(ambientLight);
         const directionalLight = new THREE.DirectionalLight(LIGHT_COLOR, DIRECTIONAL_LIGHT_INTENSITY);
         directionalLight.position.set(LIGHT_POSX, LIGHT_POSY, LIGHT_POSZ);
         this.#scene.add(directionalLight);
-
-        // Stadium 3D model loading
         const loader = new GLTFLoader();
         loader.load(STADIUM_MODEL_PATH, (gltf) => {
             const model = gltf.scene;
@@ -181,101 +175,126 @@ export class Game {
     refreshPaddlePos(bindUp, bindDown)
     {
         if (keyPressed.has(bindUp))
-                this.sendPlayerAction("up");
+            this.sendPlayerAction("up");
         
         else if (keyPressed.has(bindDown))
-                this.sendPlayerAction("down");
+            this.sendPlayerAction("down");
     }
 
     sendPlayerAction(direction)
     {
         this.#socket.send(JSON.stringify({
             event: "player_action",
-            playerId: this.#playerId, // add protection
             direction: direction
         }));
     }
     
-    handleServerMessage(message) {
+    handleServerMessage(message)
+    {
         if (message.event === "game_state")
         {
             const { player1, player2, ball } = message;
-
-            if (this.#paddleLeft.getPosZ() !== player1.position)
-                this.#paddleLeft.setPosZ(player1.position);
     
-            if (this.#paddleRight.getPosZ() !== player2.position)
-                this.#paddleRight.setPosZ(player2.position);
+            if (player1 && player1.position !== undefined)
+            {
+                this.#interpolationTargets.paddleLeft = player1.position;
+                if (this.#paddleLeft.getPosZ() !== player1.position)
+                    this.#paddleLeft.setPosZ(player1.position);
+                if (this.#score.getScoreLeft() !== player1.score)
+                    this.#score.scoreLeft();
+            }
 
-            this.#ball.setPosition(ball.position[0], ball.position[1]);
-            this.#ball.setDirection(ball.direction[0], ball.direction[1]);
-            
-            this.checkCollision();
-
-            if (this.#score.getScoreLeft() !== player1.score)
-                this.#score.scoreLeft();
+            if (player2 && player2.position !== undefined)
+            {
+                this.#interpolationTargets.paddleRight = player2.position;
+                if (this.#paddleRight.getPosZ() !== player2.position)
+                    this.#paddleRight.setPosZ(player2.position);
+                if (this.#score.getScoreRight() !== player2.score)
+                    this.#score.scoreRight();
+            }
     
-            if (this.#score.getScoreRight() !== player2.score)
-                this.#score.scoreRight();
+            if (ball && ball.position && ball.direction)
+            {
+                this.#interpolationTargets.ball = {
+                    position: ball.position,
+                    direction: ball.direction
+                };
+            }
         }
         else if (message.event === "match_over")
         {
             this.clear();
+            this.#matchOver = true;
             handleMatchOver(message.winner, message.player1_score, message.player2_score, this.#playerId);
         }
         else if (message.event == "disconnection")
         {
-            disconnectionMessage();
+            if (!this.#matchOver)
+                disconnectionMessage();
         }
     }
 
-    checkCollision()
+    updateInterpolation(deltaTime)
     {
-        if ((this.#ball.getPosX() - BALL_RADIUS) <= (this.#paddleLeft.getPosX() + (PADDLE_DIMENSION_X / 2)) && 
-            (this.#ball.getPosZ()) >= (this.#paddleLeft.getPosZ() - (PADDLE_DIMENSION_Z / 2)) &&
-            (this.#ball.getPosZ()) <= (this.#paddleLeft.getPosZ() + (PADDLE_DIMENSION_Z / 2)))
-                this.#ball.playSoundEffect();
-
-        if ((this.#ball.getPosX() + BALL_RADIUS) >= (this.#paddleRight.getPosX() - (PADDLE_DIMENSION_X / 2)) && 
-            (this.#ball.getPosZ()) >= (this.#paddleRight.getPosZ() - (PADDLE_DIMENSION_Z / 2)) &&
-            (this.#ball.getPosZ()) <= (this.#paddleRight.getPosZ() + (PADDLE_DIMENSION_Z / 2)))
-                this.#ball.playSoundEffect();
-    }
-
-    clear()
-    {
-        this.#renderer.setAnimationLoop(null); // stop animation loop
-        this.#ball.dispose(); // dispose the resources (ball hit sound)
-        this.#renderer.clear();
-
-        const nicknamesDiv = document.getElementById('nicknames');
-        if (nicknamesDiv) {
-            nicknamesDiv.remove();
+        const lerp = (start, end, t) => start + (end - start) * t;
+        const t = Math.min(deltaTime / INTERVAL, 1);
+    
+        if (this.#interpolationTargets.ball)
+        {
+            const target = this.#interpolationTargets.ball.position;
+            this.#ball.setPosition(
+                lerp(this.#ball.getPosX(), target[0], t),
+                lerp(this.#ball.getPosY(), target[1], t),
+                lerp(this.#ball.getPosZ(), target[2], t)
+            );
         }
 
-        // Remove the canvas from the DOM
-        const canvas = this.#renderer.domElement;
-        canvas.parentNode.removeChild(canvas);
+        if (this.#interpolationTargets.paddleLeft !== null)
+        {
+            const targetZ = this.#interpolationTargets.paddleLeft;
+            if (this.#paddleLeft.getPosZ() !== targetZ)
+                this.#paddleLeft.setPosZ(lerp(this.#paddleLeft.getPosZ(), targetZ, t));
+        }
+    
+        if (this.#interpolationTargets.paddleRight !== null)
+        {
+            const targetZ = this.#interpolationTargets.paddleRight;
+            if (this.#paddleRight.getPosZ() !== targetZ)
+                this.#paddleRight.setPosZ(lerp(this.#paddleRight.getPosZ(), targetZ, t));
+        }
     }
 
     loop()
     {
-        let     lastTime = 0;
-        const   animate = (time) => {
-            const delta = time - lastTime;
-
-            if (delta > INTERVAL)
+        let lastTime = 0;
+        const animate = (time) => {
+            const deltaTime = time - lastTime;
+    
+            if (deltaTime > INTERVAL)
             {
-                lastTime = time - (delta % INTERVAL);
-
+                lastTime = time - (deltaTime % INTERVAL);
                 this.#renderer.render(this.#scene, this.#camera);
-                this.#controls.update();
+                this.updateInterpolation(deltaTime);
+    
                 this.refreshPaddlePos(BIND_UP, BIND_DOWN);
             }
+    
             this.#renderer.setAnimationLoop(animate);
         };
         this.#renderer.setAnimationLoop(animate);
     }
+
+    clear()
+    {
+        this.#renderer.setAnimationLoop(null);
+        this.#ball.dispose();
+        this.#renderer.clear();
+
+        const nicknamesDiv = document.getElementById('nicknames');
+        if (nicknamesDiv)
+            nicknamesDiv.remove();
+
+        const canvas = this.#renderer.domElement;
+        canvas.parentNode.removeChild(canvas);
+    }
 }
-
-

@@ -12,11 +12,10 @@ import asyncio
 
 logger = logging.getLogger(__name__)
 
-#TODO:  1) Match: collision bugs
-#       2) Consumer: check for possible improvements, disconnection 'Attempt to send on a closed protocol' error, delete cancell search event
-#       3) Fix bug on disconnection message, + check if match already finished
-#       4) Ball interpolation + prediction. Optimization of the client side
-#       5) Prevent cheating by sending opponent's moves to the server
+#TODO:  1) Match: collision bugs?
+#       2) Consumer: check for possible improvements, disconnection 'Attempt to send on a closed protocol' error
+#       3) Client: ball prediction, optimization
+#       4) Fix bug on disconnection message
 
 class MatchmakingConsumer(AsyncWebsocketConsumer):
     queue = MatchmakingQueue()
@@ -79,20 +78,11 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         if event == "start_search":
             await self.handle_start_search()
         
-        elif event == "cancel_search": # Check if needed
-            if self.player_id:
-                self.queue.remove_player(self.player_id)
-                self.player_id = None
-                await self.send_json_message("search_cancelled")
-            else:
-                await self.send_json_message("error: Not in matchmaking")
-        
         elif event == "player_action":
-            player_id = data.get("playerId")
             direction = data.get("direction")
             await self.eventQueue.put({
                 "event": "player_action",
-                "player_id": player_id,
+                "player_id": self.player_id,
                 "direction": direction,
             })
 
@@ -128,10 +118,10 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         """
         Recover a match using a recovery key.
         """
-        player_id = str(self.user.id)
-
+        self.player_id = str(self.user.id)
+        
         match_data = await RecoveryKeyManager.get_recovery_key(match_group)
-        if match_data and (player_id == match_data["player1_id"] or player_id == match_data["player2_id"]):
+        if match_data and (self.player_id == match_data["player1_id"] or self.player_id == match_data["player2_id"]):
             self.match_group = match_group
             logger.info(f"User {self.user.id} recovered match {match_group}")
             await self.send(json.dumps({
@@ -142,14 +132,14 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
                 "player2_username": match_data["player2_username"],
                 "player1_avatar": match_data["player1_avatar"],
                 "player2_avatar": match_data["player2_avatar"],
-                'opponent_username': match_data["player2_username"] if str(player_id) == match_data["player1_id"] else match_data["player1_username"],
+                'opponent_username': match_data["player2_username"] if str(self.player_id) == match_data["player1_id"] else match_data["player1_username"],
             }))
             await self.channel_layer.group_add(match_group, self.channel_name)
 
         else:
             logger.warning(f"User {self.user.id} failed to recover match {match_group}")
             await self.send_json_message("error", "Failed to recover match")
-            await disconnect_user(player_id)
+            await disconnect_user(self.player_id)
 
     async def find_match(self):
         match = self.queue.get_next_match()

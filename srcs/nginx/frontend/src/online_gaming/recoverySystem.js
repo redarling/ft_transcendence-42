@@ -1,14 +1,17 @@
 import { renderErrorPage, renderMatch, handleMatchOver } from './renderPages.js';
 
-export async function getTokenFromUser() {
+export async function getTokenFromUser()
+{
     return new Promise((resolve) => {
         const token = prompt("Enter JWT token to recover a game (temp solution, should be reworked after login system implementation)");
         resolve(token);
     });
 }
 
-export async function checkActiveMatch(token) {
-    try {
+export async function checkActiveMatch(token)
+{
+    try
+    {
         const response = await fetch("https://localhost:443/api/games/check-active-match/", {
             method: "GET",
             headers: {
@@ -17,13 +20,14 @@ export async function checkActiveMatch(token) {
             },
         });
 
-        if (!response.ok) {
+        if (!response.ok)
             throw new Error(`API returned status ${response.status}`);
-        }
 
         const data = await response.json();
         return data;
-    } catch (error) {
+    }
+    catch (error)
+    {
         console.error("Error checking active match:", error);
         return null;
     }
@@ -51,8 +55,10 @@ export async function connectToWebSocket(token, matchGroup)
     socket.onmessage = (event) => {
         console.log("WebSocket message received:", event.data);
         const data = JSON.parse(event.data);
-        try {
-            switch (data.event) {
+        try
+        {
+            switch (data.event)
+            {
                 case "match_recovered":
                     let playerId;
                     if (data.player2_username === data.opponentUsername)
@@ -70,10 +76,12 @@ export async function connectToWebSocket(token, matchGroup)
                 default:
                     console.warn("Unhandled event:", data);
             }
-        } catch (e) {
+        }
+        catch (e)
+        {
             console.error("Error parsing message:", message, e);
         }
-        };
+    };
 
     socket.onclose = () => {
         console.log("WebSocket closed.");

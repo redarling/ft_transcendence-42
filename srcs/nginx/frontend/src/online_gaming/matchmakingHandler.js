@@ -1,9 +1,11 @@
-import { renderErrorPage, renderMatch, renderSearchingPage, handleMatchOver } from './renderPages.js';
+import { renderErrorPage, renderMatch, renderSearchingPage } from './renderPages.js';
+import renderGame from '../pages/game.js';
 
-export async function findMatch() {
-    const main = document.getElementById("main");
-    const token = prompt("Please enter your JWT token:", "");
-    let playerId = null;
+export async function findMatch()
+{
+    const   main = document.getElementById("main");
+    const   token = prompt("Please enter your JWT token:", "");
+    let     playerId = null;
 
     if (!token)
     {
@@ -11,8 +13,8 @@ export async function findMatch() {
         return;
     }
 
-    const wsUrl = `wss://localhost:443/ws/matchmaking/?token=${encodeURIComponent(token)}`;
-    let socket;
+    const   wsUrl = `wss://localhost:443/ws/matchmaking/?token=${encodeURIComponent(token)}`;
+    let     socket;
 
     try
     {
@@ -81,12 +83,15 @@ export async function findMatch() {
     // Close event handler
     socket.onclose = (event) => {
         console.warn("WebSocket closed:", event);
-        if (!event.wasClean) {
+        if (!event.wasClean)
+        {
             // If socket was closed unexpectedly, notify the user
             renderErrorPage("Connection lost. Please try again.");
-        } else {
-            // If socket closed normally, inform the user that the search was cancelled
-            renderErrorPage("The search has been cancelled.");
+        }
+        else
+        {
+            // If socket closed normally, e.g that the search was cancelled
+            renderGame();
         }
     };
 

@@ -3,16 +3,19 @@ import renderHeader from '../components/header.js';
 import renderGame from '../pages/game.js';
 import { Game } from '../game/onlineGame.js';
 
-function renderPageTemplate({ header = true, footer = true, content = '' }) {
-    const main = document.getElementById("main");
+function renderPageTemplate({ header = true, footer = true, content = '' })
+{
+    const   main = document.getElementById("main");
     main.innerHTML = '';
     
-    if (header) {
+    if (header)
+    {
         document.getElementById('header').innerHTML = '';
         renderHeader();
     }
 
-    if (footer) {
+    if (footer)
+    {
         document.getElementById('footer').innerHTML = '';
         renderFooter();
     }
@@ -21,7 +24,8 @@ function renderPageTemplate({ header = true, footer = true, content = '' }) {
 }
 
 // Search match waiting page
-export function renderSearchingPage(socket) {
+export function renderSearchingPage(socket)
+{
     const content = `
         <div class="container-fluid matchmaking-container d-flex flex-column align-items-center justify-content-center text-center">
             <h1 class="display-4 mb-4">Searching...</h1>
@@ -39,16 +43,16 @@ export function renderSearchingPage(socket) {
 
     const cancelSearchButton = document.getElementById('cancelSearchBtn');
     cancelSearchButton.addEventListener('click', () => {
-        if (socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({ event: "cancel_search" }));
+        if (socket.readyState === WebSocket.OPEN)
+        {
             socket.close();
         }
-        renderGame();
     });
 }
 
 // Error page
-export function renderErrorPage(message) {
+export function renderErrorPage(message)
+{
     const content = `
         <div class="container-fluid error-container d-flex flex-column align-items-center justify-content-center text-center">
             <h1 class="display-4 mb-4 text-danger">Error</h1>
@@ -204,12 +208,13 @@ export function disconnectionMessage()
     notification.style.textAlign = "center";
     notification.style.maxWidth = "300px";
 
-    notification.textContent = "Player disconnected. Match will be finished in 10 seconds if the player doesn't return.";
+    notification.textContent = "Player disconnected. Match will be finished in 20 seconds if the player doesn't return.";
 
     document.body.appendChild(notification);
 
     setTimeout(() => {
-        if (document.getElementById("disconnection-notification")) {
+        if (document.getElementById("disconnection-notification"))
+        {
             document.getElementById("disconnection-notification").remove();
         }
     }, 5000);
