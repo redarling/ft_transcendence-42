@@ -1,25 +1,24 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
-from .queue import MatchmakingQueue
+from .matchmaking_queue import MatchmakingQueue
 from .api_calls import create_match_api
 from .channel_handling import remove_player_from_group, send_group_message, disconnect_user, send_error_to_players, add_player_to_group
 from .utils import check_active_match, is_player_online, check_players_online_statuses
 from .match_handler import MatchHandler
 from .recovery_key_manager import RecoveryKeyManager
+from .match_event_queue import MatchEventQueueManager
 import json
 import logging
 import asyncio
 
 logger = logging.getLogger(__name__)
 
-#TODO:  1) Match: collision bugs?
+#TODO:  1) Match: collision bugs(?)
 #       2) Consumer: check for possible improvements, disconnection 'Attempt to send on a closed protocol' error
 #       3) Client: ball prediction, optimization
-#       4) Fix bug on disconnection message
 
 class MatchmakingConsumer(AsyncWebsocketConsumer):
     queue = MatchmakingQueue()
-    eventQueue = asyncio.Queue()
 
     async def connect(self):
         """
@@ -31,15 +30,16 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
         
-        await self.accept()
-        self.player_id = None
-        self.match_group = None
         logger.info("User connected: %s; user id: %s", self.user, str(self.user.id))
         
         try:
+            await self.accept()
+            self.player_id = None
+            self.match_group = None
+            self.eventQueue = None
             await self.channel_layer.group_add(f"player_{self.user.id}", self.channel_name)
         except Exception as e:
-            logger.error(f"Failed to add user {self.user} to group: {e}")
+            logger.error(f"Error during {self.user} connection: {e}")
             await self.close()
             return
 
@@ -48,9 +48,6 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         Handle client disconnection.
         """
         logger.info("Disconnection: %s", self.scope["user"])
-        
-        while not self.eventQueue.empty():
-            await self.eventQueue.get()
         
         try:
             await self.channel_layer.group_discard(f"player_{self.user.id}", self.channel_name)
@@ -80,6 +77,8 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         
         elif event == "player_action":
             direction = data.get("direction")
+            if not self.eventQueue:
+                self.eventQueue = MatchEventQueueManager.get_queue(self.match_group)
             await self.eventQueue.put({
                 "event": "player_action",
                 "player_id": self.player_id,
@@ -182,6 +181,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
             match_data = await create_match_api(player1, player2, match_type="1v1")
 
             self.match_group = f"match_{match_data['id']}"
+            self.eventQueue = MatchEventQueueManager.get_queue(self.match_group)
             
             await add_player_to_group(player1, self.match_group, match_data)
             await add_player_to_group(player2, self.match_group, match_data)

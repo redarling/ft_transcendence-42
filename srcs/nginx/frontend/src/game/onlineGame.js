@@ -154,12 +154,16 @@ export class Game {
         this.#camera = new THREE.PerspectiveCamera(CAMERA_FOV, ASPECT_RATIO, MIN_RENDERED_DISTANCE, MAX_RENDERED_DISTANCE);
         this.#camera.position.z = CAMERA_POSZ;
         this.#camera.position.y = CAMERA_POSY;
-        this.#renderer = new THREE.WebGLRenderer();
+        this.#renderer = new THREE.WebGLRenderer({
+            antialias: false,
+            powerPreference: "low-power"
+        });
         this.#renderer.setSize(window.innerWidth, window.innerHeight);
+        this.#renderer.setPixelRatio(window.devicePixelRatio * 0.75);
         const mainDiv = document.getElementById("main");
         mainDiv.appendChild(this.#renderer.domElement);
         this.#controls = new OrbitControls(this.#camera, this.#renderer.domElement);
-        const ambientLight = new THREE.AmbientLight(LIGHT_COLOR, AMBIANT_LIGHT_INTENSITY);
+        const ambientLight = new THREE.HemisphereLight(LIGHT_COLOR, AMBIANT_LIGHT_INTENSITY);
         this.#scene.add(ambientLight);
         const directionalLight = new THREE.DirectionalLight(LIGHT_COLOR, DIRECTIONAL_LIGHT_INTENSITY);
         directionalLight.position.set(LIGHT_POSX, LIGHT_POSY, LIGHT_POSZ);
@@ -174,11 +178,20 @@ export class Game {
 
     refreshPaddlePos(bindUp, bindDown)
     {
-        if (keyPressed.has(bindUp))
-            this.sendPlayerAction("up");
-        
-        else if (keyPressed.has(bindDown))
-            this.sendPlayerAction("down");
+        const now = performance.now();
+    
+        if (this.lastActionSentTime === undefined || now - this.lastActionSentTime >= 10)
+        {
+            if (keyPressed.has(bindUp))
+            {
+                this.sendPlayerAction("up");
+            }
+            else if (keyPressed.has(bindDown))
+            {
+                this.sendPlayerAction("down");
+            }
+            this.lastActionSentTime = now;
+        }
     }
 
     sendPlayerAction(direction)
@@ -266,23 +279,34 @@ export class Game {
 
     loop()
     {
-        let lastTime = 0;
+        let lastTime = performance.now();
+        let accumulator = 0;
+    
+        const renderScene = () => {
+            this.#renderer.render(this.#scene, this.#camera);
+        };
+    
         const animate = (time) => {
             const deltaTime = time - lastTime;
+            lastTime = time;
     
-            if (deltaTime > INTERVAL)
+            accumulator += deltaTime;
+    
+            while (accumulator >= INTERVAL)
             {
-                lastTime = time - (deltaTime % INTERVAL);
-                this.#renderer.render(this.#scene, this.#camera);
-                this.updateInterpolation(deltaTime);
-    
+                this.updateInterpolation(INTERVAL);
                 this.refreshPaddlePos(BIND_UP, BIND_DOWN);
+                accumulator -= INTERVAL;
             }
     
-            this.#renderer.setAnimationLoop(animate);
+            renderScene();
+    
+            requestAnimationFrame(animate);
         };
-        this.#renderer.setAnimationLoop(animate);
+    
+        requestAnimationFrame(animate);
     }
+    
 
     clear()
     {

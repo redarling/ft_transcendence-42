@@ -23,7 +23,6 @@ async def add_player_to_group(user_id, match_group, match_data):
     """
     Adds a player to a match channel group.
     """
-    logger.info(f"add_player_to_group: Adding player {user_id} to group {match_group}")
     
     channel_layer = get_channel_layer()
     await channel_layer.group_send(

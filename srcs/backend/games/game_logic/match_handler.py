@@ -4,6 +4,7 @@ import random
 import logging
 from .recovery_key_manager import RecoveryKeyManager
 from .api_calls import finish_match_api
+from .match_event_queue import MatchEventQueueManager
 
 logger = logging.getLogger(__name__)
 
@@ -281,6 +282,9 @@ class MatchHandler:
             logger.info(f"Recovery key for match {self.match_data['id']} deleted successfully.")
         except Exception as e:
             logger.error(f"Failed to delete recovery key for match {self.match_data['id']}: {e}")
+
+        # Delete event queue
+        MatchEventQueueManager.delete_queue(self.group_name)
 
         # Remove players from the channel
         match_group = f"match_{self.match_data['id']}"
