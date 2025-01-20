@@ -13,7 +13,7 @@ export async function findMatch()
         return;
     }
 
-    const   wsUrl = `wss://localhost:443/ws/matchmaking/?token=${encodeURIComponent(token)}`;
+    const   wsUrl = `wss://transcendence-pong:7443/ws/matchmaking/?token=${encodeURIComponent(token)}`;
     let     socket;
 
     try

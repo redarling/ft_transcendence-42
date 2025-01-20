@@ -36,5 +36,29 @@ if [ ${#missing_vars[@]} -ne 0 ]; then
   exit 1
 fi
 
+OS=$(uname)
+
+add_to_hosts() {
+  local hostname=$1
+  local hosts_file="/etc/hosts"
+
+  if ! grep -q "$hostname" "$hosts_file"; then
+    if [[ "$OS" == "Linux" ]]; then
+      echo "127.0.0.1 $hostname" | sudo tee -a "$hosts_file" > /dev/null
+      echo "Added $hostname to /etc/hosts"
+
+    elif [[ "$OS" == "Darwin" ]]; then
+      echo "127.0.0.1 $hostname" | sudo tee -a "$hosts_file" > /dev/null
+      echo "Added $hostname to /etc/hosts"
+    else
+      echo "Unsupported OS for adding to /etc/hosts"
+    fi
+  else
+    echo "$hostname already exists in /etc/hosts"
+  fi
+}
+
+add_to_hosts "transcendence-pong"
+
 echo "All required environment variables are present in $ENV_FILE."
 exit 0

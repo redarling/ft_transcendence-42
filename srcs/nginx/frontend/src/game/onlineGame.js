@@ -180,7 +180,7 @@ export class Game {
     {
         const now = performance.now();
     
-        if (this.lastActionSentTime === undefined || now - this.lastActionSentTime >= 10)
+        if (this.lastActionSentTime === undefined || now - this.lastActionSentTime >= 5)
         {
             if (keyPressed.has(bindUp))
             {
@@ -247,14 +247,15 @@ export class Game {
         }
     }
 
-    updateInterpolation(deltaTime)
-    {
+    updateInterpolation(deltaTime) {
         const lerp = (start, end, t) => start + (end - start) * t;
+
         const t = Math.min(deltaTime / INTERVAL, 1);
-    
+
         if (this.#interpolationTargets.ball)
         {
             const target = this.#interpolationTargets.ball.position;
+
             this.#ball.setPosition(
                 lerp(this.#ball.getPosX(), target[0], t),
                 lerp(this.#ball.getPosY(), target[1], t),
@@ -262,20 +263,17 @@ export class Game {
             );
         }
 
-        if (this.#interpolationTargets.paddleLeft !== null)
-        {
+        if (this.#interpolationTargets.paddleLeft !== null) {
             const targetZ = this.#interpolationTargets.paddleLeft;
-            if (this.#paddleLeft.getPosZ() !== targetZ)
-                this.#paddleLeft.setPosZ(lerp(this.#paddleLeft.getPosZ(), targetZ, t));
+            this.#paddleLeft.setPosZ(lerp(this.#paddleLeft.getPosZ(), targetZ, t));
         }
-    
-        if (this.#interpolationTargets.paddleRight !== null)
-        {
+
+        if (this.#interpolationTargets.paddleRight !== null) {
             const targetZ = this.#interpolationTargets.paddleRight;
-            if (this.#paddleRight.getPosZ() !== targetZ)
-                this.#paddleRight.setPosZ(lerp(this.#paddleRight.getPosZ(), targetZ, t));
+            this.#paddleRight.setPosZ(lerp(this.#paddleRight.getPosZ(), targetZ, t));
         }
     }
+
 
     loop()
     {
@@ -294,7 +292,7 @@ export class Game {
     
             while (accumulator >= INTERVAL)
             {
-                this.updateInterpolation(INTERVAL);
+                this.updateInterpolation(accumulator);
                 this.refreshPaddlePos(BIND_UP, BIND_DOWN);
                 accumulator -= INTERVAL;
             }
