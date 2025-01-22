@@ -51,6 +51,7 @@ class MatchHistory(models.Model):
 
 class Tournament(models.Model):
     title = models.CharField(max_length=255)
+    smartContractAddr = models.TextField(null=False, blank=False) # Blockchain system
     description = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

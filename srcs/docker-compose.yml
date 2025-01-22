@@ -30,6 +30,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - blockchain
 
   nginx:
     build: ./nginx
@@ -43,6 +44,23 @@ services:
       - ./nginx/frontend:/usr/share/nginx/html
     depends_on:
       - backend
+
+  blockchain:
+    build: ./blockchain
+    container_name: blockchain
+    networks:
+      - transcendance
+    command:
+      - "--dev"   # Development mode
+      - "--datadir=/blockchain/data"
+      - "--http"  # Http api
+      - "--http.addr=0.0.0.0"
+      - "--http.port=8545"
+      - "--http.api=eth,web3,personal,net"
+    ports:
+      - "8545:8545"
+    volumes:
+      - ./blockchain/data:/blockchain/data
 
 networks:
   transcendance:

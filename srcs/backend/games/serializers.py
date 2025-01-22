@@ -6,7 +6,7 @@ class MatchSerializer(serializers.ModelSerializer):
     player2_username = serializers.CharField(source='second_player.username', read_only=True)
     player1_avatar = serializers.CharField(source='first_player.avatar', read_only=True)
     player2_avatar = serializers.CharField(source='second_player.avatar', read_only=True)
-    
+
     class Meta:
         model = Match
         fields = [
@@ -65,7 +65,7 @@ class MatchPlayerStatsSerializer(serializers.ModelSerializer):
 class TournamentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tournament
-        fields = ['id', 'title', 'description', 'created_at', 'updated_at', 'creator']
+        fields = ['id', 'smartContractAddr', 'title', 'description', 'created_at', 'updated_at', 'creator']
 
 class TournamentParticipantSerializer(serializers.ModelSerializer):
     user_username = serializers.CharField(source='user.username', read_only=True)
@@ -85,5 +85,3 @@ class InvitationTournamentSerializer(serializers.ModelSerializer):
     class Meta:
         model = TournamentInvitation
         fields = ['tournament_id', 'title', 'description', 'invited_by', 'inviter_id']
-
-        
