@@ -14,10 +14,9 @@ from .serializers import (UserMatchHistorySerializer, MatchSerializer,
                           TournamentParticipantSerializer, InvitationTournamentSerializer)
 from users.serializers import UserProfileSearchSerializer
 from .WebSocket_authentication import WebSocketTokenAuthentication, IsAuthenticatedWebSocket
-from datetime import timedelta
-from .game_logic.recovery_key_manager import RecoveryKeyManager
 from .utils import validate_required_fields
 from asgiref.sync import async_to_sync
+from .game_logic.utils import check_active_match
 import logging
 from ..contracts.deployment import deploy_smart_contract
 from ..contracts.interactions import add_score, get_score
@@ -238,26 +237,12 @@ class CheckActiveMatchAPIView(APIView):
 
     async def get_match_data(self, user):
         try:
-            redis = await RecoveryKeyManager.get_redis()
-            async for key in redis.scan_iter("match:*:recovery"): 
-                match_id = key.split(":")[1]
-                match_data = await RecoveryKeyManager.get_recovery_key(match_id)
-
-                if match_data and (str(user.id) == match_data["player1_id"] or str(user.id) == match_data["player2_id"]):
-                    logger.info(f"Active match found for user {user.id}")
-                    return Response({
-                        'active': True,
-                        'match_group': match_data["match_group"],
-                        'player1_id': match_data["player1_id"],
-                        'player2_id': match_data["player2_id"],
-                        'player1_username': match_data["player1_username"],
-                        'player2_username': match_data["player2_username"],
-                    }, status=status.HTTP_200_OK)
-            logger.info(f"No active match found for user {user.id}")
+            match_data = await check_active_match(user)
+            if match_data["active"]:
+                return Response(match_data, status=status.HTTP_200_OK)
             return Response({'active': False}, status=status.HTTP_200_OK)
-
         except Exception as e:
-            logger.error(f"Error checking active match for user {user.id}: {e}")
+            logger.error(f"Error checking active match: {e}")
             return Response({'error': 'An error occurred while checking active match'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 ########################################################################################################

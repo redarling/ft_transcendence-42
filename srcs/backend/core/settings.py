@@ -10,7 +10,7 @@ WEBSOCKET_API_TOKEN = os.getenv('WEBSOCKET_API_TOKEN')
 
 DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True' # change to False upon project finalization
 
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "transcendence-pong").split(",")
 
 TEMPLATES = [
     {
@@ -82,12 +82,12 @@ DATABASES = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "https://localhost",
+    f"https://transcendence-pong:7443",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://localhost',
+    f"https://transcendence-pong:7443",
 ]
 
 ASGI_APPLICATION = 'core.asgi.application'

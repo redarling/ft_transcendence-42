@@ -1,9 +1,10 @@
 import asyncio
-from .channel_messages import remove_player_from_group, send_group_message
+from .channel_handling import remove_player_from_group, send_group_message
 import random
 import logging
 from .recovery_key_manager import RecoveryKeyManager
 from .api_calls import finish_match_api
+from .match_event_queue import MatchEventQueueManager
 
 logger = logging.getLogger(__name__)
 
@@ -13,18 +14,19 @@ PADDLE_HEIGHT = 1.0
 PADDLE_WIDTH = 0.2
 PADDLE_SPEED = 0.12
 BALL_RADIUS = FIELD_HEIGHT / 30
-BALL_INITIAL_VELOCITY = 0.06
+BALL_INITIAL_VELOCITY = 0.12
 VELOCITY_MULTIPLIER = 1.3
 KICK_OFF_DELAY = 2  # seconds
 START_KICK_OFF = 5
 MAX_SCORE = 11
 WINNING_MARGIN = 2
-RATE = 1 / 60  # 60 FPS
+RATE = 1 / 30  # 30 FPS
+MAX_INACTIVITY_TIME = 20
 
 class MatchHandler:
     def __init__(self, player1, player2, group_name, match_data, event_queue):
-        self.player1 = {"id": player1, "position": 0.0, "score": 0, "total_hits": 0, "serves": 0, "successful_serves": 0, "longest_rally": 0}
-        self.player2 = {"id": player2, "position": 0.0, "score": 0, "total_hits": 0, "serves": 0, "successful_serves": 0, "longest_rally": 0}
+        self.player1 = {"id": player1, "position": 0.0, "score": 0, "total_hits": 0, "serves": 0, "successful_serves": 0, "longest_rally": 0, "last_active": asyncio.get_event_loop().time()}
+        self.player2 = {"id": player2, "position": 0.0, "score": 0, "total_hits": 0, "serves": 0, "successful_serves": 0, "longest_rally": 0, "last_active": asyncio.get_event_loop().time()}
         self.ball = {
             "position": [0.0, 0.0],
             "velocity": [BALL_INITIAL_VELOCITY, BALL_INITIAL_VELOCITY],
@@ -40,10 +42,6 @@ class MatchHandler:
         self.kick_off = True
 
     async def start_match(self):
-        await self.send_group_message({
-            "event": "match_start",
-            "match_data": self.match_data,
-        })
         self.running = True
         self.event_processing_task = asyncio.create_task(self.process_events())
         await asyncio.sleep(START_KICK_OFF)
@@ -90,12 +88,27 @@ class MatchHandler:
                         player_id = event.get("player_id")
                         direction = event.get("direction")
                         await self.handle_player_action(player_id, direction)
+                        
+                        if player_id == self.player1["id"]:
+                            self.player1["last_active"] = asyncio.get_event_loop().time()
+                        elif player_id == self.player2["id"]:
+                            self.player2["last_active"] = asyncio.get_event_loop().time()
                 except Exception as e:
                     logger.error(f"Error processing event {event}: {e}")
                 finally:
                     # Ensure task_done() is called only once per event
                     self.event_queue.task_done()
 
+            if asyncio.get_event_loop().time() - self.player1["last_active"] > MAX_INACTIVITY_TIME:
+                logger.info(f"Player {self.player1['id']} inactive for {MAX_INACTIVITY_TIME} seconds. Ending match.")
+                await self.end_match(self.player2["id"])
+                break
+
+            if asyncio.get_event_loop().time() - self.player2["last_active"] > MAX_INACTIVITY_TIME:
+                logger.info(f"Player {self.player2['id']} inactive for {MAX_INACTIVITY_TIME} seconds. Ending match.")
+                await self.end_match(self.player1["id"])
+                break
+            
             current_time = asyncio.get_event_loop().time()
             time_since_last_process = current_time - last_processed_time
 
@@ -200,13 +213,25 @@ class MatchHandler:
         self.ball["kick_off"] = False
 
     async def broadcast_state(self):
-        state = {
-            "event": "game_state",
-            "player1": self.player1,
-            "player2": self.player2,
-            "ball": self.ball,
+        static_state = {
+            "player1": {"position": self.player1["position"], "score": self.player1["score"]},
+            "player2": {"position": self.player2["position"], "score": self.player2["score"]},
         }
-        await self.send_group_message(state)
+
+        if static_state != getattr(self, "previous_static_state", None):
+            full_state = {
+                "event": "game_state",
+                "player1": self.player1,
+                "player2": self.player2,
+                "ball": self.ball,
+            }
+            await self.send_group_message(full_state)
+            self.previous_static_state = static_state
+        
+        else:
+            partial_state = {"event": "game_state", "ball": self.ball}
+            await self.send_group_message(partial_state)
+
 
     def check_match_over(self):
         if self.player1["score"] >= MAX_SCORE and (self.player1["score"] - self.player2["score"]) >= WINNING_MARGIN:
@@ -257,6 +282,9 @@ class MatchHandler:
             logger.info(f"Recovery key for match {self.match_data['id']} deleted successfully.")
         except Exception as e:
             logger.error(f"Failed to delete recovery key for match {self.match_data['id']}: {e}")
+
+        # Delete event queue
+        MatchEventQueueManager.delete_queue(self.group_name)
 
         # Remove players from the channel
         match_group = f"match_{self.match_data['id']}"

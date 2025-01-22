@@ -39,7 +39,7 @@ services:
       - transcendance
     restart: always
     ports:
-      - "443:443"
+      - "7443:443"
     volumes:
       - ./nginx/frontend:/usr/share/nginx/html
     depends_on:
