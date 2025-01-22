@@ -1,6 +1,6 @@
 import json
-from .connection import get_web3_instance
-from .settings import ABI_PATH, BIN_PATH
+from games.blockchain_score_storage.connection import get_web3_instance
+from games.blockchain_score_storage.settings import ABI_PATH, BIN_PATH
 
 def deploy_smart_contract():
     web3 = get_web3_instance()

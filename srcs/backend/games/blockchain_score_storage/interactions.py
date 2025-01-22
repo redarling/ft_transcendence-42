@@ -1,6 +1,6 @@
 import json
-from .connection import get_web3_instance
-from .settings import ABI_PATH
+from games.blockchain_score_storage.connection import get_web3_instance
+from games.blockchain_score_storage.settings import ABI_PATH
 
 def get_contract_instance(contract_address):
     """Load a contract instance from an address and ABI."""
@@ -31,4 +31,4 @@ def add_score(contract_address, match_id, user_id, score):
 
 def get_score(contract_address, match_id, user_id):
     contract = get_contract_instance(contract_address)
-    return contract.functions.getScore(match_id=match_id, user_id=user_id).call()
+    return contract.functions.getScore(match_id, user_id).call()

@@ -18,9 +18,8 @@ from .utils import validate_required_fields
 from asgiref.sync import async_to_sync
 from .game_logic.utils import check_active_match
 import logging
-from ..contracts.deployment import deploy_smart_contract
-from ..contracts.interactions import add_score, get_score
-
+from games.blockchain_score_storage.deployment import deploy_smart_contract
+from games.blockchain_score_storage.interactions import add_score, get_score
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,5 @@
 from web3 import Web3
-from .settings import HTTP_ADDRESS
+from games.blockchain_score_storage.settings import HTTP_ADDRESS
 
 def get_web3_instance():
     """Connect to the blockchain and return a Web3 instance."""
