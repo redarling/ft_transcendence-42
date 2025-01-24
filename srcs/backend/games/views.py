@@ -459,10 +459,14 @@ class InvitationListTournamentAPIView(APIView):
     def get(self, request):
         user = request.user
 
+        logger.info(f"User {user} {user.username} is fetching tournament invitations.")
+
         # Fetch tournaments where the user has received invitations
+        participated_tournaments = TournamentParticipant.objects.filter(user=user).values_list('tournament', flat=True)
+
         invitations = TournamentInvitation.objects.filter(
             invitee=user
-        ).exclude(tournament__participants__user=user)
+        ).exclude(tournament__in=participated_tournaments)
 
         serializer = InvitationTournamentSerializer(invitations, many=True)
         
@@ -575,6 +579,7 @@ class CancelTournamentAPIView(APIView):
             status=status.HTTP_200_OK
         )
 
+# TODO: Do not return fulled tournaments
 class SearchTournamentAPIView(ListAPIView):
     serializer_class = TournamentSerializer
 
@@ -590,7 +595,7 @@ class SearchTournamentAPIView(ListAPIView):
             title__icontains=query
         ).exclude(creator=current_user)
 
-    def list(self):
+    def list(self, request, *args, **kwargs):
         query = self.request.query_params.get('title', '').strip()
 
         if not query:

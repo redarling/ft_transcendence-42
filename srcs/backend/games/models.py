@@ -50,8 +50,8 @@ class MatchHistory(models.Model):
         ]
 
 class Tournament(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField(null=True, blank=True)
+    title = models.CharField(max_length=24)
+    description = models.TextField(null=True, blank=True, max_length=64)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_tournaments', default=None)

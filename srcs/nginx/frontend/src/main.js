@@ -5,7 +5,9 @@ import renderSettings from "./pages/settings.js"
 import renderLogin from "./pages/login.js"
 import renderGame from "./pages/game.js"
 import renderUserProfile from "./pages/profile.js"
+import renderTournaments from "./pages/tournaments/tournaments.js";
 import { getTokenFromUser, checkActiveMatch, connectToWebSocket } from "./online_gaming/recoverySystem.js";
+
 async function router() {
 	// Define routes as an object mapping paths to components or functions
 	// url path : function to launch to display and update the dom
@@ -16,6 +18,7 @@ async function router() {
 		"/settings": renderSettings,
 		"/game": renderGame,
         "/profile": renderUserProfile,
+		"/tournaments": renderTournaments,
 	};
 
 	// get the current path of the website (allow to modify the dom website when the path is modified)
