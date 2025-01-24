@@ -52,7 +52,6 @@ class MatchHistory(models.Model):
 class Tournament(models.Model):
     title = models.CharField(max_length=24)
     description = models.TextField(null=True, blank=True, max_length=64)
-    title = models.CharField(max_length=255)
     # Smart contract address used to add and retreive scores
     smartContractAddr = models.TextField(unique=True, null=False, blank=False, default='0x0000000000000000000000000000000000000000')
     description = models.TextField(null=True, blank=True)
