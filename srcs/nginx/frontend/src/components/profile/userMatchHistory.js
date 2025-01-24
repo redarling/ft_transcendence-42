@@ -17,7 +17,7 @@ export default function UserMatchHistoryComponent() {
             </table>
 
             <!-- Match summary modal -->
-            <div class="modal fade" id="matchSummary" tabindex="-1" aria-hidden="true">
+            <div class="modal fade" id="matchSummary" tabindex="-1" aria-labelledby="matchSummaryModal" aria-hidden="true">
                 <div class="modal-dialog modal-xl">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -52,12 +52,10 @@ export default function UserMatchHistoryComponent() {
                                 <div class="row">
                                     <div class="col text-start">
                                         <h4>Ratio</h4>
-                                        <h4>Reaction Time</h4>
                                         <h4>Times Hit</h4>
                                     </div>
                                     <div class="col text-end">
                                         <h4 id="modalMatchLeftRatio">x</h4>
-                                        <h4 id="modalMatchLeftReactionTime">x</h4>
                                         <h4 id="modalMatchLeftTimesHit">x</h4>
                                     </div>
                                     <div class="col-1 text-center">
@@ -65,12 +63,10 @@ export default function UserMatchHistoryComponent() {
                                     </div>
                                     <div class="col text-start">
                                         <h4 id="modalMatchRightRatio">x</h4>
-                                        <h4 id="modalMatchRightReactionTime">x</h4>
                                         <h4 id="modalMatchRightTimesHit">x</h4>
                                     </div>
                                     <div class="col text-end">
                                         <h4>Ratio</h4>
-                                        <h4>Reaction Time</h4>
                                         <h4>Times Hit</h4>
                                     </div>
                                 </div>
@@ -147,10 +143,8 @@ export default function UserMatchHistoryComponent() {
     const modalMatchPlayerLeftName = document.getElementById('modalMatchPlayerLeftName');
     const modalMatchLeftFinalScore = document.getElementById('modalMatchLeftFinalScore');
     const modalMatchLeftRatio = document.getElementById('modalMatchLeftRatio');
-    const modalMatchLeftReactionTime = document.getElementById('modalMatchLeftReactionTime');
     const modalMatchLeftTimesHit = document.getElementById('modalMatchLeftTimesHit');
     const modalMatchRightRatio = document.getElementById('modalMatchRightRatio');
-    const modalMatchRightReactionTime = document.getElementById('modalMatchRightReactionTime');
     const modalMatchRightTimesHit = document.getElementById('modalMatchRightTimesHit');
     const modalMatchDuration = document.getElementById('modalMatchDuration');
     const modalMatchDate = document.getElementById('modalMatchDate');
@@ -173,16 +167,14 @@ export default function UserMatchHistoryComponent() {
             name: "Bob",
             score: 11,
             timesHit: 50,
-            ratio: 5.0,
-            reactionTime: 200
+            ratio: 5.0
         },
 
         rightPlayerData: {
             name: "Notbob",
             score: 5,
             timesHit: 32,
-            ratio: 2.0,
-            reactionTime: 500 // bro's so bad 💀
+            ratio: 2.0
         }
     });
 
@@ -197,16 +189,14 @@ export default function UserMatchHistoryComponent() {
             name: "Bob",
             score: 9,
             timesHit: 49,
-            ratio: 4.5,
-            reactionTime: 230
+            ratio: 4.5
         },
 
         rightPlayerData: {
             name: "Notbob",
             score: 11,
             timesHit: 50,
-            ratio: 5.0,
-            reactionTime: 200
+            ratio: 5.0
         }
     });
 
@@ -221,13 +211,11 @@ export default function UserMatchHistoryComponent() {
         modalMatchPlayerLeftName.innerHTML = match.leftPlayerData.name;
         modalMatchLeftFinalScore.innerHTML = match.leftPlayerData.score;
         modalMatchLeftRatio.innerHTML = match.leftPlayerData.ratio;
-        modalMatchLeftReactionTime.innerHTML = match.leftPlayerData.reactionTime;
         modalMatchLeftTimesHit.innerHTML = match.leftPlayerData.timesHit;
 
         modalMatchPlayerRightName.innerHTML = match.rightPlayerData.name;
         modalMatchRightFinalScore.innerHTML = match.rightPlayerData.score;
         modalMatchRightRatio.innerHTML = match.rightPlayerData.ratio;
-        modalMatchRightReactionTime.innerHTML = match.rightPlayerData.reactionTime;
         modalMatchRightTimesHit.innerHTML = match.rightPlayerData.timesHit;
     }
 

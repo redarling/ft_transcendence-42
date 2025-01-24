@@ -1,5 +1,6 @@
 import UserStatsComponent from "../components/profile/userStats.js"
 import UserMatchHistoryComponent from "../components/profile/userMatchHistory.js"
+import UserHeaderComponent from "../components/profile/userHeader.js"
 
 export default function renderUserProfile() {
     // Plug the other user infos here
@@ -9,6 +10,7 @@ export default function renderUserProfile() {
         <div class="container-fluid profile-container">
             <div class="row justify-content-md-center">
                 <div class="col col-md-10">
+                    <section id="userHeader"></section>
                     <hr class="hr" style="color: white;" />
                     <section id="userStats"></section>
                     <hr class="hr" style="color: white;" />
@@ -18,7 +20,8 @@ export default function renderUserProfile() {
         </div>
     `;
 
-    // Appelle les fonctions pour remplir les sections
+    // Call every components to fill the sections
+    UserHeaderComponent();
     UserStatsComponent();
     UserMatchHistoryComponent();
 }
