@@ -1,5 +1,6 @@
 FROM python:3.11
 
+# Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     && apt-get clean \
@@ -9,7 +10,9 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install web3
 
 EXPOSE 8000
 

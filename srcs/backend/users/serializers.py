@@ -23,7 +23,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password')
         avatar = validated_data.get('avatar', 'https://i.imgur.com/5eMAuXg.jpeg')  # Default avatar if not provided
         validated_data['avatar'] = avatar
-        
+
         # Using create_user to ensure password is hashed
         user = User.objects.create_user(password=password, **validated_data)  # create_user hashes password
         return user

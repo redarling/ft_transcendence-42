@@ -18,6 +18,8 @@ from .utils import validate_required_fields
 from asgiref.sync import async_to_sync
 from .game_logic.utils import check_active_match
 import logging
+from games.blockchain_score_storage.deployment import deploy_smart_contract
+from games.blockchain_score_storage.interactions import add_score, get_score
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +38,7 @@ class MatchStartAPIView(APIView):
         validation_error = validate_required_fields(request.data, ["first_player_id", "second_player_id", "match_type"])
         if validation_error:
             return validation_error
-        
+
         first_player_id = request.data.get("first_player_id")
         second_player_id = request.data.get("second_player_id")
         match_type = request.data.get("match_type")
@@ -104,7 +106,7 @@ class MatchEndAPIView(APIView):
                                                                     "player1_longest_rally", "player2_longest_rally"])
         if validation_error:
             return validation_error
-        
+
         match_id = request.data.get("match_id")
         score_player1 = request.data.get("score_player1")
         score_player2 = request.data.get("score_player2")
@@ -120,7 +122,7 @@ class MatchEndAPIView(APIView):
         # Ensure the match is still in progress
         if match.match_status == "completed":
             return Response({"detail": "Match has already been completed."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Fetch players
         player1 = match.first_player
         player2 = match.second_player
@@ -128,6 +130,19 @@ class MatchEndAPIView(APIView):
         # Update match details
         match.score_player1 = score_player1
         match.score_player2 = score_player2
+
+        if match.match_type == "tournament":
+            # Save to the blockchain
+            round = get_object_or_404(Round, match=match)
+
+            try:
+                tournament = Tournament.objects.get(id=round.tournament)
+            except Tournament.DoesNotExist:
+                return Response({"detail": "Tournament not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            add_score(contract_address=tournament.smartContractAddr, match_id=match_id, user_id=player1.id, score=score_player1)
+            add_score(contract_address=tournament.smartContractAddr, match_id=match_id, user_id=player2.id, score=score_player2)
+
         match.finished_at = finished_at
         match.match_status = "completed"
 
@@ -287,6 +302,7 @@ class CreateTournamentAPIView(APIView):
 
         tournament = Tournament.objects.create(
             title=title,
+            smartContractAddr= deploy_smart_contract(), # Creation of the new block in the blochain
             description=description,
             creator=user,
             created_at=timezone.now(),
