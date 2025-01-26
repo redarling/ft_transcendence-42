@@ -3,32 +3,32 @@ export default function UserStatsComponent() {
     userStatsSection.innerHTML = `
         <h5 class="text-light">MAIN STATISTICS</h5>
         <div class="row">
-            <div class="col">
-                <div class="card game-card mb-3" style="max-width: 18rem;">
+            <div class="col-md-6 col-lg-3 col-sm-6">
+                <div class="card game-card mb-3">
                     <div class="card-body text-light">
                         <h6 class="card-title text-center">x</h6>
                         <h6 class="card-text text-center">MATCHES</h6>
                     </div>
                 </div>
             </div>
-            <div class="col">
-                <div class="card game-card mb-3" style="max-width: 18rem;">
+            <div class="col-md-6 col-lg-3 col-sm-6">
+                <div class="card game-card mb-3">
                     <div class="card-body text-light">
                         <h6 class="card-title text-center">x%</h6>
                         <h6 class="card-text text-center">WINRATE</h6>
                     </div>
                 </div>
             </div>
-            <div class="col">
-                <div class="card game-card mb-3" style="max-width: 18rem;">
+            <div class="col-md-6 col-lg-3 col-sm-6">
+                <div class="card game-card mb-3">
                     <div class="card-body text-light">
                         <h6 class="card-title text-center">x</h6>
                         <h6 class="card-text text-center">LONGEST WINSTREAK</h6>
                     </div>
                 </div>
             </div>
-            <div class="col">
-                <div class="card game-card mb-3" style="max-width: 18rem;">
+            <div class="col-md-6 col-lg-3 col-sm-6">
+                <div class="card game-card mb-3">
                     <div class="card-body text-light">
                         <h6 class="card-title text-center">x</h6>
                         <h6 class="card-text text-center">RATIO</h6>
@@ -39,19 +39,16 @@ export default function UserStatsComponent() {
 
         <h5 class="text-light">PERFORMANCE STATISTICS</h5>
         <div class="row">
-            <div class="col">
+            <div class="col-xl-6">
                 <div class="btn-group-vertical w-100" role="group" aria-label="Basic radio toggle button group">
                     <input type="radio" class="btn-check" name="btnradio" id="radioRatioChart" autocomplete="off" checked>
                     <label class="btn btn-outline-primary" for="radioRatioChart">Ratio</label>
-                  
-                    <input type="radio" class="btn-check" name="btnradio" id="radioReactionTimeChart" autocomplete="off">
-                    <label class="btn btn-outline-primary" for="radioReactionTimeChart">Reaction Time</label>
 
                     <input type="radio" class="btn-check" name="btnradio" id="radioTimesHitChart" autocomplete="off">
                     <label class="btn btn-outline-primary" for="radioTimesHitChart">Times Hit</label>
                 </div>
             </div>
-            <div class="col">
+            <div class="col-xl-6">
                 <div class="row">
                     <canvas id="statsChart"></canvas>
                 </div>
@@ -70,7 +67,6 @@ export default function UserStatsComponent() {
     `;
 
     const radioRatioChart = document.getElementById('radioRatioChart');
-    const radioReactionTimeChart = document.getElementById('radioReactionTimeChart');
     const radioTimesHitChart = document.getElementById('radioTimesHitChart');
     const chartLeftButton = document.getElementById('chartLeft');
     const chartRightButton = document.getElementById('chartRight');
@@ -82,8 +78,7 @@ export default function UserStatsComponent() {
     let matchStats = {
         matchId: 1,
         timeHit: 50,
-        ratio: 5.0,
-        reactionTime: 200
+        ratio: 5.0
     };
     
     let matchHistory = [];
@@ -92,7 +87,6 @@ export default function UserStatsComponent() {
         matchStats.matchId += 1;
         matchStats.timeHit = Math.floor(Math.random() * 100);
         matchStats.ratio = Math.random() * 3;
-        matchStats.reactionTime = Math.floor(Math.random() * 1000);
     }
     
     //===----------------------------------------------------------------------===//
@@ -131,8 +125,6 @@ export default function UserStatsComponent() {
     function getStatsFromCheckedRadio() {
         if (radioRatioChart.checked) {
             return getLast5Matches().map(match => match.ratio);
-        } else if (radioReactionTimeChart.checked) {
-            return getLast5Matches().map(match => match.reactionTime);
         } else if (radioTimesHitChart.checked) {
             return getLast5Matches().map(match => match.timeHit);
         }
@@ -173,6 +165,7 @@ export default function UserStatsComponent() {
             }]
         },
         options: {
+            maintainAspectRatio: false,
             interaction: {
                 mode: 'index',
                 intersect: false
@@ -217,13 +210,7 @@ export default function UserStatsComponent() {
         activeChart.data.datasets[0].label = "Ratio";
         activeChart.update();
     });
-    
-    radioReactionTimeChart.addEventListener('change', () => {
-        activeChart.data.datasets[0].data = getLast5Matches().map(match => match.reactionTime);
-        activeChart.data.datasets[0].label = "Reaction Time";
-        activeChart.update();
-    });
-    
+
     radioTimesHitChart.addEventListener('change', () => {
         activeChart.data.datasets[0].data = getLast5Matches().map(match => match.timeHit);
         activeChart.data.datasets[0].label = "Times Hit";

@@ -8,6 +8,8 @@ services:
       - transcendance
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432" # To remove at the end (used to debug)
 
   redis: # for Django Channels (multiplayer) and caching
     image: redis:7.0
