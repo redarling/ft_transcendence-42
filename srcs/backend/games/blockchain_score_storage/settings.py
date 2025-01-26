@@ -6,5 +6,5 @@ RESOLVED_DNS = socket.gethostbyname('blockchain')  # Resolve blockchain containe
 HTTP_ADDRESS = f"http://{RESOLVED_DNS}:{HTTP_PORT}"
 
 # Paths to the compiled contract files
-ABI_PATH = './build/TournamentScores.abi'
-BIN_PATH = './build/TournamentScores.bin'
+ABI_PATH = './games/blockchain_score_storage/build/TournamentScores.abi'
+BIN_PATH = './games/blockchain_score_storage/build/TournamentScores.bin'
