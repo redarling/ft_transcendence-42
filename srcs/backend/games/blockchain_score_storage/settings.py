@@ -6,5 +6,5 @@ HTTP_PORT = 8545
 HTTP_ADDRESS = f"http://127.0.0.1:{HTTP_PORT}"
 
 # Paths to the compiled contract files
-ABI_PATH = './build/TournamentScores.abi'
-BIN_PATH = './build/TournamentScores.bin'
+ABI_PATH = './games/blockchain_score_storage/build/TournamentScores.abi'
+BIN_PATH = './games/blockchain_score_storage/build/TournamentScores.bin'

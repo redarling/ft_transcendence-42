@@ -312,7 +312,6 @@ class CreateTournamentAPIView(APIView):
         serializer = TournamentSerializer(tournament)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-# TODO: Restrict the number of 64 participants
 class JoinTournamentAPIView(APIView):
 
     def post(self, request):
@@ -342,6 +341,12 @@ class JoinTournamentAPIView(APIView):
                             {"detail": "You are already participating in this tournament"}
                             , status=status.HTTP_400_BAD_REQUEST)
 
+        # Set maximum number of participants to 16
+        participant_count = TournamentParticipant.objects.filter(tournament=tournament).count()
+        if participant_count >= 16:
+            return Response({"detail": "This tournament already has the maximum number of participants."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         # Create a participant
         participant = TournamentParticipant.objects.create(
             tournament=tournament,
@@ -350,7 +355,9 @@ class JoinTournamentAPIView(APIView):
         )
         TournamentParticipant.save(participant)
 
-        return Response({"detail": "You have successfully joined the tournament."}, status=status.HTTP_200_OK)
+        webSocketUrl = f"wss://transcendence-pong:7443/ws/tournament/{tournament_id}/"
+
+        return Response({"detail": "You have successfully joined the tournament.", "webSocketUrl": webSocketUrl}, status=status.HTTP_200_OK)
 
 class ListTournamentParticipantsAPIView(APIView):
 

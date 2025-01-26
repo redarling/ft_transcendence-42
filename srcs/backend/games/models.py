@@ -72,17 +72,13 @@ class Tournament(models.Model):
 class TournamentParticipant(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    tournament_alias = models.CharField(max_length=50, null=True, blank=True)  # Alias(special name) for the tournament participant
+    tournament_alias = models.CharField(max_length=16, null=True, blank=True)  # Alias(special name) for the tournament participant
 
     class Meta:
         unique_together = ('tournament', 'user')
         indexes = [
             models.Index(fields=['tournament']),
         ]
-    
-    def is_ready(self):
-        """Check if the participant has chosen their alias."""
-        return self.tournament_alias is not None
 
 class Round(models.Model):
     match = models.OneToOneField(Match, on_delete=models.CASCADE)

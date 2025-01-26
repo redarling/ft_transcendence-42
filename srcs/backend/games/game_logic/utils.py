@@ -1,5 +1,6 @@
 from .recovery_key_manager import RecoveryKeyManager
 from users.models import User
+from games.models import TournamentParticipant
 import asyncio
 from channels.db import database_sync_to_async
 import logging
@@ -73,3 +74,29 @@ def is_player_online(player_id):
         return user.online_status
     except User.DoesNotExist:
         return False
+    
+@database_sync_to_async
+def is_participant(tournament_id, user):
+    """
+    Check if the user is a participant in the tournament.
+    """
+    return TournamentParticipant.objects.filter(
+        tournament_id=tournament_id, user=user
+    ).exists()
+
+@database_sync_to_async
+def get_participants(tournament_id):
+    """
+    Get the list of participants in the tournament.
+    """
+    participants = TournamentParticipant.objects.filter(
+        tournament_id=tournament_id
+    ).select_related("user")
+    return [
+        {
+            "id": participant.user.id,
+            "username": participant.user.username,
+            "alias": participant.tournament_alias,
+        }
+        for participant in participants
+    ]
