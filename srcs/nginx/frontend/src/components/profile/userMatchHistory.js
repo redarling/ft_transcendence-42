@@ -17,7 +17,7 @@ export default function UserMatchHistoryComponent() {
             </table>
 
             <!-- Match summary modal -->
-            <div class="modal fade" id="matchSummary" tabindex="-1" aria-labelledby="matchSummaryModal" aria-hidden="true">
+            <div class="modal" id="matchSummary" tabindex="-1" aria-labelledby="matchSummaryModal" aria-hidden="true">
                 <div class="modal-dialog modal-xl">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -28,55 +28,55 @@ export default function UserMatchHistoryComponent() {
                         </div>
 
                         <div class="modal-body">
-                            <div class="container-fluid">
-                                <div class="row align-items-center">
-                                    <div class="col text-start">
-                                        <h2 id="modalMatchPlayerLeftName">PlayerLeft</h2>
-                                    </div>
-                                    <div class="col text-end">
-                                        <h2 id="modalMatchLeftFinalScore">9</h2>
-                                    </div>
-
-                                    <div class="col-1 text-center">
-                                        <h2>–</h2>
-                                    </div>
-
-                                    <div class="col text-start">
-                                        <h2 id="modalMatchRightFinalScore">11</h2>
-                                    </div>
-
-                                    <div class="col text-end">
-                                        <h2 id="modalMatchPlayerRightName">Player</h2>
-                                    </div>
+                            <div class="row align-items-center">
+                            
+                                <div class="col text-start">
+                                    <h2 id="modalMatchPlayerLeftName">PlayerLeft</h2>
                                 </div>
-                                <div class="row">
-                                    <div class="col text-start">
-                                        <h4>Ratio</h4>
-                                        <h4>Times Hit</h4>
-                                    </div>
-                                    <div class="col text-end">
-                                        <h4 id="modalMatchLeftRatio">x</h4>
-                                        <h4 id="modalMatchLeftTimesHit">x</h4>
-                                    </div>
-                                    <div class="col-1 text-center">
-                                        <div class="vr" style="height: 100%;"></div>
-                                    </div>
-                                    <div class="col text-start">
-                                        <h4 id="modalMatchRightRatio">x</h4>
-                                        <h4 id="modalMatchRightTimesHit">x</h4>
-                                    </div>
-                                    <div class="col text-end">
-                                        <h4>Ratio</h4>
-                                        <h4>Times Hit</h4>
-                                    </div>
+
+                                <div class="col text-end">
+                                    <h2 id="modalMatchLeftFinalScore">9</h2>
                                 </div>
-                                <hr class="hr" />
-                                <div class="row">
-                                    <div class="col text-center">
-                                        <h6 id="modalMatchDuration">2:42</h6>
-                                        <h6 id="modalMatchDate">Jan 09 - 11:28 PM</h6>
-                                        <h6 id="modalMatchContext">Tournament</h6>
-                                    </div>
+
+                                <div class="col-1 text-center">
+                                    <h2>–</h2>
+                                </div>
+
+                                <div class="col text-start">
+                                    <h2 id="modalMatchRightFinalScore">11</h2>
+                                </div>
+
+                                <div class="col text-end">
+                                    <h2 id="modalMatchPlayerRightName">Player</h2>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col text-start">
+                                    <h4>Ratio</h4>
+                                    <h4>Times Hit</h4>
+                                </div>
+                                <div class="col text-end">
+                                    <h4 id="modalMatchLeftRatio">x</h4>
+                                    <h4 id="modalMatchLeftTimesHit">x</h4>
+                                </div>
+                                <div class="col-1 text-center">
+                                    <div class="vr" style="height: 100%;"></div>
+                                </div>
+                                <div class="col text-start">
+                                    <h4 id="modalMatchRightRatio">x</h4>
+                                    <h4 id="modalMatchRightTimesHit">x</h4>
+                                </div>
+                                <div class="col text-end">
+                                    <h4>Ratio</h4>
+                                    <h4>Times Hit</h4>
+                                </div>
+                            </div>
+                            <hr class="hr" />
+                            <div class="row">
+                                <div class="col text-center">
+                                    <h6 id="modalMatchDuration">2:42</h6>
+                                    <h6 id="modalMatchDate">Jan 09 - 11:28 PM</h6>
+                                    <h6 id="modalMatchContext">Tournament</h6>
                                 </div>
                             </div>
                         </div>
