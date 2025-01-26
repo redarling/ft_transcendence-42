@@ -79,10 +79,6 @@ class TournamentParticipant(models.Model):
         indexes = [
             models.Index(fields=['tournament']),
         ]
-    
-    def is_ready(self):
-        """Check if the participant has chosen their alias."""
-        return self.tournament_alias is not None
 
 class Round(models.Model):
     match = models.OneToOneField(Match, on_delete=models.CASCADE)

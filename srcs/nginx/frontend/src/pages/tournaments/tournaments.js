@@ -138,13 +138,12 @@ async function createTournamentModal(token)
     });
 }
 
-async function createTournament(token, title, description)
+async function createTournament(token, title, description, tournamentAlias)
 {
     const url = "https://transcendence-pong:7443/api/games/tournament/create/";
     try
     {
-        const response = await fetch(url,
-        {
+        const response = await fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -160,7 +159,31 @@ async function createTournament(token, title, description)
         }
 
         const responseData = await response.json();
-        return { success: true, message: "Tournament successfully created!" };
+        
+        const tournamentId = responseData.id
+        const joinUrl = "https://transcendence-pong:7443/api/games/tournament/join/";
+        
+        const joinResponse = await fetch(joinUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ tournament_id: tournamentId, tournament_alias: tournamentAlias }),
+        });
+
+        if (!joinResponse.ok)
+        {
+            const errorData = await joinResponse.json();
+            throw new Error(errorData.detail || "Failed to join the tournament");
+        }
+
+        const joinResponseData = await joinResponse.json();
+        const webSocketUrl = joinResponseData.webSocketUrl;
+
+        console.log("WebSocket URL:", webSocketUrl);
+        
+        return { success: true, message: "Tournament created and joined successfully!", webSocketUrl };
     }
     catch (error)
     {
@@ -168,7 +191,8 @@ async function createTournament(token, title, description)
     }
 }
 
-async function searchTournament(token) {
+async function searchTournament(token)
+{
     const modal = createSearchModal();
     document.body.appendChild(modal);
 
