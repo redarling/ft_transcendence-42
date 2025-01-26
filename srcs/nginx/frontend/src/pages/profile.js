@@ -17,7 +17,7 @@ export default function renderUserProfile() {
                     <section id="userMatchHistory"></section>
                 </div>
             </div>
-        </div>
+        </div> 
     `;
 
     // Call every components to fill the sections

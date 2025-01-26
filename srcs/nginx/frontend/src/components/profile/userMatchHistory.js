@@ -16,10 +16,9 @@ export default function UserMatchHistoryComponent() {
                 </tbody>
             </table>
 
-            <!-- Match summary modal -->
             <div class="modal" id="matchSummary" tabindex="-1" aria-labelledby="matchSummaryModal" aria-hidden="true">
                 <div class="modal-dialog modal-xl">
-                    <div class="modal-content">
+                    <div class="modal-content w-100">
                         <div class="modal-header">
                             <div class="col">
                                 <h5>Game Summary</h5>
