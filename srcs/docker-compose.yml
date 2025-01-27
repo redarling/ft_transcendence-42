@@ -1,6 +1,33 @@
 services:
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    networks:
+      - transcendance
+    restart: always
+    ports:
+      - "7443:443"
+    volumes:
+      - ./nginx/frontend:/usr/share/nginx/html
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    container_name: backend
+    env_file: .env
+    networks:
+      - transcendance
+    restart: always
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - postgres
+      - redis
+      - blockchain
+
   postgres:
-    build: ./postgres
+    image: postgres:15.4
     container_name:  postgres
     env_file: .env
     restart: always
@@ -19,33 +46,6 @@ services:
     restart: always
     ports:
       - "6379:6379"
-
-  backend:
-    build: ./backend
-    container_name: backend
-    env_file: .env
-    networks:
-      - transcendance
-    restart: always
-    volumes:
-      - ./backend:/app
-    depends_on:
-      - postgres
-      - redis
-      - blockchain
-
-  nginx:
-    build: ./nginx
-    container_name: nginx
-    networks:
-      - transcendance
-    restart: always
-    ports:
-      - "7443:443"
-    volumes:
-      - ./nginx/frontend:/usr/share/nginx/html
-    depends_on:
-      - backend
 
   blockchain:
     build: ./blockchain
