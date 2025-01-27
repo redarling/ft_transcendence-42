@@ -6,6 +6,6 @@ WORKDIR /blockchain
 
 COPY . .
 
-RUN chmod -R 777 /blockchain/data
+# RUN chmod -R 777 /blockchain/data
 
 CMD ["geth"]
