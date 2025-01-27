@@ -49,8 +49,8 @@ export default function renderHome() {
 						<img src="./src/assets/images/creators/imehdid.jpg" style="width: 220px; height: 220px;" class="rounded-circle mb-3 mx-auto" alt="Creator 1">
 						<h5>Ismael M.</h5>
 						<ul class="list-unstyled mt-3">
-							<li>- Game developer</li>
-							<li>- AI developer</li>
+							<li>- Game and AI Developer</li>
+							<li>- Blockchain Integration Engineer</li>
 						</ul>
 					</div>
 				</div>
@@ -60,8 +60,7 @@ export default function renderHome() {
 					<img src="./src/assets/images/creators/mbriand.png" style="width: 220px; height: 220px;" class="rounded-circle mb-3 mx-auto" alt="Creator 2">
 					<h5>Maxime B.</h5>
 					<ul class="list-unstyled mt-3">
-						<li>- Front-end developer</li>
-						<li>- Back-end developer</li>
+						<li>- Full-stack Developer</li>
 					</ul>
 				</div>
 				</div>
@@ -71,8 +70,8 @@ export default function renderHome() {
 					<img src="./src/assets/images/creators/asyvash.jpg" style="width: 220px; height: 220px;" class="rounded-circle mb-3 mx-auto" alt="Creator 1">
 					<h5 >Andrii S.</h5>
 					<ul class="list-unstyled mt-3">
-						<li>- API developer</li>
-						<li>- Back-end developer</li>
+						<li>- Full-stack Developer</li>
+						<li>- Cybersecurity Specialist</li>
 					</ul>
 					</div>
 				</div>

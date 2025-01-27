@@ -1,3 +1,5 @@
+import { joinTournamentModal } from './join.js';
+
 export default async function searchTournament(token)
 {
     const modal = createSearchModal();
@@ -24,7 +26,7 @@ export default async function searchTournament(token)
         try
         {
             const tournaments = await fetchTournaments(token, title);
-            renderSearchResults(tournaments, searchResults);
+            renderSearchResults(token, tournaments, searchResults);
         }
         catch (error)
         {
@@ -77,7 +79,7 @@ async function fetchTournaments(token, title)
     return await response.json();
 }
 
-function renderSearchResults(tournaments, searchResults)
+function renderSearchResults(token, tournaments, searchResults)
 {
     searchResults.innerHTML = '';
 
@@ -100,7 +102,8 @@ function renderSearchResults(tournaments, searchResults)
 
     document.querySelectorAll('.join-tournament-btn').forEach((button) => {
         button.addEventListener('click', () => {
-            alert('Join functionality is not implemented yet.');
+            const tournamentId = button.getAttribute('data-id');
+            joinTournamentModal(token, tournamentId);
         });
     });
 }

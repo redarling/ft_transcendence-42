@@ -1,6 +1,6 @@
 from .recovery_key_manager import RecoveryKeyManager
 from users.models import User
-from games.models import TournamentParticipant
+from games.models import TournamentParticipant, Tournament
 import asyncio
 from channels.db import database_sync_to_async
 import logging
@@ -85,18 +85,24 @@ def is_participant(tournament_id, user):
     ).exists()
 
 @database_sync_to_async
-def get_participants(tournament_id):
+def get_tournament_data(tournament_id, user_id):
     """
     Get the list of participants in the tournament.
     """
-    participants = TournamentParticipant.objects.filter(
-        tournament_id=tournament_id
-    ).select_related("user")
-    return [
-        {
-            "id": participant.user.id,
-            "username": participant.user.username,
-            "alias": participant.tournament_alias,
-        }
-        for participant in participants
-    ]
+    try:
+        tournament = Tournament.objects.get(id=tournament_id)
+        is_admin = tournament.creator.id == user_id
+        participants = TournamentParticipant.objects.filter(
+            tournament_id=tournament_id
+        ).select_related("user")
+        return [
+            {
+                "id": participant.user.id,
+                "username": participant.user.username,
+                "alias": participant.tournament_alias,
+                "avatar": participant.user.avatar,
+            }
+            for participant in participants
+        ], tournament.title, tournament.description, is_admin
+    except Exception as e:
+        return [], None, None, False

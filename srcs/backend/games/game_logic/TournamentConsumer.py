@@ -2,7 +2,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 from .api_calls import create_match_api
 from .channel_handling import remove_player_from_group, send_group_message, disconnect_user, send_error_to_players, add_player_to_group
-from .utils import check_active_match, is_player_online, check_players_online_statuses, is_participant, get_participants
+from .utils import check_active_match, is_player_online, check_players_online_statuses, is_participant, get_tournament_data
 from .match_handler import MatchHandler
 from .recovery_key_manager import RecoveryKeyManager
 from .match_event_queue import MatchEventQueueManager
@@ -38,8 +38,16 @@ class TournamentConsumer(AsyncWebsocketConsumer):
 
         await self.channel_layer.group_add(self.group_name, self.channel_name)
 
-        participants = await get_participants(self.tournament_id)
+        participants, title, description, is_admin = await get_tournament_data(self.tournament_id, self.user.id)
 
+        await self.send(json.dumps(
+            {
+                "event": "tournament_data",
+                "title": title,
+                "description": description,
+                "is_admin": is_admin,
+            }))
+        
         await self.channel_layer.group_send(
             self.group_name,
             {

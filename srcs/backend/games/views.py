@@ -468,7 +468,7 @@ class InviteTournamentAPIView(APIView):
             invitee=friend
         )
 
-        # TODO: Notify the friend via WebSocket
+        # TODO: Notify the friend (?)
         return Response(
             {"message": f"Invitation sent to {friend.username}."},
             status=status.HTTP_200_OK
@@ -550,6 +550,7 @@ class LeaveTournamentAPIView(APIView):
             status=status.HTTP_200_OK
         )
 
+# TODO: Do not forget to notify participants via WebSocket
 class CancelTournamentAPIView(APIView):
     
     def post(self, request):
@@ -580,17 +581,6 @@ class CancelTournamentAPIView(APIView):
         participants = TournamentParticipant.objects.filter(tournament=tournament)
         tournament_invitations = TournamentInvitation.objects.filter(tournament=tournament)
 
-        # TODO: Notify participants via WebSocket
-        #channel_layer = get_channel_layer()
-        #for participant in participants:
-        #    async_to_sync(channel_layer.group_send)(
-        #        f"tournament_{tournament.id}",
-        #        {
-        #            "type": "tournament_cancelled",
-        #            "message": "The tournament has been cancelled by the creator."
-        #        }
-        #    )
-
         # Delete all related data in a single transaction
         with transaction.atomic():
             participants.delete()
@@ -602,7 +592,7 @@ class CancelTournamentAPIView(APIView):
             status=status.HTTP_200_OK
         )
 
-# TODO: Do not return fulled tournaments
+# TODO: exclude tournament with 16 participants and where the user is already a participant
 class SearchTournamentAPIView(ListAPIView):
     serializer_class = TournamentSerializer
 

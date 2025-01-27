@@ -1,3 +1,5 @@
+import { joinTournamentModal } from './join.js';
+
 export default async function invitationsList(token)
 {
     const modal = createInvitationsModal();
@@ -13,7 +15,7 @@ export default async function invitationsList(token)
     try
     {
         const invitations = await fetchInvitations(token);
-        renderInvitations(invitations, invitationsList);
+        renderInvitations(token, invitations, invitationsList);
     }
     catch (error)
     {
@@ -58,7 +60,7 @@ async function fetchInvitations(token)
     return await response.json();
 }
 
-function renderInvitations(invitations, invitationsList)
+function renderInvitations(token, invitations, invitationsList)
 {
     invitationsList.innerHTML = '';
 
@@ -82,7 +84,8 @@ function renderInvitations(invitations, invitationsList)
 
     document.querySelectorAll('.join-tournament-btn').forEach((button) => {
         button.addEventListener('click', () => {
-            alert('Join functionality is not implemented yet.');
+            const tournamentId = button.getAttribute('data-id');
+            joinTournamentModal(token, tournamentId);
         });
     });
 }

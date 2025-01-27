@@ -1,4 +1,5 @@
-import joinTournament from "./join.js";
+import { joinTournament } from './join.js';
+import { tournamentHandler } from '../../tournament_gaming/tournamentHandler.js';
 
 export default async function createTournamentModal(token)
 {
@@ -70,7 +71,8 @@ export default async function createTournamentModal(token)
             if (!joinResult.success)
                 throw new Error(joinResult.message);
 
-            alert(`Success! WebSocket URL: ${joinResult.webSocketUrl}`);
+            const webSocketUrl = joinResult.webSocketUrl;
+            await tournamentHandler(webSocketUrl, token);
         }
         catch (error)
         {
