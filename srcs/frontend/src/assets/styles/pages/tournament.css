@@ -58,6 +58,14 @@
     color: red;
 }
 
+.tournament-item img.avatar {
+    margin-right: 10px;
+}
+
+.tournament-item button {
+    margin-left: auto;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

@@ -3,13 +3,13 @@ FROM node:18 AS build
 WORKDIR /app
 
 # Copy package.json and package-lock.json
-COPY frontend/package*.json ./
+COPY ./srcs/frontend/package*.json ./
 
 # Install dependencies
 RUN npm install
 
 # Copy the rest of the frontend files
-COPY frontend/ ./
+COPY ./srcs/frontend/ ./
 
 # Build the project
 RUN npm run build
@@ -22,7 +22,7 @@ RUN openssl req -x509 -nodes -days 365 -newkey \
     /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost"
 
 # Copy Nginx configuration
-COPY default.conf /etc/nginx/conf.d/default.conf
+COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 # Set correct permissions
 RUN chmod -R 755 /usr/share/nginx/html

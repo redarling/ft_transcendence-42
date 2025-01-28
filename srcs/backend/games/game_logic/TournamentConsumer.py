@@ -45,7 +45,7 @@ class TournamentConsumer(AsyncWebsocketConsumer):
                 "event": "tournament_data",
                 "title": title,
                 "description": description,
-                "is_admin": is_admin,
+                "is_admin": is_admin
             }))
         
         await self.channel_layer.group_send(

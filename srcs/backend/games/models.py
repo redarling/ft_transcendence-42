@@ -65,7 +65,7 @@ class Tournament(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['created_at']),
+            models.Index(fields=['title']),
         ]
 
 class TournamentParticipant(models.Model):

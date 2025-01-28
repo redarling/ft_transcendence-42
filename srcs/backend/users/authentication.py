@@ -5,8 +5,6 @@ from .models import User
 from django.core.exceptions import ValidationError
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from .jwt_logic import decode_jwt
-from django.utils import timezone
-from datetime import timedelta
 
 class UserAuthentication(BaseBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):

@@ -1,4 +1,4 @@
-DOCKER_COMPOSE_FILE = ./srcs/docker-compose.yml
+DOCKER_COMPOSE_FILE = ./docker/docker-compose.yml
 
 all: check_env
 	@echo "Starting containers..."

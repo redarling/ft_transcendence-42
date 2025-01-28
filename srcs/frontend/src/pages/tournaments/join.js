@@ -62,7 +62,7 @@ export async function joinTournamentModal(token, tournamentId)
 
             const webSocketUrl = joinResult.webSocketUrl;
             document.querySelectorAll('.modal-overlay').forEach((modal) => modal.remove());
-            await tournamentHandler(webSocketUrl, token);
+            await tournamentHandler(webSocketUrl, token, tournamentId);
         }
         catch (error)
         {

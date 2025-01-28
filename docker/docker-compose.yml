@@ -1,6 +1,8 @@
 services:
   nginx:
-    build: ./nginx
+    build:
+      context: ../
+      dockerfile: ./docker/nginx/Dockerfile
     container_name: nginx
     networks:
       - transcendance
@@ -8,7 +10,7 @@ services:
     ports:
       - "7443:443"
     volumes:
-      - ./nginx/frontend:/usr/share/nginx/html
+      - ../srcs/frontend:/usr/share/nginx/html
     depends_on:
       - backend
 

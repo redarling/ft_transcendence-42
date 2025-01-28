@@ -1,4 +1,9 @@
-export default async function renderTournamentWaitingPage(participants, title, description, isAdmin)
+import inviteButton from "./waiting_buttons/invite_button.js";
+import leaveButton from "./waiting_buttons/leave_button.js";
+import cancelButton from "./waiting_buttons/cancel_button.js";
+import startButton from "./waiting_buttons/start_button.js";
+
+export default async function renderTournamentWaitingPage(token, participants, title, description, isAdmin, tournamentId)
 {
     const main = document.getElementById("main");
     document.getElementById('header').innerHTML= '';
@@ -19,7 +24,13 @@ export default async function renderTournamentWaitingPage(participants, title, d
 
                             <div class="buttons mt-4">
                                 <button class="btn btn-secondary" id="inviteBtn">Invite</button>
-                                <button class="btn btn-danger" id="leaveBtn">Leave</button>
+                                ${
+                                    !isAdmin 
+                                    ? `
+                                        <button class="btn btn-danger" id="leaveBtn">Leave</button>
+                                    `
+                                    : ''
+                                }
                                 ${
                                     isAdmin 
                                     ? `
@@ -36,13 +47,17 @@ export default async function renderTournamentWaitingPage(participants, title, d
         </div>
     `;
 
-    document.getElementById("inviteBtn").addEventListener("click", () => alert('Invite clicked'));
-    document.getElementById("leaveBtn").addEventListener("click", () => alert('Leave clicked'));
+    document.getElementById("inviteBtn").addEventListener("click", () => inviteButton(token, tournamentId));
+
+    if (!isAdmin)
+    {
+        document.getElementById("leaveBtn").addEventListener("click", () => leaveButton());
+    }
 
     if (isAdmin)
     {
-        document.getElementById("cancelBtn").addEventListener("click", () => alert('Cancel tournament clicked'));
-        document.getElementById("startBtn").addEventListener("click", () => alert('Start tournament clicked'));
+        document.getElementById("cancelBtn").addEventListener("click", () => cancelButton());
+        document.getElementById("startBtn").addEventListener("click", () => startButton());
     }
 
     renderParticipantsList(participants);

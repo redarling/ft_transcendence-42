@@ -68,11 +68,13 @@ export default async function createTournamentModal(token)
 
             const tournamentId = createResult.tournamentId;
             const joinResult = await joinTournament(token, tournamentId, alias);
+            
             if (!joinResult.success)
                 throw new Error(joinResult.message);
 
             const webSocketUrl = joinResult.webSocketUrl;
-            await tournamentHandler(webSocketUrl, token);
+            document.querySelectorAll('.modal-overlay').forEach((modal) => modal.remove());
+            await tournamentHandler(webSocketUrl, token, tournamentId);
         }
         catch (error)
         {

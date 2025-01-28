@@ -163,7 +163,7 @@ class UserProfileAPIView(RetrieveAPIView):
     def get_serializer_context(self):
         return {'request': self.request}
 
-    def get_object(self):
+    def get_object(self, *args, **kwargs):
         user_id = self.kwargs.get('user_id')
         if user_id:
             try:
@@ -195,10 +195,10 @@ class UserProfileAPIView(RetrieveAPIView):
 class UserUpdateAPIView(UpdateAPIView):
     serializer_class = UserUpdateSerializer
 
-    def get_object(self):
+    def get_object(self, *args, **kwargs):
         return self.request.user
 
-    def put(self):
+    def put(self, request, *args, **kwargs):
         return Response({'error': 'PUT method is not allowed. Use PATCH instead.'},
             status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -216,7 +216,7 @@ class UserStatsAPIView(RetrieveAPIView):
     queryset = UserStats.objects.all()
     serializer_class = UserStatsSerializer
 
-    def get_object(self):
+    def get_object(self, *args, **kwargs):
         user_id = self.kwargs.get('user_id', None)
         if user_id:
             try:
@@ -230,7 +230,7 @@ class UserStatsAPIView(RetrieveAPIView):
 class FriendListAPIView(ListAPIView):
     serializer_class = FriendSerializer
 
-    def get_queryset(self):
+    def get_queryset(self, *args, **kwargs):
         user_id = self.kwargs.get('user_id')
         if user_id:
             try:
@@ -339,11 +339,11 @@ class FriendshipAPIView(APIView):
 class FriendRequestsAPIView(ListAPIView):
     serializer_class = FriendSerializer
 
-    def get_queryset(self):
+    def get_queryset(self, *args, **kwargs):
         user = self.request.user
         return Friend.objects.filter(friend=user, status='pending')
 
-    def list(self):
+    def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
         if queryset.count() == 0:

@@ -1,5 +1,6 @@
 from django.db import IntegrityError
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
@@ -396,28 +397,40 @@ class GetOnlineFriendsAPIView(APIView):
             tournament_id=tournament_id
         ).values_list('user_id', flat=True)
 
-        # Find friends who:
-        # - Are friends of the user
-        # - Have accepted the friendship (status='accepted')
-        # - Are online (friend__online_status=True)
-        # - Are not already participating in the specified tournament
-        online_friends = Friend.objects.filter(
-            user=user,
-            status='accepted',
-            friend__online_status=True
-        ).exclude(friend__id__in=participants).select_related('friend')
+        # Fetch all friends where the status is 'accepted'
+        all_friends = Friend.objects.filter(
+            Q(user=user) | Q(friend=user), 
+            status='accepted'
+        )
 
-        if not online_friends.exists():
+        # Extract actual friends by checking both user and friend fields
+        friends = []
+        for friendship in all_friends:
+            if friendship.user == user:
+                friends.append(friendship.friend)
+            else:
+                friends.append(friendship.user)
+
+        # Now exclude friends who are participating in the tournament
+        friends_not_in_tournament = [
+            friend for friend in friends if friend.id not in participants
+        ]
+
+        # Filter online friends
+        online_friends = [
+            friend for friend in friends_not_in_tournament if friend.online_status
+        ]
+
+        if not online_friends:
             return Response(
                 {"error": "No eligible friends found online."},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = UserProfileSearchSerializer(
-            [friend.friend for friend in online_friends], 
-            many=True
-        )
+        # Serialize and return online friends
+        serializer = UserProfileSearchSerializer(online_friends, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class InviteTournamentAPIView(APIView):
     """
@@ -436,7 +449,7 @@ class InviteTournamentAPIView(APIView):
             tournament = Tournament.objects.get(id=tournament_id, status='pending')
         except Tournament.DoesNotExist:
             return Response(
-                {"error": "Tournament not found or is not in a pending state."},
+                {"error": "Tournament not found or access forbidden."},
                 status=status.HTTP_404_NOT_FOUND
             )
 
@@ -468,7 +481,6 @@ class InviteTournamentAPIView(APIView):
             invitee=friend
         )
 
-        # TODO: Notify the friend (?)
         return Response(
             {"message": f"Invitation sent to {friend.username}."},
             status=status.HTTP_200_OK
@@ -481,8 +493,6 @@ class InvitationListTournamentAPIView(APIView):
 
     def get(self, request):
         user = request.user
-
-        logger.info(f"User {user} {user.username} is fetching tournament invitations.")
 
         # Fetch tournaments where the user has received invitations
         participated_tournaments = TournamentParticipant.objects.filter(user=user).values_list('tournament', flat=True)
@@ -500,7 +510,6 @@ class StartTournamentAPIView(APIView):
     def post(self, request):
         return Response({'error': 'Stay tuned... It doesnt work yet'}, status=status.HTTP_403_FORBIDDEN)
 
-# TODO: WebSocket should nofity about a user who left the tournament
 class LeaveTournamentAPIView(APIView):
     def post(self, request):
         """
@@ -550,7 +559,6 @@ class LeaveTournamentAPIView(APIView):
             status=status.HTTP_200_OK
         )
 
-# TODO: Do not forget to notify participants via WebSocket
 class CancelTournamentAPIView(APIView):
     
     def post(self, request):
@@ -597,7 +605,7 @@ class SearchTournamentAPIView(ListAPIView):
     serializer_class = TournamentSerializer
 
     def get_queryset(self):
-        current_user = self.request.user
+        user = self.request.user
         query = self.request.query_params.get('title', '').strip()
 
         if not query:
@@ -606,7 +614,7 @@ class SearchTournamentAPIView(ListAPIView):
         return Tournament.objects.filter(
             status='pending',
             title__icontains=query
-        ).exclude(creator=current_user)
+        ).exclude(creator=user)
 
     def list(self, request, *args, **kwargs):
         query = self.request.query_params.get('title', '').strip()
