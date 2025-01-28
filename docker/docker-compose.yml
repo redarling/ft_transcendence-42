@@ -15,14 +15,16 @@ services:
       - backend
 
   backend:
-    build: ./backend
+    build:
+      context: ../
+      dockerfile: ./docker/backend/Dockerfile
     container_name: backend
     env_file: .env
     networks:
       - transcendance
     restart: always
     volumes:
-      - ./backend:/app
+      - ../srcs/backend:/app
     depends_on:
       - postgres
       - redis

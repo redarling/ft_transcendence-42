@@ -6,4 +6,4 @@ __pycache__/
 *.pyc
 .pytest_cache/
 migrations/
-srcs/blockchain/data/*
+docker/blockchain/data/
