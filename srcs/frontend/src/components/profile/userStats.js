@@ -1,37 +1,45 @@
-export default function UserStatsComponent() {
+export default function UserStatsComponent(userName, totalMatches, totalWins, longestWinstreak, totalPointsScored, totalPointsAgainst, tournamentsWon, matchesStats) {
     const userStatsSection = document.querySelector('#userStats');
     userStatsSection.innerHTML = `
         <h5 class="text-light">MAIN STATISTICS</h5>
-        <div class="row">
-            <div class="col-md-6 col-lg-3 col-sm-6">
+        <div class="row d-flex justify-content-between">
+            <div class="col-lg-6 col-xl-3 col-xxl-2">
                 <div class="card game-card mb-3">
                     <div class="card-body text-light">
-                        <h6 class="card-title text-center">x</h6>
+                        <h6 id="totalMatchPlayed" class="card-title text-center">${totalMatches}</h6>
                         <h6 class="card-text text-center">MATCHES</h6>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3 col-sm-6">
+            <div class="col-lg-6 col-xl-3 col-xxl-2">
                 <div class="card game-card mb-3">
                     <div class="card-body text-light">
-                        <h6 class="card-title text-center">x%</h6>
+                        <h6 id="winrate" class="card-title text-center">${totalWins > 0 ? Math.round((totalWins / totalMatches) * 100) : 0}%</h6>
                         <h6 class="card-text text-center">WINRATE</h6>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3 col-sm-6">
+            <div class="col-lg-6 col-xl-3 col-xxl-2">
                 <div class="card game-card mb-3">
                     <div class="card-body text-light">
-                        <h6 class="card-title text-center">x</h6>
+                        <h6 id="longestWinstreak" class="card-title text-center">${longestWinstreak}</h6>
                         <h6 class="card-text text-center">LONGEST WINSTREAK</h6>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3 col-sm-6">
+            <div class="col-lg-6 col-xl-3 col-xxl-2">
                 <div class="card game-card mb-3">
                     <div class="card-body text-light">
-                        <h6 class="card-title text-center">x</h6>
+                        <h6 id="ratio" class="card-title text-center">${totalPointsAgainst > 0 ? (totalPointsScored / totalPointsAgainst).toFixed(2) : totalPointsScored}</h6>
                         <h6 class="card-text text-center">RATIO</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-xl-3 col-xxl-2">
+                <div class="card game-card mb-3">
+                    <div class="card-body text-light">
+                        <h6 id="tournamentWon" class="card-title text-center">${tournamentsWon}</h6>
+                        <h6 class="card-text text-center">TOURNAMENT WON</h6>
                     </div>
                 </div>
             </div>
@@ -71,27 +79,25 @@ export default function UserStatsComponent() {
     const chartLeftButton = document.getElementById('chartLeft');
     const chartRightButton = document.getElementById('chartRight');
     const statsChart = document.getElementById('statsChart');
-    
-    //===----------------------------------------------------------------------===//
-    //                       Placeholder Data
-    //===----------------------------------------------------------------------===//
-    let matchStats = {
-        matchId: 1,
-        timeHit: 50,
-        ratio: 5.0
-    };
-    
+
     let matchHistory = [];
-    for (let i = 0; i < 10; ++i) {
-        matchHistory.push({ ...matchStats });
-        matchStats.matchId += 1;
-        matchStats.timeHit = Math.floor(Math.random() * 100);
-        matchStats.ratio = Math.random() * 3;
+    for (let i = 0; i < matchesStats.length; ++i) {
+        let ownStats = matchesStats[i][0].player_username === userName ? matchesStats[i][0] : matchesStats[i][1];
+        let opponentStats = matchesStats[i][0].player_username !== userName ? matchesStats[i][0] : matchesStats[i][1];
+
+        const timesHit = ownStats.total_hits;
+        const ratio = opponentStats.points_scored > 0 ? (ownStats.points_scored / opponentStats.points_scored).toFixed(2) : 0;
+
+        matchHistory.push({
+            timeHit: timesHit,
+            ratio: ratio
+        });
     }
-    
+
     //===----------------------------------------------------------------------===//
     //                       Helper Functions
     //===----------------------------------------------------------------------===//
+
     function getLabel() {
         const range = [];
         for (let i = left; i <= right; ++i) {
@@ -130,6 +136,7 @@ export default function UserStatsComponent() {
         }
         return []
     }
+
     //===----------------------------------------------------------------------===//
     
     const matchesPerChart = 5;

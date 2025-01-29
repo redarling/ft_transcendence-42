@@ -1,4 +1,4 @@
-export default function UserMatchHistoryComponent() {
+export default function UserMatchHistoryComponent(userName, matches, matchesStats) {
     const userMatchHistorySection = document.querySelector('#userMatchHistory');
     userMatchHistorySection.innerHTML = `
             <h5 class="text-light">GAME HISTORY</h5>
@@ -30,11 +30,11 @@ export default function UserMatchHistoryComponent() {
                             <div class="row align-items-center">
                             
                                 <div class="col text-start">
-                                    <h2 id="modalMatchPlayerLeftName">PlayerLeft</h2>
+                                    <h2 id="modalMatchPlayerLeftName"></h2>
                                 </div>
 
                                 <div class="col text-end">
-                                    <h2 id="modalMatchLeftFinalScore">9</h2>
+                                    <h2 id="modalMatchLeftFinalScore"></h2>
                                 </div>
 
                                 <div class="col-1 text-center">
@@ -42,7 +42,7 @@ export default function UserMatchHistoryComponent() {
                                 </div>
 
                                 <div class="col text-start">
-                                    <h2 id="modalMatchRightFinalScore">11</h2>
+                                    <h2 id="modalMatchRightFinalScore"></h2>
                                 </div>
 
                                 <div class="col text-end">
@@ -55,15 +55,15 @@ export default function UserMatchHistoryComponent() {
                                     <h4>Times Hit</h4>
                                 </div>
                                 <div class="col text-end">
-                                    <h4 id="modalMatchLeftRatio">x</h4>
-                                    <h4 id="modalMatchLeftTimesHit">x</h4>
+                                    <h4 id="modalMatchLeftRatio"></h4>
+                                    <h4 id="modalMatchLeftTimesHit"></h4>
                                 </div>
                                 <div class="col-1 text-center">
                                     <div class="vr" style="height: 100%;"></div>
                                 </div>
                                 <div class="col text-start">
-                                    <h4 id="modalMatchRightRatio">x</h4>
-                                    <h4 id="modalMatchRightTimesHit">x</h4>
+                                    <h4 id="modalMatchRightRatio"></h4>
+                                    <h4 id="modalMatchRightTimesHit"></h4>
                                 </div>
                                 <div class="col text-end">
                                     <h4>Ratio</h4>
@@ -73,9 +73,9 @@ export default function UserMatchHistoryComponent() {
                             <hr class="hr" />
                             <div class="row">
                                 <div class="col text-center">
-                                    <h6 id="modalMatchDuration">2:42</h6>
-                                    <h6 id="modalMatchDate">Jan 09 - 11:28 PM</h6>
-                                    <h6 id="modalMatchContext">Tournament</h6>
+                                    <h6 id="modalMatchDuration"></h6>
+                                    <h6 id="modalMatchDate"></h6>
+                                    <h6 id="modalMatchContext"></h6>
                                 </div>
                             </div>
                         </div>
@@ -83,9 +83,6 @@ export default function UserMatchHistoryComponent() {
                 </div>
             </div>
     `;
-
-    // Which player we are currently checking the game history from
-    const userName = "Bob";
 
     function formatDate(date) {
         const options = { day: '2-digit', month: 'short' };
@@ -97,8 +94,8 @@ export default function UserMatchHistoryComponent() {
     function formatDuration(seconds) {
         const hrs = Math.floor(seconds / 3600);
         const mins = Math.floor((seconds % 3600) / 60);
-        const secs = seconds % 60;
-        return `${hrs > 0 ? hrs + 'h ' : ''}${mins > 0 ? mins + 'm ' : ''}${secs}s`;
+        const secs = Math.floor(seconds % 60);
+        return `${hrs}h ${mins}m ${secs}s`;
     }
 
     function addMatchToMatchHistoryTable(match) {
@@ -152,55 +149,45 @@ export default function UserMatchHistoryComponent() {
     const modalMatchRightFinalScore = document.getElementById('modalMatchRightFinalScore');
     /* -------------------------- */
 
-    // !Placeholder data!
-    // TODO: Fetch data from API + store in object + add to the matchHistory array
+    // Left player is always the player of the profile we're on
     let matchHistory = [];
-    matchHistory.push({
-        id: 0,
-        date: new Date(Date.now()),
-        winnerName: "Bob",
-        context: "Tournament",
-        duration: 120,
+    for (let i = 0; i < matches.length; ++i) {
 
-        leftPlayerData: {
-            name: "Bob",
-            score: 11,
-            timesHit: 50,
-            ratio: 5.0
-        },
+        const date = new Date(Date.now(matches[i].finished_at));
+        const winnerName = matches[i].match.winner_username;
+        const context = matches[i].match.match_type;
 
-        rightPlayerData: {
-            name: "Notbob",
-            score: 5,
-            timesHit: 32,
-            ratio: 2.0
-        }
-    });
+        const startedAt = new Date(matches[i].match.started_at);
+        const endedAt = new Date(matches[i].match.finished_at);
+        const duration = Math.abs((endedAt - startedAt) / 1000);
 
-    matchHistory.push({
-        id: 1,
-        date: new Date(Date.now()),
-        duration: 120,
-        winnerName: "Notbob",
-        context: "1v1",
+        const leftPlayerStats = matchesStats[i][0].player_username === userName ? matchesStats[i][0] : matchesStats[i][1];
+        const rightPlayerStats = matchesStats[i][0].player_username !== userName ? matchesStats[i][0] : matchesStats[i][1];
 
-        leftPlayerData: {
-            name: "Bob",
-            score: 9,
-            timesHit: 49,
-            ratio: 4.5
-        },
+        matchHistory.push({
+            id: i,
+            date: date,
+            winnerName: winnerName,
+            context: context, // 1v1 or tournament
+            duration: duration, // in seconds
+    
+            leftPlayerData: {
+                name: leftPlayerStats.player_username,
+                score: leftPlayerStats.points_scored,
+                timesHit: leftPlayerStats.total_hits,
+                ratio: rightPlayerStats.points_scored > 0 ? (rightPlayerStats.points_scored / leftPlayerStats.points_scored).toFixed(2) : 0
+            },
+    
+            rightPlayerData: {
+                name: rightPlayerStats.player_username,
+                score: rightPlayerStats.points_scored,
+                timesHit: rightPlayerStats.total_hits,
+                ratio: leftPlayerStats.points_scored > 0 ? (leftPlayerStats.points_scored / rightPlayerStats.points_scored).toFixed(2) : 0
+            }
+        });
 
-        rightPlayerData: {
-            name: "Notbob",
-            score: 11,
-            timesHit: 50,
-            ratio: 5.0
-        }
-    });
-
-    addMatchToMatchHistoryTable(matchHistory[0]);
-    addMatchToMatchHistoryTable(matchHistory[1]);
+        addMatchToMatchHistoryTable(matchHistory[i]);
+    }
 
     function fillGameSummaryModal(match) {
         modalMatchDate.innerHTML = formatDate(match.date);
