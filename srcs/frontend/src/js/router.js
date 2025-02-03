@@ -58,9 +58,7 @@ export const render = (route) => {
 				<header>${Header()}</header>
 				<main>${Home()}</main>
 				<footer>${Footer()}</footer>`;
-			b
-			
-			reak;
+			break;
 		case '/login':
 			app.innerHTML = `
 				<header>${Header()}</header>

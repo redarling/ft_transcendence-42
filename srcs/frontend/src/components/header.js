@@ -19,19 +19,19 @@ export default function renderHeader() {
                     <li class="nav-item">
                         <a class="nav-link" href="game">Game</a>
                     </li>
-                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="tournaments">Tournaments</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="settings"">Settings</a>
                     </li>
+					<li class="nav-item">
+						<a class="nav-link" href="profile">Profile</a>
+					</li>
                     <li class="nav-item">
                         <a class="nav-link" href="login">Logout</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="profile">Profile</a>
-                </ul>
+				</ul>
             </div>
         </nav>
     `;

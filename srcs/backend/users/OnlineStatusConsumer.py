@@ -72,6 +72,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
                     await self.set_user_offline()  # Set user status to offline
                     await self.close()  # Close the connection
                     break
+
         except asyncio.CancelledError:
             # Handle the case where the ping task is cancelled during disconnect
             logger.info("Ping loop cancelled for user: %s", self.user.username)

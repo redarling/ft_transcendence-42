@@ -29,6 +29,8 @@ services:
       - postgres
       - redis
       - blockchain
+    # environment:
+    #   - DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost,backend,172.18.0.5
 
   postgres:
     image: postgres:15.4
