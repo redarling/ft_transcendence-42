@@ -3,7 +3,7 @@ import leaveButton from "./waiting_buttons/leave_button.js";
 import cancelButton from "./waiting_buttons/cancel_button.js";
 import startButton from "./waiting_buttons/start_button.js";
 
-export default async function renderTournamentWaitingPage(token, participants, title, description, isAdmin, tournamentId)
+export default async function renderTournamentWaitingPage(socket, token, participants, title, description, isAdmin, tournamentId)
 {
     const main = document.getElementById("main");
     document.getElementById('header').innerHTML= '';
@@ -56,7 +56,7 @@ export default async function renderTournamentWaitingPage(token, participants, t
 
     if (isAdmin)
     {
-        document.getElementById("cancelBtn").addEventListener("click", () => cancelButton());
+        document.getElementById("cancelBtn").addEventListener("click", () => cancelButton(socket, token, tournamentId));
         document.getElementById("startBtn").addEventListener("click", () => startButton());
     }
 

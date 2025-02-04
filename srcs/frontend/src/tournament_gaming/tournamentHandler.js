@@ -1,4 +1,7 @@
 import renderTournamentWaintingPage from "./renderTournament.js";
+import { showToast } from './utils.js';
+import renderHeader from '../components/header.js';
+import renderTournaments from '../pages/tournaments/tournaments.js';
 
 export async function tournamentHandler(WebSocketUrl, token, tournamentId)
 {
@@ -39,9 +42,16 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
 
                     case "participant_list":
                         if (tournamentDataReceived)
-                            renderTournamentWaintingPage(token, data.participants, title, description, isAdmin, tournamentId);
+                            renderTournamentWaintingPage(socket, token, data.participants, title, description, isAdmin, tournamentId);
                         else
                             participantsData = data.participants;
+                        break;
+                    
+                    case "tournament_cancelled":
+                        console.log("Tournament cancelled.");
+                        renderHeader();
+                        renderTournaments();
+                        showToast("Tournament has been cancelled.", 'error');
                         break;
 
                     default:

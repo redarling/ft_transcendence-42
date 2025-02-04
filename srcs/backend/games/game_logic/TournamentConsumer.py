@@ -86,7 +86,20 @@ class TournamentConsumer(AsyncWebsocketConsumer):
             logger.info("Recovering match %s", data)
             #match_group = data.get("matchGroup")
             #await self.recover_match(match_group)
+        
+        elif event == "tournament_cancelled":
+            id = data.get("tournament_id")
+            logger.info("Cancelling tournament %s", id)
+            
+            await send_group_message(f"tournament_{self.tournament_id}", {"event": "tournament_cancelled"})
 
+            await self.channel_layer.group_send(
+            self.group_name,
+            {
+                "type": "disconnect_message",
+            },
+        )
+        
         else:
             await self.send_json_message("error", "Invalid event")
 

@@ -1,23 +1,34 @@
 export function showToast(message, type)
 {
+    console.log("Message:", message);
 
     const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <span>${message}</span>
-        <button class="btn-close" onclick="this.parentElement.remove()">×</button>
-    `;
+    toast.className = `custom-toast ${type}`;
+
+    const messageSpan = document.createElement('span');
+    messageSpan.textContent = message;
+
+    const closeButton = document.createElement('button');
+    closeButton.className = "btn-close";
+    closeButton.textContent = "×";
+    closeButton.onclick = () => toast.remove();
+
+    toast.appendChild(messageSpan);
+    toast.appendChild(closeButton);
 
     document.body.appendChild(toast);
 
     setTimeout(() => {
-        if (toast) toast.remove();
+        if (document.body.contains(toast)) {
+            toast.remove();
+            console.log("Toast removed after timeout");
+        }
     }, 3000);
 }
 
 const style = document.createElement('style');
 style.innerHTML = `
-.toast {
+.custom-toast {
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -29,29 +40,29 @@ style.innerHTML = `
     display: flex;
     align-items: center;
     gap: 10px;
-    z-index: 1000;
+    z-index: 9999;
     animation: fadeIn 0.3s ease-in-out;
     font-size: 14px;
 }
 
-.toast.success {
+.custom-toast.success {
     border-color: green;
     color: green;
 }
 
-.toast.error {
+.custom-toast.error {
     border-color: red;
     color: red;
 }
 
-.toast .btn-close {
+.custom-toast .btn-close {
     background: none;
     border: none;
     font-size: 16px;
     cursor: pointer;
 }
 
-.toast .btn-close:hover {
+.custom-toast .btn-close:hover {
     color: red;
 }
 

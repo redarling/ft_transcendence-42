@@ -320,7 +320,7 @@ class FriendshipAPIView(APIView):
         try:
             friend = User.objects.get(id=friend_id)
         except User.DoesNotExist:
-            return Response({'error': 'Friend not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             friendship = Friend.objects.get(user=friend, friend=user, status='pending')

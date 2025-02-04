@@ -52,7 +52,8 @@ async function fetchFriendsList(token, tournamentId)
         },
     });
 
-    if (!response.ok) {
+    if (!response.ok)
+    {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to fetch friends list.');
     }
@@ -109,13 +110,15 @@ async function inviteFriend(token, friendId, tournamentId)
 
         const result = await response.json();
 
+        console.log(result);
+
         if (response.ok)
         {
-            showToast(result.message || 'friend.', 'success');
+            showToast(result.message, 'success');
         }
         else
         {
-            showToast(result.error || 'Failed to send the invitation.', 'error');
+            showToast(result.error, 'error');
         }
     }
     catch (error)
