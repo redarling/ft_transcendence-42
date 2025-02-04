@@ -8,7 +8,6 @@ async function updateLoginHeader()
 	`
 }
 
-
 async function loginUser(username, password) {
 	const response = await fetch("/api/users/login/", {
 		method: "POST",
