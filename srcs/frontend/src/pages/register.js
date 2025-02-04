@@ -1,5 +1,33 @@
 import navigateTo from "../main.js"
 
+async function handleRegister(event) {
+    event.preventDefault();
+
+    const username = document.getElementById("username").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+	
+    try {
+		const response = await fetch('/api/users/register/', {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ username, email, password }),
+		});
+		
+        const data = await response.json();
+
+		if (response.ok) {
+			navigateTo('/login');
+		} 
+		else {
+            alert(data.detail || "Registration failed!");
+        }
+    } 
+	catch (error) {
+        alert("Network error. Try again!");
+    }
+}
+
 export default function renderRegister() {
     const main = document.getElementById("main");
     main.innerHTML = `
@@ -18,32 +46,4 @@ export default function renderRegister() {
     `;
 	document.getElementById("goToLogin").addEventListener("click", () => navigateTo("/login"));
     document.getElementById("registerForm").addEventListener("submit", handleRegister);
-}
-
-async function handleRegister(event) {
-    event.preventDefault();
-
-    const username = document.getElementById("username").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-	
-    try {
-        const response = await fetch("https://transcendence-pong:7443/api/users/register/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, email, password }),        
-		});
-
-        const data = await response.json();
-		
-		if (response.ok) {
-			navigateTo('/login');
-		} 
-		else {
-            alert(data.detail || "Registration failed!");
-        }
-    } 
-	catch (error) {
-        alert("Network error. Try again!");
-    }
 }
