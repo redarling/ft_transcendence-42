@@ -1,7 +1,5 @@
 export function showToast(message, type)
 {
-    console.log("Message:", message);
-
     const toast = document.createElement('div');
     toast.className = `custom-toast ${type}`;
 
@@ -21,60 +19,24 @@ export function showToast(message, type)
     setTimeout(() => {
         if (document.body.contains(toast)) {
             toast.remove();
-            console.log("Toast removed after timeout");
         }
-    }, 3000);
+    }, 3500);
 }
 
-const style = document.createElement('style');
-style.innerHTML = `
-.custom-toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px 20px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 9999;
-    animation: fadeIn 0.3s ease-in-out;
-    font-size: 14px;
+export function AreYouSureModal()
+{
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-center align-items-center">
+                <h5 class="modal-title">Are you sure?</h5>
+            </div>
+            <div class="modal-body d-flex justify-content-center">
+                <button type="button" class="btn btn-success" id="yesBtn">Yes</button>
+                <button type="button" class="btn btn-danger" id="noBtn" style="margin-left: 10px;">No</button>
+            </div>
+        </div>
+    `;
+    return modal;
 }
-
-.custom-toast.success {
-    border-color: green;
-    color: green;
-}
-
-.custom-toast.error {
-    border-color: red;
-    color: red;
-}
-
-.custom-toast .btn-close {
-    background: none;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-.custom-toast .btn-close:hover {
-    color: red;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-`;
-document.head.appendChild(style);

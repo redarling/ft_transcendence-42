@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { handleMatchOver, disconnectionMessage } from '../online_gaming/renderPages.js';
+import { handleMatchOver } from '../online_gaming/renderPages.js';
 import { Ball } from './ball.js';
 import { Paddle } from './paddle.js';
 import { Score } from './score.js';
 import { Countdown } from './Countdown.js'; 
+import { showToast } from '../tournament_gaming/utils.js';
 
 export const FIELD_DIMENSION_Z = 6;
 
@@ -243,7 +244,7 @@ export class Game {
         else if (message.event == "disconnection")
         {
             if (!this.#matchOver)
-                disconnectionMessage();
+                showToast("Player disconnected. Match will be finished in 20 seconds if the player doesn't return.", 'error');
         }
     }
 

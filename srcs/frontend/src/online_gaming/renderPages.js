@@ -190,32 +190,3 @@ export function handleMatchOver(winner, player1Score, player2Score, playerId)
     modal.appendChild(returnButton);
     document.body.appendChild(modal);
 }
-
-export function disconnectionMessage()
-{
-    const notification = document.createElement("div");
-    notification.id = "disconnection-notification";
-    notification.style.position = "absolute";
-    notification.style.top = "20px";
-    notification.style.right = "20px";
-    notification.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
-    notification.style.color = "#fff";
-    notification.style.padding = "15px 20px";
-    notification.style.borderRadius = "8px";
-    notification.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
-    notification.style.zIndex = "1000";
-    notification.style.fontSize = "16px";
-    notification.style.textAlign = "center";
-    notification.style.maxWidth = "300px";
-
-    notification.textContent = "Player disconnected. Match will be finished in 20 seconds if the player doesn't return.";
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        if (document.getElementById("disconnection-notification"))
-        {
-            document.getElementById("disconnection-notification").remove();
-        }
-    }, 5000);
-}

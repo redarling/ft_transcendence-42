@@ -88,18 +88,28 @@ class TournamentConsumer(AsyncWebsocketConsumer):
             #await self.recover_match(match_group)
         
         elif event == "tournament_cancelled":
-            id = data.get("tournament_id")
             logger.info("Cancelling tournament %s", id)
             
             await send_group_message(f"tournament_{self.tournament_id}", {"event": "tournament_cancelled"})
 
             await self.channel_layer.group_send(
-            self.group_name,
+            f"tournament_{self.tournament_id}",
             {
                 "type": "disconnect_message",
             },
         )
-        
+            
+        elif event == "user_left":
+            
+            await self.channel_layer.group_send(
+            f"tournament_{self.tournament_id}",
+            {
+                "type": "userleft_message",
+                "user_id": self.user.id,
+                "username": self.user.username,
+            },
+            )
+            
         else:
             await self.send_json_message("error", "Invalid event")
 
@@ -194,6 +204,20 @@ class TournamentConsumer(AsyncWebsocketConsumer):
 
     async def disconnect_message(self, event):
         await self.close()
+
+    async def userleft_message(self, event):
+        user_id = event.get("user_id")
+        username = event.get("username")
+        if user_id == self.user.id:
+            await self.close()
+        else:
+            await self.send_json_message("user_left", username)
+            participants, title, description, is_admin = await get_tournament_data(self.tournament_id, self.user.id) 
+            await self.send(json.dumps({
+                    "event": "participant_list",
+                    "participants": participants,
+                },
+            ))
 
     async def websocket_message(self, event):
         """

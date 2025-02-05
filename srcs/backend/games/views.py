@@ -431,7 +431,6 @@ class GetOnlineFriendsAPIView(APIView):
         serializer = UserProfileSearchSerializer(online_friends, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
 class InviteTournamentAPIView(APIView):
     """
     Invite a single friend to join a specific tournament.
