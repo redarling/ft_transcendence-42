@@ -3,7 +3,6 @@ import renderGame from '../pages/game.js';
 
 export async function findMatch()
 {
-    const   main = document.getElementById("main");
     const   token = prompt("Please enter your JWT token:", "");
     let     playerId = null;
 

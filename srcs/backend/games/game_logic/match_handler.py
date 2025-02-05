@@ -14,25 +14,20 @@ PADDLE_HEIGHT = 1.0
 PADDLE_WIDTH = 0.2
 PADDLE_SPEED = 0.12
 BALL_RADIUS = FIELD_HEIGHT / 30
-BALL_INITIAL_VELOCITY = 0.12
+BALL_INITIAL_VELOCITY = 0.03
 VELOCITY_MULTIPLIER = 1.3
-KICK_OFF_DELAY = 2  # seconds
-START_KICK_OFF = 5
+KICK_OFF_DELAY = 2 # kickoff time delay between points
+START_KICK_OFF = 5 # kickoff time delay at the start of the match
 MAX_SCORE = 11
 WINNING_MARGIN = 2
-RATE = 1 / 30  # 30 FPS
+RATE = 1 / 120  # 120 FPS
 MAX_INACTIVITY_TIME = 20
 
 class MatchHandler:
     def __init__(self, player1, player2, group_name, match_data, event_queue):
-        self.player1 = {"id": player1, "position": 0.0, "score": 0, "total_hits": 0, "serves": 0, "successful_serves": 0, "longest_rally": 0, "last_active": asyncio.get_event_loop().time()}
-        self.player2 = {"id": player2, "position": 0.0, "score": 0, "total_hits": 0, "serves": 0, "successful_serves": 0, "longest_rally": 0, "last_active": asyncio.get_event_loop().time()}
-        self.ball = {
-            "position": [0.0, 0.0],
-            "velocity": [BALL_INITIAL_VELOCITY, BALL_INITIAL_VELOCITY],
-            "direction": [1, 1],
-            "timesHit": 0,
-        }
+        self.player1 = self.init_player(player1)
+        self.player2 = self.init_player(player2)
+        self.ball = self.init_ball()
         self.group_name = group_name
         self.match_data = match_data
         self.running = False
@@ -40,13 +35,34 @@ class MatchHandler:
         self.event_processing_task = None
         self.max_event_processing_rate = RATE
         self.kick_off = True
+        asyncio.create_task(self.end_kick_off())
+    
+    def init_player(self, player_id):
+        return {
+            "id": player_id,
+            "position": 0.0,
+            "score": 0,
+            "total_hits": 0,
+            "serves": 0,
+            "successful_serves": 0,
+            "longest_rally": 0,
+            "last_active": asyncio.get_event_loop().time()
+        }
+
+    def init_ball(self):
+        return {
+            "position": [0.0, 0.0],
+            "velocity": [BALL_INITIAL_VELOCITY, BALL_INITIAL_VELOCITY],
+            "direction": [random.choice([-1, 1]), random.choice([-1, 1])],
+            "timesHit": 0,
+            "kick_off": True
+        }
 
     async def start_match(self):
         self.running = True
         self.event_processing_task = asyncio.create_task(self.process_events())
         await asyncio.sleep(START_KICK_OFF)
         self.kick_off = False
-
         await self.game_loop()
 
     async def game_loop(self):
@@ -70,69 +86,55 @@ class MatchHandler:
         while self.running:
             if not self.event_queue.empty():
                 event = await self.event_queue.get()
+                await self.handle_event(event)
+                self.event_queue.task_done()
 
-                if self.kick_off:
-                    if event["event"] == "player_action":
-                        self.event_queue.task_done()
-                        continue
-                try:
-                    if event["event"] == "player_disconnected":
-                        logger.info(f"Processing event: {event}")
-                        disconnected_player_id = event.get("player_id")
-                        if disconnected_player_id == self.player1["id"]:
-                            winner = self.player2["id"]
-                        else:
-                            winner = self.player1["id"]
-                        await self.end_match(winner)
-                    elif event["event"] == "player_action":
-                        player_id = event.get("player_id")
-                        direction = event.get("direction")
-                        await self.handle_player_action(player_id, direction)
-                        
-                        if player_id == self.player1["id"]:
-                            self.player1["last_active"] = asyncio.get_event_loop().time()
-                        elif player_id == self.player2["id"]:
-                            self.player2["last_active"] = asyncio.get_event_loop().time()
-                except Exception as e:
-                    logger.error(f"Error processing event {event}: {e}")
-                finally:
-                    # Ensure task_done() is called only once per event
-                    self.event_queue.task_done()
+            await self.check_inactivity()
+            await self.sleep_until_next_event(last_processed_time)
+            last_processed_time = asyncio.get_event_loop().time()
 
-            if asyncio.get_event_loop().time() - self.player1["last_active"] > MAX_INACTIVITY_TIME:
-                logger.info(f"Player {self.player1['id']} inactive for {MAX_INACTIVITY_TIME} seconds. Ending match.")
-                await self.end_match(self.player2["id"])
-                break
+    async def handle_event(self, event):
+        try:
+            if event["event"] == "player_disconnected":
+                await self.handle_player_disconnected(event)
+            elif event["event"] == "player_action":
+                await self.handle_player_action(event["player_id"], event["direction"])
+        except Exception as e:
+            logger.error(f"Error processing event {event}: {e}")
 
-            if asyncio.get_event_loop().time() - self.player2["last_active"] > MAX_INACTIVITY_TIME:
-                logger.info(f"Player {self.player2['id']} inactive for {MAX_INACTIVITY_TIME} seconds. Ending match.")
-                await self.end_match(self.player1["id"])
-                break
-            
-            current_time = asyncio.get_event_loop().time()
-            time_since_last_process = current_time - last_processed_time
-
-            if time_since_last_process < self.max_event_processing_rate:
-                await asyncio.sleep(self.max_event_processing_rate - time_since_last_process)
-            last_processed_time = current_time
+    async def handle_player_disconnected(self, event):
+        logger.info(f"Processing event: {event}")
+        disconnected_player_id = event.get("player_id")
+        winner = self.player2["id"] if disconnected_player_id == self.player1["id"] else self.player1["id"]
+        await self.end_match(winner)
 
     async def handle_player_action(self, player_id, direction):
-        """
-        Handle player actions (move up/down).
-        """
-        if self.running:
-            if player_id == self.player1["id"]:
-                if direction == "up" and self.player1["position"] + PADDLE_HEIGHT / 2 < FIELD_HEIGHT / 2:
-                    self.player1["position"] += PADDLE_SPEED
-                elif direction == "down" and self.player1["position"] - PADDLE_HEIGHT / 2 > -FIELD_HEIGHT / 2:
-                    self.player1["position"] -= PADDLE_SPEED
-            elif player_id == self.player2["id"]:
-                if direction == "up" and self.player2["position"] + PADDLE_HEIGHT / 2 < FIELD_HEIGHT / 2:
-                    self.player2["position"] += PADDLE_SPEED
-                elif direction == "down" and self.player2["position"] - PADDLE_HEIGHT / 2 > -FIELD_HEIGHT / 2:
-                    self.player2["position"] -= PADDLE_SPEED
+        if self.kick_off:
+            return
 
-            await self.broadcast_state()
+        player = self.player1 if player_id == self.player1["id"] else self.player2
+        if direction == "up" and player["position"] + PADDLE_HEIGHT / 2 < FIELD_HEIGHT / 2:
+            player["position"] += PADDLE_SPEED
+        elif direction == "down" and player["position"] - PADDLE_HEIGHT / 2 > -FIELD_HEIGHT / 2:
+            player["position"] -= PADDLE_SPEED
+
+        player["last_active"] = asyncio.get_event_loop().time()
+        await self.broadcast_state()
+    
+    async def check_inactivity(self):
+        current_time = asyncio.get_event_loop().time()
+        if current_time - self.player1["last_active"] > MAX_INACTIVITY_TIME:
+            logger.info(f"Player {self.player1['id']} inactive for {MAX_INACTIVITY_TIME} seconds. Ending match.")
+            await self.end_match(self.player2["id"])
+        elif current_time - self.player2["last_active"] > MAX_INACTIVITY_TIME:
+            logger.info(f"Player {self.player2['id']} inactive for {MAX_INACTIVITY_TIME} seconds. Ending match.")
+            await self.end_match(self.player1["id"])
+    
+    async def sleep_until_next_event(self, last_processed_time):
+        current_time = asyncio.get_event_loop().time()
+        time_since_last_process = current_time - last_processed_time
+        if time_since_last_process < RATE:
+            await asyncio.sleep(RATE - time_since_last_process)
 
     def update_ball(self):
         if self.ball.get("kick_off", False):
@@ -151,7 +153,8 @@ class MatchHandler:
             self.handle_paddle_hit(left=False)
 
     def check_paddle_collision(self, player, left):
-        paddle_x = -FIELD_WIDTH / 2 + PADDLE_WIDTH / 2 if left else FIELD_WIDTH / 2 - PADDLE_WIDTH / 2
+
+        paddle_x = -FIELD_WIDTH / 2 + PADDLE_WIDTH if left else FIELD_WIDTH / 2 - PADDLE_WIDTH
         paddle_z_min = player["position"] - PADDLE_HEIGHT / 2
         paddle_z_max = player["position"] + PADDLE_HEIGHT / 2
         ball_x = self.ball["position"][0]
@@ -160,11 +163,11 @@ class MatchHandler:
         if (left and self.ball["direction"][0] > 0) or (not left and self.ball["direction"][0] < 0):
             return False
 
-        if (abs(ball_x - paddle_x) <= BALL_RADIUS and
-                paddle_z_min <= ball_z <= paddle_z_max):
+        if (abs(ball_x - paddle_x) <= BALL_RADIUS and paddle_z_min <= ball_z <= paddle_z_max):
             return True
+            
         return False
-    
+
     def handle_paddle_hit(self, left):
         self.ball["direction"][0] *= -1
         paddle = self.player1 if left else self.player2
@@ -201,11 +204,7 @@ class MatchHandler:
             self.reset_ball()
 
     def reset_ball(self):
-        self.ball["position"] = [0.0, 0.0]
-        self.ball["velocity"] = [BALL_INITIAL_VELOCITY, BALL_INITIAL_VELOCITY]
-        self.ball["direction"] = [random.choice([-1, 1]), random.choice([-1, 1])]
-        self.ball["timesHit"] = 0
-        self.ball["kick_off"] = True
+        self.ball = self.init_ball()
         asyncio.create_task(self.end_kick_off())
 
     async def end_kick_off(self):
@@ -231,7 +230,6 @@ class MatchHandler:
         else:
             partial_state = {"event": "game_state", "ball": self.ball}
             await self.send_group_message(partial_state)
-
 
     def check_match_over(self):
         if self.player1["score"] >= MAX_SCORE and (self.player1["score"] - self.player2["score"]) >= WINNING_MARGIN:

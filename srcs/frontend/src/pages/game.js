@@ -84,12 +84,12 @@ export default function renderGame() {
         const mainDiv = document.getElementById('main');
 
         // Create a button to leave the game
-        const leaveButton = document.createElement('button');
-        leaveButton.id = 'leaveButton';
-        leaveButton.innerText = 'Quit';
-        mainDiv.appendChild(leaveButton);
+        const quitButton = document.createElement('button');
+        quitButton.id = 'quitButton';
+        quitButton.innerText = 'Quit';
+        mainDiv.appendChild(quitButton);
 
-        leaveButton.addEventListener('click', () => {
+        quitButton.addEventListener('click', () => {
             if (game) {
                 game.clear();
             }

@@ -144,7 +144,7 @@ export class Game {
         this.#camera = new THREE.PerspectiveCamera(CAMERA_FOV, ASPECT_RATIO, MIN_RENDERED_DISTANCE, MAX_RENDERED_DISTANCE);
         this.#camera.position.z = CAMERA_POSZ;
         this.#camera.position.y = CAMERA_POSY;
-        this.#renderer = new THREE.WebGLRenderer();
+        this.#renderer = new THREE.WebGLRenderer({ antialias: true });
         this.#renderer.setSize(window.innerWidth, window.innerHeight); // resolution of the rendered objects in the scene
 
         const mainDiv = document.getElementById("main");
@@ -165,6 +165,17 @@ export class Game {
             const model = gltf.scene;
             model.scale.set(STADIUM_SCALE, STADIUM_SCALE, STADIUM_SCALE);
             this.#scene.add(model);
+        });
+
+        window.addEventListener('resize', () => {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            this.#renderer.setSize(width, height);
+            this.#renderer.setPixelRatio(window.devicePixelRatio);
+            
+            this.#camera.aspect = width / height;
+            this.#camera.updateProjectionMatrix();
         });
     }
 
@@ -258,5 +269,12 @@ export class Game {
         };
         this.#renderer.setAnimationLoop(animate);
     }
-    
+
+    getCamera() {
+        return this.#camera;
+    }
+
+    getRenderer() {
+        return this.#renderer;
+    }
 }

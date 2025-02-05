@@ -156,7 +156,7 @@ export class Game {
         this.#camera.position.y = CAMERA_POSY;
         this.#renderer = new THREE.WebGLRenderer({
             antialias: false,
-            powerPreference: "low-power"
+            powerPreference: "high-performance" // As it's gaming we want to maximize CPU usage for better FPS
         });
         this.#renderer.setSize(window.innerWidth, window.innerHeight);
         this.#renderer.setPixelRatio(window.devicePixelRatio * 0.75);
