@@ -18,7 +18,8 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
         }
         catch (error)
         {
-            console.error("WebSocket error:", error); // add error page/alert
+            console.error("WebSocket error:", error);
+            showToast("An error occurred while connecting to the server.", 'error');
             return;
         }
 
