@@ -60,7 +60,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
                 await self.send(json.dumps({"type": "ping"}))
 
                 # Wait for pong response within a timeout period
-                await asyncio.sleep(10000)
+                await asyncio.sleep(10)
 
                 # After 10 seconds, check if pong was received
                 if self.last_pong_received:
