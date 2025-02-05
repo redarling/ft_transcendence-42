@@ -7,8 +7,6 @@ export default async function renderTournamentWaitingPage(socket, token, partici
 {
     const main = document.getElementById("main");
     document.getElementById('header').innerHTML= '';
-
-    console.log(participants, title, description, isAdmin);
     
     main.innerHTML = `
         <div class="container-fluid tournament-container" style="min-height: calc(100vh - 100px); padding-top: 30px;">
@@ -51,7 +49,7 @@ export default async function renderTournamentWaitingPage(socket, token, partici
 
     if (!isAdmin)
     {
-        document.getElementById("leaveBtn").addEventListener("click", () => leaveButton());
+        document.getElementById("leaveBtn").addEventListener("click", () => leaveButton(socket, token, tournamentId));
     }
 
     if (isAdmin)

@@ -1,15 +1,15 @@
-import { showToast } from "../utils.js";
+import { showToast, AreYouSureModal } from "../utils.js";
 
-export default async function cancelButton(socket, token, tournament_id)
+export default async function cancelButton(socket, token, tournamentId)
 {
-    const modal = CancelModal();
+    const modal = AreYouSureModal();
     document.body.appendChild(modal);
 
     const yesBtn = document.getElementById('yesBtn');
     const noBtn = document.getElementById('noBtn');
 
     yesBtn.addEventListener('click', () => {
-        cancelTournament(socket, token, tournament_id);
+        cancelTournament(socket, token, tournamentId);
         document.body.removeChild(modal);
     });
 
@@ -18,45 +18,31 @@ export default async function cancelButton(socket, token, tournament_id)
     });
 }
 
-function CancelModal()
-{
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header d-flex justify-content-center align-items-center">
-                <h5 class="modal-title">Are you sure?</h5>
-            </div>
-            <div class="modal-body d-flex justify-content-center">
-                <button type="button" class="btn btn-success" id="yesBtn">Yes</button>
-                <button type="button" class="btn btn-danger" id="noBtn" style="margin-left: 10px;">No</button>
-            </div>
-        </div>
-    `;
-    return modal;
-}
-
-
 async function cancelTournament(socket, token, tournamentId)
 {
-    const url = `/api/games/tournament/cancel/`;
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            tournament_id: tournamentId
-        }),
-    });
-
-    if (!response.ok)
+    try
     {
+        const url = `/api/games/tournament/cancel/`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                tournament_id: tournamentId
+            }),
+        });
+    
         const result = await response.json();
-        showToast(result.error, 'error');
+        
+        if (!response.ok)
+            showToast(result.error, 'error');
+        else
+            socket.send(JSON.stringify({event: 'tournament_cancelled'}));
     }
-
-    // send via socket that the tournament has been cancelled
-    socket.send(JSON.stringify({event: 'tournament_cancelled', tournament_id: tournamentId}));
+    catch (error)
+    {
+        showToast('An error occurred while canceling the tournament.', 'error');
+    }
 }

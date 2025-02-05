@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import (MatchStartAPIView, MatchEndAPIView, UserMatchHistoryAPIView, MatchStatsAPIView, 
-                    CreateTournamentAPIView, JoinTournamentAPIView, InviteTournamentAPIView, 
+from .views.match_views import MatchStartAPIView, MatchEndAPIView
+from .views.recovery_views import CheckActiveMatchAPIView
+from .views.tournament_views import (CreateTournamentAPIView, JoinTournamentAPIView, InviteTournamentAPIView, 
                     StartTournamentAPIView, CancelTournamentAPIView, SearchTournamentAPIView,
-                    GetOnlineFriendsAPIView, LeaveTournamentAPIView, InvitationListTournamentAPIView,
-                    CheckActiveMatchAPIView)
+                    GetOnlineFriendsAPIView, LeaveTournamentAPIView, InvitationListTournamentAPIView)
+from .views.stats_views import (UserMatchHistoryAPIView, MatchStatsAPIView)
 
 urlpatterns = [
     

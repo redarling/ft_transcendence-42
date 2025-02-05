@@ -18,7 +18,8 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
         }
         catch (error)
         {
-            console.error("WebSocket error:", error); // add error page/alert
+            console.error("WebSocket error:", error);
+            showToast("An error occurred while connecting to the server.", 'error');
             return;
         }
 
@@ -29,7 +30,7 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
         socket.onmessage = (message) => {
             try {
                 const data = JSON.parse(message.data);
-
+                console.log("Received message:", data);
                 switch (data.event)
                 {
                     case "tournament_data":
@@ -53,6 +54,10 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
                         renderTournaments();
                         showToast("Tournament has been cancelled.", 'error');
                         break;
+                    
+                    case "user_left":
+                        showToast("User " + data.message + " has left the tournament.", 'error');
+                        break;
 
                     default:
                         console.error("Unknown event:", data.event);
@@ -67,16 +72,17 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
             }
             catch (error)
             {
-                console.error("Error parsing message:", error); // add error page/alert
+                showToast("An error occurred while handling the tournament event.", 'error');
             }
         };
 
         socket.onclose = () => {
-            console.log("WebSocket closed."); // add error page/alert
+            console.log("WebSocket closed.");
         };
 
         socket.onerror = (error) => {
-            console.error("WebSocket error:", error); // add error page/alert
+            showToast("An error occurred while connecting to the server.", 'error');
+            console.error("WebSocket error:", error);
         };
     });
 
