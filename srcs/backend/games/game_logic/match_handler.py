@@ -153,7 +153,6 @@ class MatchHandler:
             self.handle_paddle_hit(left=False)
 
     def check_paddle_collision(self, player, left):
-
         paddle_x = -FIELD_WIDTH / 2 + PADDLE_WIDTH if left else FIELD_WIDTH / 2 - PADDLE_WIDTH
         paddle_z_min = player["position"] - PADDLE_HEIGHT / 2
         paddle_z_max = player["position"] + PADDLE_HEIGHT / 2

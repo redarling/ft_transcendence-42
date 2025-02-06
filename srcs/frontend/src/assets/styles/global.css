@@ -17,3 +17,11 @@ html, body {
 canvas {
     display: block;
 }
+
+.nav-link:hover {
+    cursor: pointer;
+}
+
+.navbar-brand {
+    cursor: pointer;
+}

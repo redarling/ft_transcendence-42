@@ -33,12 +33,6 @@ export default function renderHome() {
 			</div>
 		</section>
 
-		<!-- Call to Action -->
-		<section class="text-center mt-5">
-			<p class="lead">Are you ready to start your Pong journey?</p>
-			<a href="game" class="btn btn-outline-secondary btn-lg text-black">Get Started</a>
-		</section>
-
 		<!-- Creators pres -->
 		<section class="text-center bg-light mt-5 py-5 rounded shadow">
 			<h3>An original game by</h3>
