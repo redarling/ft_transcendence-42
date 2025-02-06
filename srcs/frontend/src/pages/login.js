@@ -1,11 +1,14 @@
 import navigateTo from "../main.js"
+import handleLogout from "../users/logout.js"
+import connectWebSocket from "../users/websocket.js";
 
-async function updateLoginHeader()
+async function updateLoginHeaderToLogout()
 {
-	const loginHeader = getElementById("loginHeader");
+	const loginHeader = document.getElementById("loginHeader");
 	loginHeader.outerHTML = `
 		<a class="nav-link" id="logoutHeader">Logout</a>
 	`
+	document.getElementById("logoutHeader").addEventListener("click", handleLogout);
 }
 
 async function loginUser(username, password) {
@@ -35,7 +38,10 @@ async function handleLogin(event) {
         if (data) {
 			localStorage.setItem("access_token", data.access_token);
 			localStorage.setItem("refresh_token", data.refresh_token);
-			updateLoginHeader();
+			console.log("updateLoginHeaderToLogout");
+			updateLoginHeaderToLogout();
+			console.log("websocket");
+			connectWebSocket(); // socket
 			navigateTo("/home");
 		} 
 		else {

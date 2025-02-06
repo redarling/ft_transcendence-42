@@ -9,6 +9,7 @@ import renderUserProfile from "./pages/profile.js"
 import renderTournaments from "./pages/tournaments/tournaments.js";
 import render404 from "./pages/utils/404.js";
 import { getTokenFromUser, checkActiveMatch, connectToWebSocket } from "./online_gaming/recoverySystem.js";
+// import connectWebSocket from "./users/websocket.js";
 
 // Define routes as an object mapping paths to components or functions
 // url path : function to launch to display and update the dom
@@ -82,5 +83,10 @@ export default function navigateTo(path) {
     router();
 }
 
-document.addEventListener("DOMContentLoaded", updateDomContent);
+document.addEventListener("DOMContentLoaded", () => {
+	updateDomContent();
+	// const accessToken = localStorage.getItem("access_token"); //socket
+	// if (accessToken)
+	// 	connectWebSocket();
+})
 window.addEventListener("popstate", router);
