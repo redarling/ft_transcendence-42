@@ -60,8 +60,8 @@ export default function renderLogin() {
             <p class="mt-3">
 				<a href="register" id="goToRegister" style="color: grey;">Not registered?</a>
             </p>
-			</div>
-			`;
+		</div>
+	`;
 
     document.getElementById("loginForm").addEventListener("submit", handleLogin);
 }

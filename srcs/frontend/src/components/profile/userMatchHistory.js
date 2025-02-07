@@ -16,14 +16,14 @@ export default function UserMatchHistoryComponent(userName, matches, matchesStat
                 </tbody>
             </table>
 
-            <div class="modal" id="matchSummary" tabindex="-1" aria-labelledby="matchSummaryModal" aria-hidden="true">
+            <div class="modal" id="matchSummary" tabindex="-1">
                 <div class="modal-dialog modal-xl">
                     <div class="modal-content w-100">
                         <div class="modal-header">
                             <div class="col">
                                 <h5>Game Summary</h5>
                             </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
 
                         <div class="modal-body">

@@ -1,4 +1,4 @@
-export default function renderHome() {
+export default function renderSettings() {
 	const main = document.getElementById("main");
 	main.innerHTML = `
 	<div class="d-flex flex-column justify-content-center align-items-center" style="height: 80vh;">

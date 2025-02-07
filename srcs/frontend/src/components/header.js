@@ -22,7 +22,7 @@ export default function renderHeader() {
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link active" id="homeHeaderButton" aria-current="page" role="menuitem">Home</a>
+                        <a class="nav-link" id="homeHeaderButton" role="menuitem">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="gameHeaderButton" role="menuitem">Game</a>
@@ -45,44 +45,26 @@ export default function renderHeader() {
     </nav>
     `;
 
-    function setActivePage(pageId) {
-        const navLinks = document.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-            if (link.id === pageId) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
-            }
-        });
-    }
-
     document.getElementById("logoHeaderButton").addEventListener("click", () => {
-        navigateTo("/home")
-        setActivePage("homeHeaderButton");
+        navigateTo("/home");
     });
 	document.getElementById("homeHeaderButton").addEventListener("click", () => {
-        navigateTo("/home")
-        setActivePage("homeHeaderButton");
+        navigateTo("/home");
     });
 	document.getElementById("gameHeaderButton").addEventListener("click", () => {
-        navigateTo("/game")
-        setActivePage("gameHeaderButton");
+        navigateTo("/game");
     });
 	document.getElementById("tournamentsHeaderButton").addEventListener("click", () => {
-        navigateTo("/tournaments")
-        setActivePage("tournamentsHeaderButton");
+        navigateTo("/tournaments");
     });
 	document.getElementById("settingsHeaderButton").addEventListener("click", () => {
-        navigateTo("/settings")
-        setActivePage("settingsHeaderButton");
+        navigateTo("/settings");
     });
 	document.getElementById("profileHeaderButton").addEventListener("click", () => {
-        navigateTo("/profile")
-        setActivePage("profileHeaderButton");
+        navigateTo("/profile");
     });
 	document.getElementById("loginHeaderButton").addEventListener("click", () => {
-        navigateTo("/login")
-        setActivePage("loginHeaderButton");
+        navigateTo("/login");
     });
 	// document.getElementById("logout").addEventListener("click", handleLogout());
 }

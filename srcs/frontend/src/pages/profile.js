@@ -9,7 +9,7 @@ export default async function renderUserProfile() {
     try {
 
         // Change the 1 to the real user id we want to check the profile
-        const userId = 3;
+        const userId = 1;
 
         const userProfile = await fetchData(`https://transcendence-pong:7443/api/users/profile/${userId}/`);
         const userStats = await fetchData(`https://transcendence-pong:7443/api/users/stats/${userId}/`);
@@ -69,7 +69,7 @@ export default async function renderUserProfile() {
 }
 
 // !Placeholder! -> Token to retreive from connected user
-const token = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJ1c2VybmFtZSI6ImJvYjEwIiwidHlwZSI6ImFjY2VzcyIsInNlc3Npb25faWQiOiJmOWFjODIwZi03MTg1LTQ3YTYtYjliOS0wMzg4YTBlMWQ4ZjIiLCJleHAiOjE3MzgxNzg2MzN9.TaXMw6aGRLZ9Sp1piqRGsP3u1jaYiF2l23cazEX9KNzBAWsXGU84Rl8rBVn0_zhlT3DqY_1aBnSgYDQ8sILPDaGS8ysWi-ueTFAYqyyzyoyhM9YzccZZ1JKLYgQ5UMFWACz4hDk0NfZGp_0Hq80nCuuaJt_i0THBKh14FNcTZW3hJzU30b2FmEQ2p2ht1FsfyY7hTeEcRCLwTARAiKzwCBHDo4-4Z5a0KHl5MXILQhhGVf43Yp0f2v2GZeED6-6DEW9IpWFg0x1KJRphh5hA8O28FzsFTsjk-VWI5KwHwQWTs1RBnjOsvJL1DjusY8hOn2ryZCyLSARiJKtXEMrVSQ';
+const token = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImJvYjEyIiwidHlwZSI6ImFjY2VzcyIsInNlc3Npb25faWQiOiIyOTE2ZDI5MC00N2VhLTQzNTktYjQ5OS05ZWM2ZmQwZjZiOWEiLCJleHAiOjE3Mzg4NjQwMTJ9.WNb0O0DzaQn2ugQUAmM5kFwEa2grSvidcd3DDaOxoa2p3IhCPJ39apCAMg1dCSkrYhPKD_ro8BrIhQ-ntnf8SfPUBZMA_5vvKELD8_1a6ESHtUdyUX2h6KzhYPw0ElHjF9LHJ7X3t2MQwxiPJv0OI8tdnvyJDwohSjfF-mT4oMUa5YZePz9LhGyOMlmVsaA2n_A-m296WGFuMwj6uSB3vLBClHZElCZlBO2nvVjbjXibgiyS4d3yOtO7_53aTLWHiX8hz5Gd9Y8PAK62zv1KaMWPPJpiboo0fkO0cuVrk_jwirjJd-MB2wLnWXZIXDpkBSjML7ugvfhVbue7JUVfoA';
 async function fetchData(requestUrl) {
     const response = await fetch(requestUrl, {
         method: 'GET',

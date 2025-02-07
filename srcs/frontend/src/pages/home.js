@@ -1,3 +1,5 @@
+import navigateTo from "../main.js"
+
 export default function renderHome() {
 	const main = document.getElementById("main");
 	main.innerHTML = `
@@ -6,7 +8,7 @@ export default function renderHome() {
 		<section class="text-center bg-light py-5 rounded shadow">
 			<h1 class="display-4 fw-bold">Welcome to Pong Project!</h1>
 			<p class="lead text-muted">Experience the ultimate online Pong battles with friends or with ai opponent.</p>
-			<a href="game" class="btn btn-primary btn-lg mt-3">Play Now</a>
+			<a href="game" class="btn btn-primary btn-lg mt-3" id="playNowBtn">Play Now</a>
 		</section>
 
 		<!-- Features Section -->
@@ -72,4 +74,10 @@ export default function renderHome() {
 		</section>
 		</main>
 	`;
+    
+    const playNowBtn = document.getElementById("playNowBtn");
+    playNowBtn.addEventListener("click", () => {
+        navigateTo("/game");
+    });
+
 }
