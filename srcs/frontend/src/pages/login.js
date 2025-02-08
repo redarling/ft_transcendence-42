@@ -50,7 +50,8 @@ async function handleLogin(event) {
 export default function renderLogin() {
     const main = document.getElementById("main");
     main.innerHTML = `
-        <div class="d-flex flex-column justify-content-center align-items-center" style="height: 80vh;">
+        <div class="container d-flex justify-content-center align-items-center">
+            <div class="row">
             <h1>Login</h1>
             <form id="loginForm" class="mt-3">
                 <input type="text" id="username" class="form-control mb-2" placeholder="Username" required>
@@ -58,10 +59,11 @@ export default function renderLogin() {
                 <button type="submit" class="btn btn-success w-100">Login</button>
             </form>
             <p class="mt-3">
-				<a href="register" id="goToRegister" style="color: grey;">Not registered?</a>
+				<a id="goToRegister" class="link-like" style="color: grey; cursor: pointer;">Not registered?</a>
             </p>
 		</div>
 	`;
 
+    document.getElementById("goToRegister").addEventListener("click", () => navigateTo("/register"));
     document.getElementById("loginForm").addEventListener("submit", handleLogin);
 }

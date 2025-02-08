@@ -2,6 +2,7 @@ import renderFooter from '../components/footer.js';
 import renderHeader from '../components/header.js';
 import { Game } from '../game/game.js';
 import { findMatch } from '../online_gaming/matchmakingHandler.js';
+import navigateTo from "../main.js"
 
 export let againstBot;
 export let botDifficulty;
@@ -10,7 +11,7 @@ export default function renderGame() {
 	const main = document.getElementById("main");
     main.innerHTML = `
         <div class="container-fluid game-mode-container">
-            <div class="row w-100 align-items-center d-flex justify-content-evenly">
+            <div class="row w-100 d-flex align-items-center justify-content-evenly">
                 <div class="col-md-4 text-center">
                     <div class="card game-card mb-4">
                         <div class="card-body">
@@ -21,12 +22,20 @@ export default function renderGame() {
                             <p class="text-muted mt-3">Play against random online opponents</p>
                         </div>
                     </div>
+                    <div class="card game-card mb-4">
+                        <div class="card-body">
+                            <h3 class="card-title mb-4">Tournaments</h3>
+                            <button type="button" class="btn btn-primary btn-lg btn-game-mode" id="tournamentButton">
+                                Browse Tournaments
+                            </button>
+                            <p class="text-muted mt-3">Compete in organized tournaments</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="col-auto d-none d-md-flex d-flex justify-content-center">
                     <div class="vertical-divider"></div>
                 </div>
-                
 
                 <div class="col-md-4 text-center">
                     <div class="card game-card mb-4">
@@ -65,6 +74,10 @@ export default function renderGame() {
             </div>
         </div>
     `;
+
+    document.getElementById("tournamentButton").addEventListener("click", () => {
+        navigateTo("/tournaments");
+    });
 
     const playAgainstBotButton = document.getElementById('localBotPlayBtn');
     const playLocallyButton = document.getElementById('localMultiplayerBtn');
@@ -120,5 +133,4 @@ export default function renderGame() {
     matchmakingButton.addEventListener('click', () => {
         findMatch();
     });
-    
 }

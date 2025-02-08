@@ -22,20 +22,19 @@ export default async function renderUserProfile() {
         }
 
         const main = document.getElementById("main");
-        main.style.backgroundColor = '#121212';
         main.innerHTML = `
-            <div class="container-fluid">
-            <div class="row justify-content-md-center">
-                <div class="col col-md-10">
-                <section id="userHeader"></section>
-                <hr class="hr" style="color: white;" />
-                ${matchHistory.length > 0 ? `
-                    <section id="userStats"></section>
+            <div class="container-fluid profile-container">
+                <div class="row justify-content-md-center">
+                    <div class="col col-md-10">
+                    <section id="userHeader"></section>
                     <hr class="hr" style="color: white;" />
-                    <section id="userMatchHistory"></section>
-                ` : '<p class="text-light" style="text-align: center;">This user has not played any matches yet.</p>'}
+                    ${matchHistory.length > 0 ? `
+                        <section id="userStats"></section>
+                        <hr class="hr" style="color: white;" />
+                        <section id="userMatchHistory"></section>
+                    ` : '<p class="text-light" style="text-align: center;">This user has not played any matches yet.</p>'}
+                    </div>
                 </div>
-            </div>
             </div>
         `;
     
@@ -69,7 +68,7 @@ export default async function renderUserProfile() {
 }
 
 // !Placeholder! -> Token to retreive from connected user
-const token = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImJvYjEyIiwidHlwZSI6ImFjY2VzcyIsInNlc3Npb25faWQiOiIyOTE2ZDI5MC00N2VhLTQzNTktYjQ5OS05ZWM2ZmQwZjZiOWEiLCJleHAiOjE3Mzg4NjQwMTJ9.WNb0O0DzaQn2ugQUAmM5kFwEa2grSvidcd3DDaOxoa2p3IhCPJ39apCAMg1dCSkrYhPKD_ro8BrIhQ-ntnf8SfPUBZMA_5vvKELD8_1a6ESHtUdyUX2h6KzhYPw0ElHjF9LHJ7X3t2MQwxiPJv0OI8tdnvyJDwohSjfF-mT4oMUa5YZePz9LhGyOMlmVsaA2n_A-m296WGFuMwj6uSB3vLBClHZElCZlBO2nvVjbjXibgiyS4d3yOtO7_53aTLWHiX8hz5Gd9Y8PAK62zv1KaMWPPJpiboo0fkO0cuVrk_jwirjJd-MB2wLnWXZIXDpkBSjML7ugvfhVbue7JUVfoA';
+const token = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImJvYjE1IiwidHlwZSI6ImFjY2VzcyIsInNlc3Npb25faWQiOiJlNzYxYTFiZi1iMDBkLTQ1N2MtOWI1NS0xMmU5MzBhMzNjMDciLCJleHAiOjE3Mzg5Nzc2MjB9.Dn7bF-iuF2WTFTAoXhO2A7z1PH7GvVIy1nidBnOn0va-FsbT2BBKYSFSUcciYEqjxejh172VuaYuVCMvjs3f0gRtxAfn0rxniy9eDGCSrozEEe0M8SH1_JASOfZ3_kb-rmSXsigk-Cucanq_EACYCfQxY1sFMFNPjEb-_lQGF6-DTF4HRz2cCt5sPzTAK7H6bApfxKgwnK-lsBo9qjMCTeYPUKvCyhnNX2PvzEmAEIzXBsYJ9zCGCrjLAeNzAQCCDARmcRSFlahGRv6IvbbbQjB9E9HHi9bgJcaiDPSkdoCYPzpCuIhsE9IqHn5TNAnD0JJPjCIZA8Zc_RRPul14nA';
 async function fetchData(requestUrl) {
     const response = await fetch(requestUrl, {
         method: 'GET',

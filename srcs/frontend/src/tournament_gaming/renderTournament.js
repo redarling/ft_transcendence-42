@@ -7,7 +7,6 @@ export default async function renderTournamentWaitingPage(socket, token, partici
 {
     const main = document.getElementById("main");
     document.getElementById('header').innerHTML= '';
-    
     main.innerHTML = `
         <div class="container-fluid tournament-container" style="min-height: calc(100vh - 100px); padding-top: 30px;">
             <div class="row w-100 align-items-center d-flex justify-content-evenly">

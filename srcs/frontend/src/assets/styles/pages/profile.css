@@ -3,6 +3,10 @@
     border-radius: 6px;
 }
 
+.profile-container {
+    background-color: #121212;
+}
+
 .win {
     color: green;
 }

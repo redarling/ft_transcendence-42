@@ -22,7 +22,7 @@ export default async function renderTournaments()
     const main = document.getElementById("main");
 
     main.innerHTML = `
-        <div class="container-fluid game-mode-container" style="min-height: calc(100vh - 100px); padding-top: 30px;">
+        <div class="container-fluid game-mode-container">
             <div class="row w-100 align-items-center d-flex justify-content-evenly">
 
                 <!-- Create Tournament -->

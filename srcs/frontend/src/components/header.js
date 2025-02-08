@@ -25,16 +25,13 @@ export default function renderHeader() {
                         <a class="nav-link" id="homeHeaderButton" role="menuitem">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="gameHeaderButton" role="menuitem">Game</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="tournamentsHeaderButton" role="menuitem">Tournaments</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="settingsHeaderButton" role="menuitem">Settings</a>
+                        <a class="nav-link" id="gameHeaderButton" role="menuitem">Play</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="profileHeaderButton" role="menuitem">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="settingsHeaderButton" role="menuitem">Settings</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="loginHeaderButton" role="menuitem">Login</a>
@@ -53,9 +50,6 @@ export default function renderHeader() {
     });
 	document.getElementById("gameHeaderButton").addEventListener("click", () => {
         navigateTo("/game");
-    });
-	document.getElementById("tournamentsHeaderButton").addEventListener("click", () => {
-        navigateTo("/tournaments");
     });
 	document.getElementById("settingsHeaderButton").addEventListener("click", () => {
         navigateTo("/settings");
