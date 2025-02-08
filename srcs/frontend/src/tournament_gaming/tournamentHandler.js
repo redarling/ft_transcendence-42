@@ -1,7 +1,8 @@
-import renderTournamentWaintingPage from "./renderTournament.js";
+import renderTournamentWaintingPage from "./pages/waitingPage.js";
 import { showToast } from './utils.js';
 import renderHeader from '../components/header.js';
 import renderTournaments from '../pages/tournaments/tournaments.js';
+import renderTournamentBracketPage from "./pages/bracket.js";
 
 export async function tournamentHandler(WebSocketUrl, token, tournamentId)
 {
@@ -34,7 +35,6 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
                 switch (data.event)
                 {
                     case "tournament_data":
-                        console.log("Received tournament data:", data);
                         title = data.title;
                         description = data.description;
                         isAdmin = data.is_admin;
@@ -49,7 +49,6 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
                         break;
                     
                     case "tournament_cancelled":
-                        console.log("Tournament cancelled.");
                         renderHeader();
                         renderTournaments();
                         showToast("Tournament has been cancelled.", 'error');
@@ -58,9 +57,12 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
                     case "user_left":
                         showToast("User " + data.message + " has left the tournament.", 'error');
                         break;
+                    
+                    case "tournament_bracket":
+                        renderTournamentBracketPage(socket, token, data.data, title, description, tournamentId);
+                        break ;
 
                     default:
-                        console.error("Unknown event:", data.event);
                         break;
                 }
 

@@ -5,12 +5,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
-from ..models import Tournament, TournamentParticipant, Round, Match, TournamentInvitation
+from ..models import Tournament, TournamentParticipant, TournamentInvitation
 from users.models import User, Friend
 from django.utils import timezone
 from ..serializers import (TournamentSerializer, InvitationTournamentSerializer)
 from users.serializers import UserProfileSearchSerializer
-from ..WebSocket_authentication import WebSocketTokenAuthentication, IsAuthenticatedWebSocket
 from ..utils import validate_required_fields
 import logging
 from games.blockchain_score_storage.deployment import deploy_smart_contract
@@ -33,7 +32,7 @@ class CreateTournamentAPIView(APIView):
 
         tournament = Tournament.objects.create(
             title=title,
-            smartContractAddr= deploy_smart_contract(), # Creation of the new block in the blochain
+            smartContractAddr= deploy_smart_contract(), # Creation of the new block in the blockhain
             description=description,
             creator=user,
             created_at=timezone.now(),
@@ -214,7 +213,6 @@ class InvitationListTournamentAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-# TODO: Do not forget to delete TournamentInvitation object after starting a tournament
 class StartTournamentAPIView(APIView):
     def post(self, request):
         """
@@ -229,6 +227,8 @@ class StartTournamentAPIView(APIView):
 
         tournament = get_object_or_404(Tournament, id=tournament_id)
 
+        logger.info(f"Starting tournament {tournament_id}")
+
         if tournament.status != 'pending':
             return Response({"error": "Tournament has already started."}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -236,12 +236,16 @@ class StartTournamentAPIView(APIView):
             return Response({"error": "Only the creator of the tournament can start it."}, status=status.HTTP_400_BAD_REQUEST)
         
         participant_count = TournamentParticipant.objects.filter(tournament=tournament).count()
-        if participant_count < 3:
-            return Response({"error", "Tournament must have at least 3 participants to start."}, status=status.HTTP_400_BAD_REQUEST)
+        if participant_count < 2:
+            return Response({"error": "Tournament must have at least 3 participants to start."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Delete all invitations
+        TournamentInvitation.objects.filter(tournament=tournament).delete()
         
         # Update tournament status
         tournament.status = 'in_progress'
         tournament.save()
+        return Response({"message": "Tournament has started."}, status=status.HTTP_200_OK)
 
 class LeaveTournamentAPIView(APIView):
     def post(self, request):

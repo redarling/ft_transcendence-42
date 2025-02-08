@@ -35,7 +35,15 @@ async function leaveTournament(socket, token, tournamentId)
             }),
         });
     
-        const result = await response.json();
+        let result;
+        try
+        {
+            result = await response.json();
+        }
+        catch
+        {
+            result = { error: 'Unexpected server response' };
+        }
         
         if (!response.ok)
             showToast(result.error, 'error');

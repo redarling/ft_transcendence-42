@@ -108,7 +108,15 @@ async function inviteFriend(token, friendId, tournamentId)
             }),
         });
 
-        const result = await response.json();
+        let result;
+        try
+        {
+            result = await response.json();
+        }
+        catch
+        {
+            result = { error: 'Unexpected server response' };
+        }
 
         console.log(result);
 

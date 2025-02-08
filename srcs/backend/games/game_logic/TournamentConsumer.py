@@ -109,7 +109,30 @@ class TournamentConsumer(AsyncWebsocketConsumer):
                 "username": self.user.username,
             },
             )
+        
+        elif event == "tournament_start":
+            logger.info("Starting tournament %s", self.tournament_id)
             
+            # TODO: Temp tournament bracket, used to test the tournament bracket
+            bracket = {
+                "round": 1,
+                "matches": [
+                    { "matchId": 1, "player1": "user1", "player2": "user2", "status": "pending", "score": "0-0" },
+                    { "matchId": 2, "player1": "user3", "player2": "user4", "status": "pending", "score": "0-0" },
+                    { "matchId": 3, "player1": "user5", "player2": "user6", "status": "pending", "score": "0-0" },
+                    { "matchId": 4, "player1": "user7", "player2": "user8", "status": "pending", "score": "0-0" }
+                ]
+                }
+            
+            await self.send(text_data=json.dumps({
+                "event": "tournament_bracket",
+                "data": bracket
+            }))
+
+            await send_group_message(self.group_name, {"event": "tournament_bracket", "data": bracket})
+
+            await self.test_function()
+          
         else:
             await self.send_json_message("error", "Invalid event")
 
@@ -237,3 +260,113 @@ class TournamentConsumer(AsyncWebsocketConsumer):
                 "participants": event["participants"],
             })
         )
+
+
+    # TODO: Temp logic to simulate a match update
+    async def test_function(self):
+
+            match_update = {
+            "matchId": 1,
+            "winner": "user1",
+            "status": "finished",
+            "score": "11-4"
+            }
+
+            await send_group_message(self.group_name, {"event": "match_update", "data": match_update})
+            await self.send(json.dumps({"event": "match_update", "data": match_update}))
+            await asyncio.sleep(5)
+
+            match_update2 = {
+            "matchId": 2,
+            "winner": "user3",
+            "status": "finished",
+            "score": "11-4"
+            }
+
+            await send_group_message(self.group_name, {"event": "match_update", "data": match_update2})
+            await self.send(json.dumps({"event": "match_update", "data": match_update2}))
+            await asyncio.sleep(5)
+
+            match_update3 = {
+            "matchId": 3,
+            "winner": "user5",
+            "status": "finished",
+            "score": "11-4"
+            }
+            match_update4 = {
+            "matchId": 4,
+            "winner": "user8",
+            "status": "finished",
+            "score": "11-4"
+            }
+
+            await send_group_message(self.group_name, {"event": "match_update", "data": match_update4})
+            await self.send(json.dumps({"event": "match_update", "data": match_update4}))
+            await asyncio.sleep(5)
+
+            await send_group_message(self.group_name, {"event": "match_update", "data": match_update3})
+            await self.send(json.dumps({"event": "match_update", "data": match_update3}))
+            await asyncio.sleep(5)
+
+            round_update = {
+                "round": 2,
+                "matches": [
+                    { "matchId": 5, "player1": "user1", "player2": "user3", "status": "pending", "score": "0-0" },
+                    { "matchId": 6, "player1": "user5", "player2": "user7", "status": "pending", "score": "0-0" }
+                ]
+            }
+
+            await send_group_message(self.group_name, {"event": "round_update", "data": round_update})
+            await self.send(json.dumps({"event": "round_update", "data": round_update}))
+            await asyncio.sleep(5)
+
+            match_update5 = {
+            "matchId": 5,
+            "winner": "user3",
+            "status": "finished",
+            "score": "11-4"
+            }
+
+            await send_group_message(self.group_name, {"event": "match_update", "data": match_update5})
+            await self.send(json.dumps({"event": "match_update", "data": match_update5}))
+            await asyncio.sleep(5)
+
+            match_update6 = {
+            "matchId": 6,
+            "winner": "user5",
+            "status": "finished",
+            "score": "12-10"
+            }
+
+            await send_group_message(self.group_name, {"event": "match_update", "data": match_update6})
+            await self.send(json.dumps({"event": "match_update", "data": match_update6}))
+            await asyncio.sleep(5)
+
+            round_update2 = {
+                "round": 3,
+                "matches": [
+                    { "matchId": 7, "player1": "user3", "player2": "user5", "status": "pending", "score": "0-0" }
+                ]
+            }
+
+            await send_group_message(self.group_name, {"event": "round_update", "data": round_update2})
+            await self.send(json.dumps({"event": "round_update", "data": round_update2}))
+            await asyncio.sleep(5)
+
+            match_update6 = {
+            "matchId": 7,
+            "winner": "user5",
+            "status": "finished",
+            "score": "12-10"
+            }
+
+            await send_group_message(self.group_name, {"event": "match_update", "data": match_update6})
+            await self.send(json.dumps({"event": "match_update", "data": match_update6}))
+            await asyncio.sleep(5)
+
+            tournament_end = {
+                "winner": "user5"
+            }
+
+            await send_group_message(self.group_name, {"event": "tournament_end", "data": tournament_end})
+            await self.send(json.dumps({"event": "tournament_end", "data": tournament_end}))
