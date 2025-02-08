@@ -55,7 +55,7 @@ export default function renderHeader() {
         navigateTo("/settings");
     });
 	document.getElementById("profileHeaderButton").addEventListener("click", () => {
-        navigateTo("/profile");
+        navigateTo("/profile/1");
     });
 	document.getElementById("loginHeaderButton").addEventListener("click", () => {
         navigateTo("/login");

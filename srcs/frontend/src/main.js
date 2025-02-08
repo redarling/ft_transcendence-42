@@ -19,17 +19,14 @@ const routes = {
 	"/register": renderRegister,
 	"/settings": renderSettings,
 	"/game": renderGame,
-    "/profile": renderUserProfile,
 	"/tournaments": renderTournaments
 };
 
 async function router() {
 	// get the current path of the website (ex: /login)
 	const path = window.location.pathname;
+    const segments = path.split("/").filter(Boolean);
 	console.log("the path is :", path);
-
-	// looking for the appropriate function in the map and store this function in renderFunction, this var is a fct
-	const renderFunction = routes[path] || render404;
 
     try {
         const token = await getTokenFromUser();
@@ -47,9 +44,17 @@ async function router() {
 	catch (error) {
         console.error("Error during router initialization:", error);
     }
+    
+    if (segments.length === 2 && segments[0] === "profile" && segments[1]) {
+        console.log("Rendering user profile");
+        renderUserProfile(segments[1]);
+    } else {
+        // looking for the appropriate function in the map and store this function in renderFunction, this var is a fct
+        const renderFunction = routes[path] || render404;
+        renderFunction();
+    }
 	
 	// launch the renderFunction, can be renderLogin OR renderGame...
-	renderFunction();
 }
 
 function renderStaticElements() {

@@ -2,14 +2,14 @@ import UserStatsComponent from "../components/profile/userStats.js"
 import UserMatchHistoryComponent from "../components/profile/userMatchHistory.js"
 import UserHeaderComponent from "../components/profile/userHeader.js"
 import PageLoader from "../components/utils/pageLoader.js"
+import navigateTo from "../main.js"
 
-export default async function renderUserProfile() {
+export default async function renderUserProfile(userId) {
     PageLoader();
 
     try {
 
         // Change the 1 to the real user id we want to check the profile
-        const userId = 1;
 
         const userProfile = await fetchData(`https://transcendence-pong:7443/api/users/profile/${userId}/`);
         const userStats = await fetchData(`https://transcendence-pong:7443/api/users/stats/${userId}/`);
@@ -62,8 +62,13 @@ export default async function renderUserProfile() {
         }
 
     } catch (error) {
-        window.alert(error);
-        window.location.href = '/';
+        if (error === "404") {
+            navigateTo("/404");    
+        } else {
+            window.alert(`${error}\nCouldn't get the data of the user profile :(`);
+            navigateTo("/home");
+        }
+
     }
 }
 
@@ -79,7 +84,7 @@ async function fetchData(requestUrl) {
     });
 
     if (!response.ok) {
-        throw new Error(`Response status: ${response.status}`);
+        throw new Error(response.status);
     }
 
     return response.json(); // Parse and return the JSON data
