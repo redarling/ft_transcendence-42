@@ -1,6 +1,7 @@
-import navigateTo from "../main.js"
+import navigateTo from "../navigation/navigateTo.js"
 
 async function handleRegister(event) {
+	console.log("- start: handleRegister()")
     event.preventDefault();
 
     const username = document.getElementById("username").value;
@@ -29,7 +30,8 @@ async function handleRegister(event) {
 }
 
 export default function renderRegister() {
-    const main = document.getElementById("main");
+	console.log("- start: renderRegister()")
+	const main = document.getElementById("main");
     main.innerHTML = `
         <div class="container d-flex justify-content-center align-items-center">
             <div class="row">

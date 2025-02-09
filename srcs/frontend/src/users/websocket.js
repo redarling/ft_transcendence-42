@@ -2,10 +2,11 @@ export let socket = null;
 let pingInterval = null;
 
 export default function connectWebSocket() {
+	// console.log("- start: connectWebSocket()")
     const accessToken = localStorage.getItem("access_token");
 
     if (!accessToken) {
-        console.warn("No access token found. Skipping WebSocket connection.");
+        // console.warn("No access token found. Skipping WebSocket connection.");
         return;
     }
 
@@ -13,20 +14,20 @@ export default function connectWebSocket() {
     socket = new WebSocket(`wss://127.0.0.1:7443/ws/status/?token=${accessToken}`);
 
     socket.onopen = () => {
-        console.log("✅ WebSocket Connected!");
+        // console.log("✅ WebSocket Connected!");
         startPinging();
     };
 
     socket.onmessage = (event) => {
-        console.log("📩 Message from server:", event.data);
+        // console.log("📩 Message from server:", event.data);
     };
 
     socket.onerror = (error) => {
-        console.error("⚠️ WebSocket Error:", error);
+        // console.error("⚠️ WebSocket Error:", error);
     };
 
     socket.onclose = (event) => {
-        console.warn("❌ WebSocket Disconnected:", event.reason);
+        // console.warn("❌ WebSocket Disconnected:", event.reason);
         stopPinging();
 		socket = null;
 

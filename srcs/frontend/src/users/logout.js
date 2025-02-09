@@ -1,17 +1,9 @@
-import navigateTo from "../main.js";
+import navigateTo from "../navigation/navigateTo.js"
 import { socket, stopPinging } from "./websocket.js";
-
-// async function updateLogoutHeaderToLogin ()
-// {
-// 	const logoutHeader = document.getElementById("logoutHeader");
-// 	logoutHeader.outerHTML = `
-// 	<a class="nav-link" id="loginHeader">Login</a>
-// 	`
-// 	document.getElementById("loginHeader").addEventListener("click", () => navigateTo("/login"));
-// 	navigateTo("/login");
-// }
+import renderHeader from "../components/header.js";
 
 export default async function handleLogout() {
+	console.log("- start: handleLogout()")
 	const accessToken = localStorage.getItem("access_token");
 
     try {
@@ -34,7 +26,8 @@ export default async function handleLogout() {
 			if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.close();
             }
-			console.log("move to login");
+			renderHeader();
+			console.log("move to login page");
 			navigateTo("/login");
         } 
 		else {

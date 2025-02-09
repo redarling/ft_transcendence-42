@@ -1,4 +1,19 @@
+function getRandomUsername() {
+	const usernames = ['user123', 'maxime', 'guest', 'admin'];
+	return usernames[Math.floor(Math.random() * usernames.length)];
+}
+
+function getRandomEmail() {
+	const emails = ['user123@example.com', 'maxime@example.com', 'guest@example.com', 'admin@example.com'];
+	return emails[Math.floor(Math.random() * emails.length)];
+}
+
+function getRandomNotificationSetting() {
+	return Math.random() >= 0.5;
+}
+
 export default function renderSettings() {
+	console.log("- start: renderSettings()")
 	const main = document.getElementById("main");
 	main.innerHTML = `
 	<div class="container d-flex justify-content-center align-items-center">
@@ -24,18 +39,4 @@ export default function renderSettings() {
         </div>
 	</div>
 	`;
-}
-
-function getRandomUsername() {
-	const usernames = ['user123', 'maxime', 'guest', 'admin'];
-	return usernames[Math.floor(Math.random() * usernames.length)];
-}
-
-function getRandomEmail() {
-	const emails = ['user123@example.com', 'maxime@example.com', 'guest@example.com', 'admin@example.com'];
-	return emails[Math.floor(Math.random() * emails.length)];
-}
-
-function getRandomNotificationSetting() {
-	return Math.random() >= 0.5;
 }

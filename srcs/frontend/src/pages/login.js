@@ -1,6 +1,7 @@
-import navigateTo from "../main.js"
+import navigateTo from "../navigation/navigateTo.js"
 import handleLogout from "../users/logout.js"
 import connectWebSocket from "../users/websocket.js";
+import renderHeader from "../components/header.js";
 
 async function updateLoginHeaderToLogout()
 {
@@ -27,7 +28,8 @@ async function loginUser(username, password) {
 }
 
 async function handleLogin(event) {
-    event.preventDefault();
+	console.log("- start: handleLogin()")
+	event.preventDefault();
 
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
@@ -41,7 +43,9 @@ async function handleLogin(event) {
 			console.log("updateLoginHeaderToLogout");
 			updateLoginHeaderToLogout();
 			console.log("websocket");
-			connectWebSocket(); // socket
+			connectWebSocket();
+			console.log("websocket");
+			renderHeader();
 			navigateTo("/home");
 		} 
 		else {
@@ -54,6 +58,7 @@ async function handleLogin(event) {
 }
 
 export default function renderLogin() {
+	console.log("- start: renderLogin()")
     const main = document.getElementById("main");
     main.innerHTML = `
         <div class="container d-flex justify-content-center align-items-center">

@@ -1,6 +1,7 @@
-import navigateTo from "../main.js"
+import navigateTo from "../navigation/navigateTo.js";
 
 export default function renderHome() {
+	console.log("- start: renderHome()")
 	const main = document.getElementById("main");
 	main.innerHTML = `
 		<main class="container my-5">

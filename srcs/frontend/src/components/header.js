@@ -1,12 +1,10 @@
-import navigateTo from "../main.js"
-
-// async function handleLogout()
-// {
-
-// }
+import navigateTo from "../navigation/navigateTo.js"
+import handleLogout from "../users/logout.js";
 
 export default function renderHeader() {
-    const header = document.getElementById("header");
+    const isAuthenticated = localStorage.getItem("access_token") !== null;
+
+	const header = document.getElementById("header");
     header.innerHTML = `
         <nav class="navbar navbar-expand-lg navbar-light bg-body-tertiary" role="navigation">
         <div class="container-fluid">
@@ -34,7 +32,7 @@ export default function renderHeader() {
                         <a class="nav-link" id="settingsHeaderButton" role="menuitem">Settings</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="loginHeaderButton" role="menuitem">Login</a>
+                        <a class="nav-link" id="authHeaderButton">${isAuthenticated ? "Logout" : "Login"}</a>
                     </li>
                 </ul>
             </div>
@@ -57,8 +55,12 @@ export default function renderHeader() {
 	document.getElementById("profileHeaderButton").addEventListener("click", () => {
         navigateTo("/profile/1");
     });
-	document.getElementById("loginHeaderButton").addEventListener("click", () => {
-        navigateTo("/login");
-    });
-	// document.getElementById("logout").addEventListener("click", handleLogout());
+   
+	const authButton = document.getElementById("authHeaderButton");
+    if (isAuthenticated) {
+        authButton.addEventListener("click", handleLogout);
+    } 
+	else {
+        authButton.addEventListener("click", () => navigateTo("/login"));
+    }
 }
