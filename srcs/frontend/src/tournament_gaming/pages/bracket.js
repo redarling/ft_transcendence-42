@@ -1,10 +1,12 @@
+import { renderErrorPage, renderMatch } from '../../online_gaming/renderPages.js';
+
 export default async function renderTournamentBracketPage(socket, token, bracketData, title, description, tournamentId)
 {
     //const savedBracket = loadBracketFromStorage(tournamentId);
     //if (savedBracket) {
     //  bracketData = savedBracket;
     //}
-  
+    let playerId = null;
     const header = document.getElementById("header");
     header.innerHTML = `
       <div class="tournament-header">
@@ -36,6 +38,24 @@ export default async function renderTournamentBracketPage(socket, token, bracket
         case "tournament_end":
           showTournamentWinner(data.data.winner);
           break;
+        case "incoming_match":
+          playerId = data.playerId;
+          console.log("Player ID:", playerId);
+          socket.send(JSON.stringify({ event: "ready", matchId: data.match_id }));
+          break;
+        case "match_start":
+            console.log("Message received:", data);
+            if (!playerId)
+            {
+                renderErrorPage("Failed to start the match. Please try again.");
+                return;
+            }
+            const player1Username = data.match_data.player1_username;
+            const player2Username = data.match_data.player2_username;
+            const player1Avatar = data.match_data.player1_avatar;
+            const player2Avatar = data.match_data.player2_avatar;
+            renderMatch(socket, playerId, player1Username, player2Username, player1Avatar, player2Avatar, true);
+            break;
         default:
           break;
       }
