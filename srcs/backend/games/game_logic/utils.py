@@ -1,9 +1,10 @@
 from .recovery_key_manager import RecoveryKeyManager
 from users.models import User
 from games.models import TournamentParticipant, Tournament
-import asyncio
 from channels.db import database_sync_to_async
-import logging
+from games.game_logic.api_calls import create_match_api, create_round_api, finish_match_api
+from typing import List, Dict
+import math, random, logging, asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ async def check_active_match(user):
         async for key in redis.scan_iter("match:*:recovery"):
             match_id = key.split(":")[1]
             match_data = await RecoveryKeyManager.get_recovery_key(match_id)
-
+            logger.info("match_data: %s", match_data)
             if match_data and (str(user.id) == match_data["player1_id"] or str(user.id) == match_data["player2_id"]):
                 return {
                     'active': True,
@@ -87,11 +88,12 @@ def is_participant(tournament_id, user):
 @database_sync_to_async
 def get_tournament_data(tournament_id, user_id):
     """
-    Get the list of participants in the tournament.
+    Get tournament related data.
     """
     try:
         tournament = Tournament.objects.get(id=tournament_id)
         is_admin = tournament.creator.id == user_id
+        status = tournament.status
         participants = TournamentParticipant.objects.filter(
             tournament_id=tournament_id
         ).select_related("user")
@@ -103,6 +105,191 @@ def get_tournament_data(tournament_id, user_id):
                 "avatar": participant.user.avatar,
             }
             for participant in participants
-        ], tournament.title, tournament.description, is_admin
+        ], tournament.title, tournament.description, is_admin, status
     except Exception as e:
-        return [], None, None, False
+        return [], None, None, False, None
+
+@database_sync_to_async
+def get_tournament_participants(tournament_id):
+    """
+    Get the list of participants in the tournament.
+    """
+    try:
+        participants = TournamentParticipant.objects.filter(
+            tournament_id=tournament_id
+        ).select_related("user")
+        return [
+            {
+                "id": participant.user.id,
+                "username": participant.user.username,
+                "alias": participant.tournament_alias,
+                "avatar": participant.user.avatar,
+            }
+            for participant in participants
+        ]
+    except Exception as e:
+        return []
+    
+def determine_matches_in_round(participants: List[Dict]) -> List[Dict]:
+    """
+    Form the round of matches, taking into account the number of participants and possible bye-pass players.
+
+    :param participants: list of dictionaries with participant data
+    :return: list of round matches
+    """
+    total_players = len(participants)
+
+    # Determine the next power of two
+    next_power_of_two = 2 ** math.ceil(math.log2(total_players))
+    
+    # Number of bye-pass players (those who automatically advance to the next round)
+    num_byes = next_power_of_two - total_players
+    
+    # Shuffle participants for random distribution
+    random.shuffle(participants)
+    
+    matches = []
+    index = 0
+
+    # Add bye-pass players
+    bye_players = participants[:num_byes]
+    match_players = participants[num_byes:]
+    
+    # Form pairs
+    while index < len(match_players) - 1:
+        matches.append({
+            "player1": match_players[index],
+            "player2": match_players[index + 1],
+        })
+        index += 2
+
+    # Add bye-pass players to a separate list
+    for player in bye_players:
+        matches.append({
+            "player1": player,
+            "player2": None,  # Automatic win
+        })
+
+    return matches
+
+async def create_tournament_matches(matches, tournament_id, round_number):
+    """
+    Create matches for the tournament round and return their data.
+
+    :param matches: List of matches (player1, player2) from determine_matches_in_round()
+    :return: List of dictionaries with match data
+    """
+    created_matches = []
+
+    for match in matches:
+        player1 = match["player1"]
+        player2 = match["player2"]
+
+        if player2 is None:
+            match_data = {
+                "id": None,
+                "match_type": "tournament",
+                "first_player": player1["id"],
+                "second_player": None,
+                "player1_username": player1["username"],
+                "player2_username": None,
+                "player1_avatar": player1["avatar"],
+                "player2_avatar": None,
+                "score_player1": None,
+                "score_player2": None,
+                "match_status": "finished",
+                "winner": player1["id"],
+                "started_at": None,
+                "finished_at": None,
+            }
+        else:
+            try:
+                match_data = await create_match_api(player1["id"], player2["id"], match_type="tournament")
+                round_data = await create_round_api(match_data["id"], tournament_id, round_number)
+            except Exception as e:
+                logger.error(f"Error creating match for {player1['username']} vs {player2['username']}: {e}")
+                continue
+
+        created_matches.append(match_data)
+
+    return created_matches
+
+def generate_bracket(matches, round_number=1):
+    """
+    Form the structure of the tournament bracket for the specified round.
+
+    :param matches: List of matches created through create_tournament_matches()
+    :param round_number: Current round number (default 1)
+    :return: Dictionary with tournament bracket data
+    """
+    bracket = {
+        "round": round_number,
+        "matches": []
+    }
+
+    for match in matches:
+        match_entry = {
+            "matchId": match["id"],
+            "player1_id": match["first_player"],
+            "player2_id": match["second_player"] if match["second_player"] else None,
+            "player1": match["player1_username"],
+            "player2": match["player2_username"] if match["player2_username"] else "BYE",
+            "status": match["match_status"],
+            "winner": None if match["winner"] is None else match["winner"],
+            "score": "0-0"
+        }
+        bracket["matches"].append(match_entry)
+
+    return bracket
+
+async def finish_match(winner, match_id):
+    """
+    Finish the match and update the tournament status.
+    """
+    finish_data = ({
+        "match_id": match_id,
+        "score_player1": 0,
+        "score_player2": 0,
+        "winner_id": winner,
+        "player1_total_hits": 0,
+        "player2_total_hits": 0,
+        "player1_serves": 0,
+        "player2_serves": 0,
+        "player1_successful_serves": 0,
+        "player2_successful_serves": 0,
+        "player1_longest_rally": 0,
+        "player2_longest_rally": 0,
+        })
+    try:
+        await finish_match_api(finish_data)
+    except Exception as e:
+        logger.error(f"Error during match finishing: {e}")
+
+def get_round_winners(bracket, round_number):
+    """
+    Returns a list of winners (as dictionaries with id and username) for the specified round.
+
+    :param bracket: List of rounds formed by generate_bracket.
+    :param round_number: Round number for which we get the winners.
+    :return: List of dictionaries in the form {"id": <id>, "username": <username>} for each winner.
+    """
+    winners = []
+    for round_entry in bracket:
+        if round_entry.get("round") == round_number:
+            for match in round_entry.get("matches", []):
+                if match.get("status") == "finished" and match.get("winner") is not None:
+                    if match.get("winner") == match.get("player1_id"):
+                        winners.append({
+                            "id": match.get("player1_id"),
+                            "username": match.get("player1")
+                        })
+                    elif match.get("winner") == match.get("player2_id"):
+                        winners.append({
+                            "id": match.get("player2_id"),
+                            "username": match.get("player2")
+                        })
+            break
+    return winners
+
+
+

@@ -75,3 +75,74 @@ async def finish_match_api(match_data):
                 raise Exception("Server error occurred while creating match.")
             else:
                 raise Exception(f"Unexpected error: {response.status}, {await response.text()}")
+       
+async def create_round_api(match_id, tournament_id, round_number):
+    """
+    Create a round entry via API.
+
+    :param match_id: ID of the created match
+    :param tournament_id: ID of the tournament
+    :param round_number: Current round number
+    :return Data of the created round
+    """
+    
+    url = "https://nginx/api/games/tournament/round/create-match/"
+    headers = {
+        "X-WebSocket-Token": settings.WEBSOCKET_API_TOKEN,
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "match_id": match_id,
+        "tournament_id": tournament_id,
+        "round_number": round_number,
+    }
+
+    # Create session with SSL verification disabled because of self-signed certificate
+    connector = TCPConnector(ssl=False)
+    async with aiohttp.ClientSession(connector=connector) as session:
+        async with session.post(url, json=payload, headers=headers) as response:
+            if response.status == 201:
+                round_data = await response.json()
+                return round_data
+            elif response.status == 400:
+                error_data = await response.json()
+                raise ValueError(f"Invalid request: {error_data}")
+            elif response.status == 403:
+                raise PermissionError("Unauthorized access to round creation API.")
+            elif response.status == 500:
+                raise Exception("Server error occurred while creating round.")
+            else:
+                raise Exception(f"Unexpected error: {response.status}, {await response.text()}")
+
+async def update_tournament_status_api(tournament_id, tournament_status, winner_id=None):
+    """
+    Update the status of the tournament round via API.
+    """
+    
+    url = "https://nginx/api/games/tournament/update-status/"
+    headers = {
+        "X-WebSocket-Token": settings.WEBSOCKET_API_TOKEN,
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "tournament_id": tournament_id,
+        "status": tournament_status,
+        "winner_id": winner_id,
+    }
+
+    # Create session with SSL verification disabled because of self-signed certificate
+    connector = TCPConnector(ssl=False)
+    async with aiohttp.ClientSession(connector=connector) as session:
+        async with session.post(url, json=payload, headers=headers) as response:
+            if response.status == 200:
+                data = await response.json()
+                return data
+            elif response.status == 400:
+                error_data = await response.json()
+                raise ValueError(f"Invalid request: {error_data}")
+            elif response.status == 403:
+                raise PermissionError("Unauthorized access to round creation API.")
+            elif response.status == 500:
+                raise Exception("Server error occurred while creating round.")
+            else:
+                raise Exception(f"Unexpected error: {response.status}, {await response.text()}")       

@@ -1,3 +1,5 @@
+from django.db import IntegrityError
+from rest_framework.exceptions import NotFound
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -5,12 +7,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
-from ..models import Tournament, TournamentParticipant, TournamentInvitation
-from users.models import User, Friend
+from games.models import Tournament, TournamentParticipant, TournamentInvitation, Match
+from users.models import User, Friend, UserStats
 from django.utils import timezone
-from ..serializers import (TournamentSerializer, InvitationTournamentSerializer)
+from games.serializers import TournamentSerializer, InvitationTournamentSerializer, RoundSerializer
+from games.WebSocket_authentication import WebSocketTokenAuthentication, IsAuthenticatedWebSocket
 from users.serializers import UserProfileSearchSerializer
-from ..utils import validate_required_fields
+from games.utils import validate_required_fields
 import logging
 from games.blockchain_score_storage.deployment import deploy_smart_contract
 
@@ -227,8 +230,6 @@ class StartTournamentAPIView(APIView):
 
         tournament = get_object_or_404(Tournament, id=tournament_id)
 
-        logger.info(f"Starting tournament {tournament_id}")
-
         if tournament.status != 'pending':
             return Response({"error": "Tournament has already started."}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -356,3 +357,83 @@ class SearchTournamentAPIView(ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class CreateMatchRoundAPIView(APIView):
+    """
+    Creates a match entry in the database for two players.
+    This View could be executed only by the WebSocket server.
+    """
+    authentication_classes = [WebSocketTokenAuthentication]
+    permission_classes = [IsAuthenticatedWebSocket]
+
+    def post(self, request):
+        validation_error = validate_required_fields(request.data, ["match_id", "tournament_id", "round_number"])
+        if validation_error:
+            return validation_error
+
+        match_id = request.data.get("match_id")
+        tournament_id = request.data.get("tournament_id")
+        round_number = request.data.get("round_number")
+        
+        try:
+            match_id = int(match_id)
+            tournament_id = int(tournament_id)
+            round_number = int(round_number)
+        except ValueError:
+            return Response({"detail": "Invalid ID format."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if players exist
+        match = get_object_or_404(Match, id=match_id)
+        tournament = get_object_or_404(Tournament, id=tournament_id)
+        # Create the match record
+        round_data = {
+            "match": match.id,
+            "tournament": tournament.id,
+            "round_number": round_number,
+        }
+
+        serializer = RoundSerializer(data=round_data)
+
+        if serializer.is_valid():
+            try:
+                round_match = serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+            except IntegrityError as e:
+                logger.error(f"Database error during round match creation: {e}")
+                return Response({"detail": "Failed to create round match due to a database error."},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class TournamentUpdateStatusAPIView(APIView):
+    """
+    Update the status of a tournament.
+    """
+    authentication_classes = [WebSocketTokenAuthentication]
+    permission_classes = [IsAuthenticatedWebSocket]
+
+    def post(self, request):
+        validation_error = validate_required_fields(request.data, ["tournament_id", "status"])
+        if validation_error:
+            return validation_error
+
+        tournament_id = request.data.get("tournament_id")
+        tournament_status = request.data.get("status")
+
+        if tournament_status == 'completed':
+            winner_id = request.data.get("winner_id")
+            user = get_object_or_404(User, id=winner_id)
+            userStats = get_object_or_404(UserStats, user=user)
+            userStats.record_tournament_win()
+
+        tournament = get_object_or_404(Tournament, id=tournament_id)
+
+        if tournament_status not in ['in_progress', 'completed']:
+            return Response({"error": "Invalid status. Must be 'in_progress' or 'completed'."},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        tournament.status = tournament_status
+        tournament.save()
+
+        return Response({"message": "Tournament status updated successfully."}, status=status.HTTP_200_OK)

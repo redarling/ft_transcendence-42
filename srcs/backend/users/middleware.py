@@ -45,6 +45,8 @@ class UpdateLastActivityMiddleware:
         '/api/users/refresh-token/',
         '/api/games/match/start/',
         '/api/games/match/finish/',
+        '/api/games/tournament/round/create-match/',
+        '/api/games/tournament/update-status/'
     ]
 
     def __init__(self, get_response):

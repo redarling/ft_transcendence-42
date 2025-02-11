@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import Match, MatchHistory, MatchPlayerStats, Tournament, TournamentParticipant, TournamentInvitation
+from .models import (Match, MatchHistory, MatchPlayerStats, 
+                     Tournament, TournamentParticipant, 
+                     TournamentInvitation, Round)
 
 class MatchSerializer(serializers.ModelSerializer):
     player1_username = serializers.CharField(source='first_player.username', read_only=True)
@@ -85,3 +87,31 @@ class InvitationTournamentSerializer(serializers.ModelSerializer):
     class Meta:
         model = TournamentInvitation
         fields = ['tournament_id', 'title', 'description', 'invited_by', 'inviter_id']
+
+class RoundSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Round
+        fields = ['id', 'match', 'tournament', 'round_number']
+
+    def validate_round_number(self, value):
+        """
+        Custom validation for round_number to ensure it is a positive integer.
+        """
+        if value <= 0:
+            raise serializers.ValidationError("Round number must be a positive integer.")
+        return value
+
+    def create(self, validated_data):
+        """
+        Override the create method if custom logic is required during creation.
+        """
+        round_instance = Round.objects.create(**validated_data)
+        return round_instance
+
+    def update(self, instance, validated_data):
+        """
+        Override the update method if custom logic is required during update.
+        """
+        instance.round_number = validated_data.get('round_number', instance.round_number)
+        instance.save()
+        return instance

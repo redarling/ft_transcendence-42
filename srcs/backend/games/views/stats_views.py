@@ -3,9 +3,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound
-from ..models import MatchHistory, MatchPlayerStats, Match
+from games.models import MatchHistory, MatchPlayerStats, Match
 from users.models import User
-from ..serializers import UserMatchHistorySerializer, MatchPlayerStatsSerializer
+from games.serializers import UserMatchHistorySerializer, MatchPlayerStatsSerializer
 import logging
 
 logger = logging.getLogger(__name__)

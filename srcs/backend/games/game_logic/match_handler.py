@@ -35,6 +35,7 @@ class MatchHandler:
         self.event_processing_task = None
         self.max_event_processing_rate = RATE
         self.kick_off = True
+        self.result = None
         asyncio.create_task(self.end_kick_off())
     
     def init_player(self, player_id):
@@ -64,6 +65,7 @@ class MatchHandler:
         await asyncio.sleep(START_KICK_OFF)
         self.kick_off = False
         await self.game_loop()
+        return self.result
 
     async def game_loop(self):
         while self.running:
@@ -253,6 +255,11 @@ class MatchHandler:
             "player1_score": self.player1["score"],
             "player2_score": self.player2["score"],
         })
+
+        self.result = {
+            "winner": int(winner),
+            "score": "{}-{}".format(self.player1["score"], self.player2["score"]),
+        }
 
         self.running = False
                 

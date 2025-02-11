@@ -82,15 +82,7 @@ class TournamentParticipant(models.Model):
 class Round(models.Model):
     match = models.OneToOneField(Match, on_delete=models.CASCADE)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
-    round_status = models.CharField(
-        max_length=12,
-        choices=[('pending', 'Pending'), ('in_progress', 'In Progress'), ('completed', 'Completed')],
-        default='pending'
-    )
     round_number = models.IntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    finished_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         indexes = [

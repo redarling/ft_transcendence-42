@@ -1,14 +1,10 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
-from .api_calls import create_match_api
-from .channel_handling import remove_player_from_group, send_group_message, disconnect_user, send_error_to_players, add_player_to_group
-from .utils import check_active_match, is_player_online, check_players_online_statuses, is_participant, get_tournament_data
-from .match_handler import MatchHandler
-from .recovery_key_manager import RecoveryKeyManager
+from .channel_handling import send_group_message
+from .utils import (check_active_match, is_participant, get_tournament_data, get_tournament_participants)
+from .tournament_handler import TournamentHandler
 from .match_event_queue import MatchEventQueueManager
-import json
-import logging
-import asyncio
+import json, logging, asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -31,23 +27,24 @@ class TournamentConsumer(AsyncWebsocketConsumer):
             return
         
         await self.accept()
-
-        logger.info("User connected: %s; user id: %s to tournament %s", self.user, str(self.user.id), self.tournament_id)
-
+        
+        logger.info("User connected (id: %s) to tournament %s", str(self.user.id), self.tournament_id)
+        
         self.group_name = f"tournament_{self.tournament_id}"
-
+        self.user_group_name = f"player_{self.user.id}"
         await self.channel_layer.group_add(self.group_name, self.channel_name)
-
-        participants, title, description, is_admin = await get_tournament_data(self.tournament_id, self.user.id)
-
+        await self.channel_layer.group_add(self.user_group_name, self.channel_name)
+        participants, title, description, self.is_admin, self.status = await get_tournament_data(self.tournament_id, self.user.id)
+        
         await self.send(json.dumps(
             {
                 "event": "tournament_data",
                 "title": title,
                 "description": description,
-                "is_admin": is_admin
+                "is_admin": self.is_admin
             }))
         
+        # TODO: change to send_group_message
         await self.channel_layer.group_send(
             self.group_name,
             {
@@ -61,9 +58,10 @@ class TournamentConsumer(AsyncWebsocketConsumer):
         Handle disconnection.
         """
         logger.info("Disconnection: %s", self.scope["user"])
-
         if hasattr(self, "group_name"):
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        if hasattr(self, "user_group_name"):
+            await self.channel_layer.group_discard(self.user_group_name, self.channel_name)
 
     async def receive(self, text_data):
         """
@@ -72,26 +70,9 @@ class TournamentConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         event = data.get("event")
         
-        if event == "player_action":
-            direction = data.get("direction")
-            #if not self.eventQueue:
-            #    self.eventQueue = MatchEventQueueManager.get_queue(self.match_group)
-            #await self.eventQueue.put({
-            #    "event": "player_action",
-            #    "player_id": self.player_id,
-            #    "direction": direction,
-            #})
-
-        elif event == "recover_match":
-            logger.info("Recovering match %s", data)
-            #match_group = data.get("matchGroup")
-            #await self.recover_match(match_group)
-        
-        elif event == "tournament_cancelled":
+        if event == "tournament_cancelled":
             logger.info("Cancelling tournament %s", id)
-            
             await send_group_message(f"tournament_{self.tournament_id}", {"event": "tournament_cancelled"})
-
             await self.channel_layer.group_send(
             f"tournament_{self.tournament_id}",
             {
@@ -100,7 +81,6 @@ class TournamentConsumer(AsyncWebsocketConsumer):
         )
             
         elif event == "user_left":
-            
             await self.channel_layer.group_send(
             f"tournament_{self.tournament_id}",
             {
@@ -111,85 +91,42 @@ class TournamentConsumer(AsyncWebsocketConsumer):
             )
         
         elif event == "tournament_start":
+            """
+            Start the tournament logic.
+            """
+            if not self.is_admin or self.status not in ["pending", "Pending"]:
+                logger.info("Tournament starting cancelled. Access forbidden")
+                return
+
             logger.info("Starting tournament %s", self.tournament_id)
-            
-            # TODO: Temp tournament bracket, used to test the tournament bracket
-            bracket = {
-                "round": 1,
-                "matches": [
-                    { "matchId": 1, "player1": "user1", "player2": "user2", "status": "pending", "score": "0-0" },
-                    { "matchId": 2, "player1": "user3", "player2": "user4", "status": "pending", "score": "0-0" },
-                    { "matchId": 3, "player1": "user5", "player2": "user6", "status": "pending", "score": "0-0" },
-                    { "matchId": 4, "player1": "user7", "player2": "user8", "status": "pending", "score": "0-0" }
-                ]
-                }
-            
-            await self.send(text_data=json.dumps({
-                "event": "tournament_bracket",
-                "data": bracket
-            }))
+            tournament_handler = TournamentHandler(self.tournament_id, self.group_name)
+            asyncio.create_task(tournament_handler.handle_tournament())
+        
+        elif event == "ready":
+            match_id = data.get("matchId")
+            if match_id:
+                match_group = f"match_{match_id}"
+                self.eventQueue = MatchEventQueueManager.get_queue(match_group)
+                await self.eventQueue.put({
+                "event": "player_ready",
+                "playerId": self.user.id,
+                "matchId": match_id,
+                })
+            else:
+                logger.error("Invalid ready signal: missing matchId")
 
-            await send_group_message(self.group_name, {"event": "tournament_bracket", "data": bracket})
-
-            await self.test_function()
+        elif event == "player_action":
+            direction = data.get("direction")
+            if not self.eventQueue:
+                self.eventQueue = MatchEventQueueManager.get_queue(self.match_group)
+            await self.eventQueue.put({
+                "event": "player_action",
+                "player_id": str(self.user.id),
+                "direction": direction,
+            })
           
         else:
             await self.send_json_message("error", "Invalid event")
-
-    async def recover_match(self, match_group):
-        """
-        Recover a match using a recovery key.
-        """
-        #self.player_id = str(self.user.id)
-        
-        #match_data = await RecoveryKeyManager.get_recovery_key(match_group)
-        #if match_data and (self.player_id == match_data["player1_id"] or self.player_id == match_data["player2_id"]):
-        #    self.match_group = match_group
-        #    logger.info(f"User {self.user.id} recovered match {match_group}")
-        #    await self.send(json.dumps({
-        #        "event": "match_recovered",
-        #        "player1_id": match_data["player1_id"],
-        #        "player2_id": match_data["player2_id"],
-        #        "player1_username": match_data["player1_username"],
-        #        "player2_username": match_data["player2_username"],
-        #        "player1_avatar": match_data["player1_avatar"],
-        #        "player2_avatar": match_data["player2_avatar"],
-        #        'opponent_username': match_data["player2_username"] if str(self.player_id) == match_data["player1_id"] else match_data["player1_username"],
-        #    }))
-        #    await self.channel_layer.group_add(match_group, self.channel_name)
-
-        #else:
-        #    logger.warning(f"User {self.user.id} failed to recover match {match_group}")
-        #    await self.send_json_message("error", "Failed to recover match")
-        #    await disconnect_user(self.player_id)
-
-    async def start_match(self, player1, player2):
-        """
-        Initialize the match and start the handler.
-        """
-        try:
-            logger.info("Starting match: %s vs %s", player1, player2)
-            match_data = await create_match_api(player1, player2, match_type="1v1")
-
-            self.match_group = f"match_{match_data['id']}"
-            self.eventQueue = MatchEventQueueManager.get_queue(self.match_group)
-            
-            await add_player_to_group(player1, self.match_group, match_data)
-            await add_player_to_group(player2, self.match_group, match_data)
-
-            await RecoveryKeyManager.create_recovery_key(self.match_group, player1, match_data['player1_username'], 
-                                                         player2, match_data['player2_username'], 
-                                                         match_data['player1_avatar'], match_data['player2_avatar'])
-
-            match_handler = MatchHandler(player1, player2, self.match_group, match_data, self.eventQueue)
-            asyncio.create_task(match_handler.start_match())
-            asyncio.create_task(check_players_online_statuses(player1, player2, self.eventQueue, self.match_group))
-        
-        except Exception as e:
-            await send_error_to_players(player1, player2, "Failed to start the match. Please try again.")
-            logger.error(f"Error during match handling: {e}")
-            await disconnect_user(player1)
-            await disconnect_user(player2)
 
 ##################################################################################################
 #                                   UTILS                                                        #
@@ -210,12 +147,10 @@ class TournamentConsumer(AsyncWebsocketConsumer):
         """
         match_group = event.get("match_group")
         match_data = event.get("match_data")
+        
         if match_group and match_data:
-            if not self.match_group:
-                self.match_group = match_group
+            self.match_group = match_group
             await self.channel_layer.group_add(match_group, self.channel_name)
-            
-            logger.info("User %s added to match channel group %s", self.user, match_group)
             await self.send(json.dumps(
                 {
                 "event": "match_start",
@@ -235,7 +170,7 @@ class TournamentConsumer(AsyncWebsocketConsumer):
             await self.close()
         else:
             await self.send_json_message("user_left", username)
-            participants, title, description, is_admin = await get_tournament_data(self.tournament_id, self.user.id) 
+            participants = await get_tournament_participants(self.tournament_id) 
             await self.send(json.dumps({
                     "event": "participant_list",
                     "participants": participants,
@@ -247,126 +182,10 @@ class TournamentConsumer(AsyncWebsocketConsumer):
         Handle messages sent to the WebSocket from the group.
         """
         message = event.get("message")
-
         await self.send(text_data=json.dumps(message))
 
     async def participant_update(self, event):
         """
         Handle participant updates and send to all users.
         """
-        await self.send(
-            text_data=json.dumps({
-                "event": "participant_list",
-                "participants": event["participants"],
-            })
-        )
-
-
-    # TODO: Temp logic to simulate a match update
-    async def test_function(self):
-
-            match_update = {
-            "matchId": 1,
-            "winner": "user1",
-            "status": "finished",
-            "score": "11-4"
-            }
-
-            await send_group_message(self.group_name, {"event": "match_update", "data": match_update})
-            await self.send(json.dumps({"event": "match_update", "data": match_update}))
-            await asyncio.sleep(5)
-
-            match_update2 = {
-            "matchId": 2,
-            "winner": "user3",
-            "status": "finished",
-            "score": "11-4"
-            }
-
-            await send_group_message(self.group_name, {"event": "match_update", "data": match_update2})
-            await self.send(json.dumps({"event": "match_update", "data": match_update2}))
-            await asyncio.sleep(5)
-
-            match_update3 = {
-            "matchId": 3,
-            "winner": "user5",
-            "status": "finished",
-            "score": "11-4"
-            }
-            match_update4 = {
-            "matchId": 4,
-            "winner": "user8",
-            "status": "finished",
-            "score": "11-4"
-            }
-
-            await send_group_message(self.group_name, {"event": "match_update", "data": match_update4})
-            await self.send(json.dumps({"event": "match_update", "data": match_update4}))
-            await asyncio.sleep(5)
-
-            await send_group_message(self.group_name, {"event": "match_update", "data": match_update3})
-            await self.send(json.dumps({"event": "match_update", "data": match_update3}))
-            await asyncio.sleep(5)
-
-            round_update = {
-                "round": 2,
-                "matches": [
-                    { "matchId": 5, "player1": "user1", "player2": "user3", "status": "pending", "score": "0-0" },
-                    { "matchId": 6, "player1": "user5", "player2": "user7", "status": "pending", "score": "0-0" }
-                ]
-            }
-
-            await send_group_message(self.group_name, {"event": "round_update", "data": round_update})
-            await self.send(json.dumps({"event": "round_update", "data": round_update}))
-            await asyncio.sleep(5)
-
-            match_update5 = {
-            "matchId": 5,
-            "winner": "user3",
-            "status": "finished",
-            "score": "11-4"
-            }
-
-            await send_group_message(self.group_name, {"event": "match_update", "data": match_update5})
-            await self.send(json.dumps({"event": "match_update", "data": match_update5}))
-            await asyncio.sleep(5)
-
-            match_update6 = {
-            "matchId": 6,
-            "winner": "user5",
-            "status": "finished",
-            "score": "12-10"
-            }
-
-            await send_group_message(self.group_name, {"event": "match_update", "data": match_update6})
-            await self.send(json.dumps({"event": "match_update", "data": match_update6}))
-            await asyncio.sleep(5)
-
-            round_update2 = {
-                "round": 3,
-                "matches": [
-                    { "matchId": 7, "player1": "user3", "player2": "user5", "status": "pending", "score": "0-0" }
-                ]
-            }
-
-            await send_group_message(self.group_name, {"event": "round_update", "data": round_update2})
-            await self.send(json.dumps({"event": "round_update", "data": round_update2}))
-            await asyncio.sleep(5)
-
-            match_update6 = {
-            "matchId": 7,
-            "winner": "user5",
-            "status": "finished",
-            "score": "12-10"
-            }
-
-            await send_group_message(self.group_name, {"event": "match_update", "data": match_update6})
-            await self.send(json.dumps({"event": "match_update", "data": match_update6}))
-            await asyncio.sleep(5)
-
-            tournament_end = {
-                "winner": "user5"
-            }
-
-            await send_group_message(self.group_name, {"event": "tournament_end", "data": tournament_end})
-            await self.send(json.dumps({"event": "tournament_end", "data": tournament_end}))
+        await self.send(text_data=json.dumps({"event": "participant_list", "participants": event["participants"]}))

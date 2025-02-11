@@ -3,7 +3,8 @@ from .views.match_views import MatchStartAPIView, MatchEndAPIView
 from .views.recovery_views import CheckActiveMatchAPIView
 from .views.tournament_views import (CreateTournamentAPIView, JoinTournamentAPIView, InviteTournamentAPIView, 
                     StartTournamentAPIView, CancelTournamentAPIView, SearchTournamentAPIView,
-                    GetOnlineFriendsAPIView, LeaveTournamentAPIView, InvitationListTournamentAPIView)
+                    GetOnlineFriendsAPIView, LeaveTournamentAPIView, 
+                    InvitationListTournamentAPIView, CreateMatchRoundAPIView, TournamentUpdateStatusAPIView)
 from .views.stats_views import (UserMatchHistoryAPIView, MatchStatsAPIView)
 
 urlpatterns = [
@@ -23,7 +24,8 @@ urlpatterns = [
     path('tournament/leave/', LeaveTournamentAPIView.as_view(), name='cancel-tournament'),
     path('tournament/cancel/', CancelTournamentAPIView.as_view(), name='cancel-tournament'),
     path('tournament/search/', SearchTournamentAPIView.as_view(), name='search-tournament'),
-
+    path('tournament/round/create-match/', CreateMatchRoundAPIView.as_view(), name='create-match-round'),
+    path('tournament/update-status/', TournamentUpdateStatusAPIView.as_view(), name='create-match-round'),
     path('check-active-match/', CheckActiveMatchAPIView.as_view(), name='check-active-match'),
 ]
 

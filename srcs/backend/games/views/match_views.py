@@ -4,12 +4,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound
-from ..models import Tournament, MatchHistory, MatchPlayerStats, Round, Match
+from games.models import Tournament, MatchHistory, MatchPlayerStats, Round, Match
 from users.models import User, UserStats
 from django.utils import timezone
-from ..serializers import MatchSerializer
-from ..WebSocket_authentication import WebSocketTokenAuthentication, IsAuthenticatedWebSocket
-from ..utils import validate_required_fields
+from games.serializers import MatchSerializer
+from games.WebSocket_authentication import WebSocketTokenAuthentication, IsAuthenticatedWebSocket
+from games.utils import validate_required_fields
 import logging
 from games.blockchain_score_storage.interactions import add_score
 
@@ -122,15 +122,17 @@ class MatchEndAPIView(APIView):
 
         if match.match_type == "tournament":
             # Save to the blockchain
-            round = get_object_or_404(Round, match=match)
-
             try:
-                tournament = Tournament.objects.get(id=round.tournament)
+                round = get_object_or_404(Round, match=match)
+                tournament = round.tournament
+                add_score(contract_address=tournament.smartContractAddr, match_id=match_id, user_id=player1.id, score=score_player1)
+                add_score(contract_address=tournament.smartContractAddr, match_id=match_id, user_id=player2.id, score=score_player2)
             except Tournament.DoesNotExist:
                 return Response({"detail": "Tournament not found."}, status=status.HTTP_404_NOT_FOUND)
-
-            add_score(contract_address=tournament.smartContractAddr, match_id=match_id, user_id=player1.id, score=score_player1)
-            add_score(contract_address=tournament.smartContractAddr, match_id=match_id, user_id=player2.id, score=score_player2)
+            except Round.DoesNotExist:
+                return Response({"detail": "Round not found."}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                logger.error(f"Error saving match results to the blockchain: {e}")
 
         match.finished_at = finished_at
         match.match_status = "completed"

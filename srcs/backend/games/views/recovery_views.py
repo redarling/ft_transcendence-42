@@ -2,7 +2,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from asgiref.sync import async_to_sync
-from ..game_logic.utils import check_active_match
+from games.game_logic.utils import check_active_match
 import logging
 
 logger = logging.getLogger(__name__)
