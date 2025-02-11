@@ -1,11 +1,15 @@
-import navigateTo from "../main.js"
+import navigateTo from "../navigation/navigateTo.js"
+import handleLogout from "../users/logout.js"
+import connectWebSocket from "../users/websocket.js";
+import renderHeader from "../components/header.js";
 
-async function updateLoginHeader()
+async function updateLoginHeaderToLogout()
 {
-	const loginHeader = getElementById("loginHeader");
+	const loginHeader = document.getElementById("loginHeader");
 	loginHeader.outerHTML = `
 		<a class="nav-link" id="logoutHeader">Logout</a>
 	`
+	document.getElementById("logoutHeader").addEventListener("click", handleLogout);
 }
 
 async function loginUser(username, password) {
@@ -24,7 +28,8 @@ async function loginUser(username, password) {
 }
 
 async function handleLogin(event) {
-    event.preventDefault();
+	console.log("- start: handleLogin()")
+	event.preventDefault();
 
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
@@ -35,7 +40,12 @@ async function handleLogin(event) {
         if (data) {
 			localStorage.setItem("access_token", data.access_token);
 			localStorage.setItem("refresh_token", data.refresh_token);
-			updateLoginHeader();
+			console.log("updateLoginHeaderToLogout");
+			updateLoginHeaderToLogout();
+			console.log("websocket");
+			connectWebSocket();
+			console.log("websocket");
+			renderHeader();
 			navigateTo("/home");
 		} 
 		else {
@@ -48,6 +58,7 @@ async function handleLogin(event) {
 }
 
 export default function renderLogin() {
+	console.log("- start: renderLogin()")
     const main = document.getElementById("main");
     main.innerHTML = `
         <div class="container d-flex justify-content-center align-items-center">

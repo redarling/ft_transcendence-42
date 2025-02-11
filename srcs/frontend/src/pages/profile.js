@@ -2,10 +2,11 @@ import UserStatsComponent from "../components/profile/userStats.js"
 import UserMatchHistoryComponent from "../components/profile/userMatchHistory.js"
 import UserHeaderComponent from "../components/profile/userHeader.js"
 import PageLoader from "../components/utils/pageLoader.js"
-import navigateTo from "../main.js"
+import navigateTo from "../navigation/navigateTo.js"
 
 export default async function renderUserProfile(userId) {
-    PageLoader();
+	console.log("- start: renderUserProfile()")
+	PageLoader();
 
     try {
 

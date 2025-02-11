@@ -1,4 +1,4 @@
-import navigateTo from "../../main.js"
+import navigateTo from "../../navigation/navigateTo.js"
 
 export default function render404() {
     const main = document.getElementById("main");
