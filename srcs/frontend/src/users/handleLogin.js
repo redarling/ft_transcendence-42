@@ -20,7 +20,8 @@ async function loginUser(username, password) {
 
 	if (response.ok) {
 		return await response.json();
-	} else {
+	} 
+	else {
 		return null;
 	}
 }
@@ -35,22 +36,23 @@ export default async function handleLogin(event) {
 	try {
 		const data = await loginUser(username, password);
 
-		if (data) {
-			localStorage.setItem("access_token", data.access_token);
-			localStorage.setItem("refresh_token", data.refresh_token);
-			console.log("updateLoginHeaderToLogout");
-			updateLoginHeaderToLogout();
-			console.log("websocket");
-			connectWebSocket();
-			console.log("websocket");
-			renderHeader();
-			navigateTo("/home");
-		} 
+			if (data) {
+				localStorage.setItem("access_token", data.access_token);
+				localStorage.setItem("refresh_token", data.refresh_token);
+				console.log("updateLoginHeaderToLogout");
+				updateLoginHeaderToLogout();
+				console.log("websocket");
+				connectWebSocket();
+				console.log("websocket");
+				renderHeader();
+				navigateTo("/home");
+			} 
 		else {
-			console.log("The value of data is: ", data);
-			console.log("Login error!");
+			const errorDisplay = document.getElementById("error-message");
+			errorDisplay.textContent = "❌ Invalid username or password.";
 		}
-	} catch (error) {
+	} 
+	catch (error) {
 		console.log("Network error. Try again!");
 	}
 }
