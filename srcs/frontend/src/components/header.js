@@ -1,11 +1,11 @@
-import navigateTo from "../navigation/navigateTo.js"
-import handleLogout from "../users/logout.js";
+import navigateTo from "../navigation/navigateTo.js";
+import handleLogout from "../users/handleLogout.js";
 
 export default function renderHeader() {
-    const isAuthenticated = localStorage.getItem("access_token") !== null;
+	const isAuthenticated = localStorage.getItem("access_token") !== null;
 
 	const header = document.getElementById("header");
-    header.innerHTML = `
+	header.innerHTML = `
         <nav class="navbar navbar-expand-lg navbar-light bg-body-tertiary" role="navigation">
         <div class="container-fluid">
             <a class="navbar-brand" aria-label="Gonp - Home" id="logoHeaderButton">
@@ -40,27 +40,26 @@ export default function renderHeader() {
     </nav>
     `;
 
-    document.getElementById("logoHeaderButton").addEventListener("click", () => {
-        navigateTo("/home");
-    });
+	document.getElementById("logoHeaderButton").addEventListener("click", () => {
+		navigateTo("/home");
+	});
 	document.getElementById("homeHeaderButton").addEventListener("click", () => {
-        navigateTo("/home");
-    });
+		navigateTo("/home");
+	});
 	document.getElementById("gameHeaderButton").addEventListener("click", () => {
-        navigateTo("/game");
-    });
+		navigateTo("/game");
+	});
 	document.getElementById("settingsHeaderButton").addEventListener("click", () => {
-        navigateTo("/settings");
-    });
+		navigateTo("/settings");
+	});
 	document.getElementById("profileHeaderButton").addEventListener("click", () => {
-        navigateTo("/profile/1");
-    });
-   
+		navigateTo("/profile/1");
+	});
+
 	const authButton = document.getElementById("authHeaderButton");
-    if (isAuthenticated) {
-        authButton.addEventListener("click", handleLogout);
-    } 
-	else {
-        authButton.addEventListener("click", () => navigateTo("/login"));
-    }
+	if (isAuthenticated) {
+		authButton.addEventListener("click", handleLogout);
+	} else {
+		authButton.addEventListener("click", () => navigateTo("/login"));
+	}
 }
