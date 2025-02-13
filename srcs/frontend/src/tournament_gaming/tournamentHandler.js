@@ -59,7 +59,8 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
                         break;
                     
                     case "tournament_bracket":
-                        renderTournamentBracketPage(socket, token, data.data, title, description, tournamentId);
+                        // TODO: Change the 4 value to the numberOfInitalMatches
+                        renderTournamentBracketPage(socket, token, tournamentId, title, description, data.data);
                         break ;
 
                     default:

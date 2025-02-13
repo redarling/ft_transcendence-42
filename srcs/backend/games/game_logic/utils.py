@@ -129,6 +129,14 @@ def get_tournament_participants(tournament_id):
         ]
     except Exception as e:
         return []
+
+def determine_number_of_participants_including_bye(number_of_participants):
+    """
+    Returns the total number of participants including bye (e.g: 3 returns 4, 6 returns 8, ...)
+    :param number_of_participants: integer representing the number of users participating to the tournament
+    :return: an integer representing the number of users participating to the tournament + the number of bye
+    """
+    return 2 ** math.ceil(math.log2(number_of_participants))
     
 def determine_matches_in_round(participants: List[Dict]) -> List[Dict]:
     """
@@ -197,7 +205,7 @@ async def create_tournament_matches(matches, tournament_id, round_number):
                 "player2_avatar": None,
                 "score_player1": None,
                 "score_player2": None,
-                "match_status": "finished",
+                "match_status": "completed",
                 "winner": player1["id"],
                 "started_at": None,
                 "finished_at": None,
@@ -214,29 +222,34 @@ async def create_tournament_matches(matches, tournament_id, round_number):
 
     return created_matches
 
-def generate_bracket(matches, round_number=1):
+def generate_bracket(matches, round_number=1, total_participants_including_bye=4):
     """
     Form the structure of the tournament bracket for the specified round.
 
     :param matches: List of matches created through create_tournament_matches()
     :param round_number: Current round number (default 1)
+    :param number_of_participants: Number of participants (including bye), helping the frontend to build the bracket
     :return: Dictionary with tournament bracket data
     """
     bracket = {
+        "number_of_participants": total_participants_including_bye,
         "round": round_number,
         "matches": []
     }
 
     for match in matches:
         match_entry = {
-            "matchId": match["id"],
+            "match_id": match["id"],
             "player1_id": match["first_player"],
             "player2_id": match["second_player"] if match["second_player"] else None,
-            "player1": match["player1_username"],
-            "player2": match["player2_username"] if match["player2_username"] else "BYE",
+            "player1_username": match["player1_username"],
+            "player1_avatar": match["player1_avatar"],
+            "player2_username": match["player2_username"] if match["player2_username"] else "BYE",
+            "player2_avatar": match["player2_avatar"],
             "status": match["match_status"],
             "winner": None if match["winner"] is None else match["winner"],
-            "score": "0-0"
+            "score_player1": "0",
+            "score_player2": "0"
         }
         bracket["matches"].append(match_entry)
 

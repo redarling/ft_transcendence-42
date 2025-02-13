@@ -29,8 +29,8 @@ services:
       - postgres
       - redis
       - blockchain
-    environment: #mbriand
-      - DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost,backend,nginx
+    # environment: #mbriand
+    #   - DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost,backend,nginx
 
   postgres:
     image: postgres:15.4

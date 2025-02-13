@@ -32,6 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	const accessToken = localStorage.getItem("access_token");
 	if (accessToken)
 		connectWebSocket();
-})
+});
 
 window.addEventListener("popstate", router);

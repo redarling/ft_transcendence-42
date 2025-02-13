@@ -2,7 +2,7 @@ from .channel_handling import (remove_player_from_group, send_group_message,
                                send_error_to_players, add_player_to_group)
 from .utils import (check_players_online_statuses, get_tournament_participants,
                     determine_matches_in_round, create_tournament_matches,
-                    generate_bracket, finish_match, get_round_winners)
+                    generate_bracket, finish_match, get_round_winners, determine_number_of_participants_including_bye)
 from .match_handler import MatchHandler
 from .match_event_queue import MatchEventQueueManager
 from .recovery_key_manager import RecoveryKeyManager
@@ -31,11 +31,12 @@ class TournamentHandler:
         Main loop for the tournament.
         """
         participants = await get_tournament_participants(self.tournament_id)
+        total_participants_including_bye = determine_number_of_participants_including_bye(len(participants))
 
         while len(participants) > 1:
             round_matches = determine_matches_in_round(participants)
             matches = await create_tournament_matches(round_matches, self.tournament_id, self.round_number)
-            current_bracket = generate_bracket(matches, self.round_number)
+            current_bracket = generate_bracket(matches, self.round_number, total_participants_including_bye)
             self.bracket.append(current_bracket)
 
             await send_group_message(self.group_name, {"event": "tournament_bracket", "data": current_bracket})
@@ -213,11 +214,11 @@ class TournamentHandler:
                             winner_username = match_entry["player2"]
                         
                         match_update = {
-                        "matchId": match_id,
-                        "winner": winner_username,
-                        "status": "finished",
-                        "score": score,
-                        "winner_id": winner
+                            "match_id": match_id,
+                            "winner": winner_username,
+                            "status": "finished",
+                            "score": score,
+                            "winner_id": winner
                         }
 
                         await send_group_message(self.group_name, {"event": "match_update", "data": match_update})
