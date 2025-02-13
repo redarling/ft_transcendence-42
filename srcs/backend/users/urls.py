@@ -18,8 +18,8 @@ urlpatterns = [
     path('friends/<int:user_id>/', FriendListAPIView.as_view(), name='friends-list'),
     path('friendship/', FriendshipAPIView.as_view(), name='friendship'),
     path('friendship-requests/', FriendRequestsAPIView.as_view(), name='friend-requests'),
-    path('2fa/activate/', TwoFA_ActivateAPIView.as_view(), name='2fa-activate'),
-    path('2fa/deactivate/', TwoFA_DeactivateAPIView.as_view(), name='2fa-deactivate'),
+    path('2fa/setup/', TwoFA_ActivateAPIView.as_view(), name='2fa-activate'),
+    path('2fa/remove/', TwoFA_DeactivateAPIView.as_view(), name='2fa-deactivate'),
     path('2fa/verify/', TwoFA_VerifyAPIView.as_view(), name='2fa-verify'),
-    path('2fa/verify-deactivate/', TwoFA_VerifyDeactivateAPIView.as_view(), name='2fa-verify-deactivate'),
+    path('2fa/verify-remove/', TwoFA_VerifyDeactivateAPIView.as_view(), name='2fa-verify-deactivate'),
 ]

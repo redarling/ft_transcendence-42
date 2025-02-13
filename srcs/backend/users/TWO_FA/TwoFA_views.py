@@ -21,7 +21,7 @@ class TwoFA_ActivateAPIView(APIView):
             user = request.user
             
             if user.is_2fa_enabled:
-                return Response({"message": "2FA is already enabled"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "2FA is already enabled"}, status=status.HTTP_400_BAD_REQUEST)
             
             if method == "totp":
                 if not user.otp_secret:
