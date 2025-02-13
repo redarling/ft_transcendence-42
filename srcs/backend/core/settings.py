@@ -1,15 +1,17 @@
 from pathlib import Path
-from datetime import timedelta
 import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
-
+TWOFA_EMAIL = os.getenv('TWOFA_EMAIL')
+TWOFA_EMAIL_PASSWORD = os.getenv('TWOFA_EMAIL_PASSWORD')
+TWOFA_SERVER = os.getenv("TWOFA_SERVER")
+TWOFA_SERVER_PORT = int(os.getenv("TWOFA_SERVER_PORT"))
+TWOFA_BOT = os.getenv("TWOFA_BOT")
+TWOFA_BOT_URL = os.getenv("TWOFA_BOT_URL")
 WEBSOCKET_API_TOKEN = os.getenv('WEBSOCKET_API_TOKEN')
-
-DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True' # change to False upon project finalization
-
+DEBUG = os.getenv('DJANGO_DEBUG')
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "transcendence-pong").split(",")
 
 TEMPLATES = [

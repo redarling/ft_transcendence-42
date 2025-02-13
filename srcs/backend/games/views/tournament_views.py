@@ -1,5 +1,4 @@
 from django.db import IntegrityError
-from rest_framework.exceptions import NotFound
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404

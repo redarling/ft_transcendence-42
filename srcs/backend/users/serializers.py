@@ -101,4 +101,8 @@ class FriendSerializer(serializers.ModelSerializer):
         model = Friend
         fields = ['friend']
 
+class TwoFactorActivationSerializer(serializers.Serializer):
+    method = serializers.ChoiceField(choices=[('totp', 'TOTP'), ('sms', 'SMS'), ('email', 'Email')])
+    chat_id = serializers.CharField(required=False, allow_blank=True)
+
 

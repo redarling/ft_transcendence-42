@@ -4,6 +4,8 @@ from .views import UserRegistrationAPIView, UserLoginAPIView, \
     UserStatsAPIView, FriendshipAPIView, FriendListAPIView, \
     UserSearchAPIView, UserTokenRefreshAPIView, FriendRequestsAPIView
 
+from .TWO_FA.TwoFA_views import TwoFA_ActivateAPIView, TwoFA_DeactivateAPIView, TwoFA_VerifyAPIView, TwoFA_VerifyDeactivateAPIView
+
 urlpatterns = [
     path('register/', UserRegistrationAPIView.as_view(), name='register'),
     path('login/', UserLoginAPIView.as_view(), name='login'),
@@ -16,4 +18,8 @@ urlpatterns = [
     path('friends/<int:user_id>/', FriendListAPIView.as_view(), name='friends-list'),
     path('friendship/', FriendshipAPIView.as_view(), name='friendship'),
     path('friendship-requests/', FriendRequestsAPIView.as_view(), name='friend-requests'),
+    path('2fa/activate/', TwoFA_ActivateAPIView.as_view(), name='2fa-activate'),
+    path('2fa/deactivate/', TwoFA_DeactivateAPIView.as_view(), name='2fa-deactivate'),
+    path('2fa/verify/', TwoFA_VerifyAPIView.as_view(), name='2fa-verify'),
+    path('2fa/verify-deactivate/', TwoFA_VerifyDeactivateAPIView.as_view(), name='2fa-verify-deactivate'),
 ]

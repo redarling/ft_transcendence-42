@@ -16,4 +16,7 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py makemigrations --noinput && python manage.py migrate && daphne -b backend -p 8000 core.asgi:application"]
+CMD ["sh", "-c", "python manage.py makemigrations --noinput && \
+                    python manage.py migrate && \
+                    (python core/telegram_bot.py &) && \
+                    daphne -b backend -p 8000 core.asgi:application"]

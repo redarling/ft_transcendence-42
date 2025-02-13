@@ -1,4 +1,3 @@
-from django.utils.timezone import now
 from urllib.parse import parse_qs
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from django.contrib.auth.models import AnonymousUser

@@ -2,6 +2,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from .redis_manager import UserActivityRedisManager
+from .TWO_FA.code_manager import save_2fa_code
 
 class UserManager(BaseUserManager):
     def create_user(self, username, email, password, **extra_fields):
@@ -23,6 +24,16 @@ class User(AbstractUser):
     avatar = models.URLField(null=True, blank=True)
     password = models.CharField(max_length=128, default='default_password', null=False)
     active_session_id = models.CharField(max_length=128, null=True, blank=True)
+    
+    # 2FA:
+    twofa_method = models.CharField(
+        max_length=5,
+        choices=[('None', 'None'), ('totp', 'TOTP'), ('sms', 'SMS'), ('email', 'Email')],
+        default='None')
+    
+    is_2fa_enabled = models.BooleanField(default=False)
+    otp_secret = models.CharField(max_length=32, blank=True, null=True)
+    chat_id = models.CharField(max_length=15, blank=True, null=True)
     
     groups = models.ManyToManyField(
         'auth.Group',
@@ -65,6 +76,9 @@ class User(AbstractUser):
     
     def check_last_activity_key(self):
         return UserActivityRedisManager.is_active(self.id)
+
+    def save_code(self, code):
+        save_2fa_code(self.id, code)
 
 class UserStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='stats')
