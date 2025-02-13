@@ -21,7 +21,9 @@ export default async function handleRegister(event) {
 			navigateTo('/login');
 		} 
 		else {
-			alert(data.detail || "Registration failed!");
+			const errorDisplay = document.getElementById("error-message");
+			errorDisplay.textContent = "❌ username or email already taken.";
+			// alert(data.detail || "Registration failed!");
 		}
 	} 
 	catch (error) {

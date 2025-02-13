@@ -15,11 +15,13 @@ export default function renderRegister() {
                     <button type="submit" class="btn btn-success w-100">Register</button>
                 </form>
                 <p class="mt-3">
-                    <a id="goToLogin" class="link-like" style="color: grey; cursor: pointer;">Already have an account? Login</a>
+				<a id="goToLogin" class="link-like" style="color: grey; cursor: pointer;">Already have an account? Login</a>
                 </p>
-            </div>
-        </div>
-    `;
-	document.getElementById("goToLogin").addEventListener("click", () => navigateTo("/login"));
-    document.getElementById("registerForm").addEventListener("submit", handleRegister);
-}
+				</div>
+				</div>
+				`;
+				document.getElementById("goToLogin").addEventListener("click", () => navigateTo("/login"));
+				document.getElementById("registerForm").addEventListener("submit", handleRegister);
+			}
+			
+			// <p id="error-message" class="text-danger mt-3"></p>	
