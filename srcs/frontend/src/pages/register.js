@@ -24,4 +24,3 @@ export default function renderRegister() {
 				document.getElementById("registerForm").addEventListener("submit", handleRegister);
 			}
 			
-			// <p id="error-message" class="text-danger mt-3"></p>	

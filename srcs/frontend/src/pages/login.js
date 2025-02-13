@@ -13,7 +13,6 @@ export default function renderLogin() {
                 <input type="password" id="password" class="form-control mb-2" placeholder="Password" required>
                 <button type="submit" class="btn btn-success w-100">Login</button>
             </form>
-			<p id="error-message" class="text-danger mt-3"></p>	
             <p class="mt-3">
 			<a id="goToRegister" class="link-like" style="color: grey; cursor: pointer;">Not registered?</a>
             </p>
@@ -22,5 +21,4 @@ export default function renderLogin() {
 			
 			document.getElementById("goToRegister").addEventListener("click", () => navigateTo("/register"));
 			document.getElementById("loginForm").addEventListener("submit", handleLogin);
-		}
-		
+}

@@ -48,8 +48,7 @@ export default async function handleLogin(event) {
 				navigateTo("/home");
 			} 
 		else {
-			const errorDisplay = document.getElementById("error-message");
-			errorDisplay.textContent = "❌ Invalid username or password.";
+			alert("Incorrect username or password.");
 		}
 	} 
 	catch (error) {

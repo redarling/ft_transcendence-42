@@ -14,16 +14,12 @@ export default async function handleRegister(event) {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ username, email, password }),
 		});
-		
-		const data = await response.json();
 
 		if (response.ok) {
 			navigateTo('/login');
 		} 
 		else {
-			const errorDisplay = document.getElementById("error-message");
-			errorDisplay.textContent = "❌ username or email already taken.";
-			// alert(data.detail || "Registration failed!");
+			alert("Error: Username or email already taken.");
 		}
 	} 
 	catch (error) {
