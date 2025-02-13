@@ -1,71 +1,5 @@
 import { renderErrorPage, renderMatch } from '../../online_gaming/renderPages.js';
 
-// bracket = {
-//     "matches": [
-//         {
-//             "matchId": 1,
-//             "player1": "user1", 
-//             "player1alias" : "user1alias", 
-//             "player1pp" : "./pp.jpg", 
-//             "player2": "user2", 
-//             "player2alias" : "user2alias", 
-//             "player2pp" : "./pp.jpg", 
-//             "status": "completed",
-//             "winner": "player2",
-//             "scorePlayer1": "9", 
-//             "scorePlayer2": "11"
-//         },
-
-//         {
-//             "matchId": 2,
-//             "player1": "user3",
-//             "player1alias" : "user3alias",
-//             "player1pp" : "./pp.jpg",
-//             "player2": "user4",
-//             "player2alias" : "user4alias",
-//             "player2pp" : "./pp.jpg",
-//             "status": "pending",
-//             "winner": "None",
-//             "scorePlayer1": "0",
-//             "scorePlayer2": "0"
-//         },
-
-//         {
-//             "matchId": 3,
-//             "player1": "user5",
-//             "player1alias" : "user5alias",
-//             "player1pp" : "./pp.jpg",
-//             "player2": "user6",
-//             "player2alias" : "user6alias",
-//             "player2pp" : "./pp.jpg",
-//             "status": "in_progress",
-//             "winner": "None",
-//             "scorePlayer1": "8",
-//             "scorePlayer2": "4"
-//         },
-
-//         {
-//             "matchId": 4,
-//             "player1": "user7",
-//             "player1alias" : "user7alias",
-//             "player1pp" : "./pp.jpg",
-//             "player2": "user8",
-//             "player2alias" : "user8alias",
-//             "player2pp" : "./pp.jpg",
-//             "status": "completed",
-//             "winner": "player1",
-//             "scorePlayer1": "11",
-//             "scorePlayer2": "2"
-//         }
-
-//     ]
-// }
-
-// // Placeholders
-// const title = "Title";
-// const description = "Description";
-// const numberOfInitialMatches = 4; // Should be 4 8 16 32 64 128 ... handled by the backend
-
 export default async function renderTournamentBracketPage(socket, token, tournamentId, title, description, bracket)
 {
     let playerId = null;
@@ -112,6 +46,7 @@ export default async function renderTournamentBracketPage(socket, token, tournam
     });
 }
 
+// Ready pop up when a match is ready to be played
 function showReadyPopup(socket, matchId) {
     let readyUpButton = document.getElementById("readyUpButton");
     let readyUpModal = new bootstrap.Modal(document.getElementById('readyUpModal'));
@@ -122,6 +57,7 @@ function showReadyPopup(socket, matchId) {
     });
 }
 
+// Annimation showing the winner of the tournament
 function showTournamentWinner(winner, numberOfParticipants) {
     const lastMatchCard = document.getElementById(`match-card${numberOfParticipants - 2}`);
     lastMatchCard.classList.add("final-win");
@@ -130,6 +66,7 @@ function showTournamentWinner(winner, numberOfParticipants) {
     }, 500);
 }
 
+// Round infos at the top the bracket
 function createRoundHeader(roundIndex, numberOfMatches) {
     const matchHeader = document.createElement("div");
     matchHeader.classList.add("col-auto");
@@ -145,6 +82,7 @@ function createRoundHeader(roundIndex, numberOfMatches) {
     return matchHeader;
 }
 
+// Page header (title + description) at the top of the page
 function renderTournamentPageHeader(title, description) {
     const header = document.getElementById("header");
     header.innerHTML = `
@@ -157,6 +95,7 @@ function renderTournamentPageHeader(title, description) {
     `;
 }
 
+// Create all matches card creating the bracket
 let matchIndex = 0;
 function createMatchCard() {
     const matchElement = document.createElement("div");
