@@ -222,15 +222,18 @@ async def create_tournament_matches(matches, tournament_id, round_number):
 
     return created_matches
 
-def generate_bracket(matches, round_number=1, total_participants_including_bye=4):
+def generate_bracket(matches, round_number=1, participants=None):
     """
     Form the structure of the tournament bracket for the specified round.
 
     :param matches: List of matches created through create_tournament_matches()
     :param round_number: Current round number (default 1)
-    :param number_of_participants: Number of participants (including bye), helping the frontend to build the bracket
+    :param participants: List of all participants (userId, )
     :return: Dictionary with tournament bracket data
     """
+
+    total_participants_including_bye = determine_number_of_participants_including_bye(len(participants))
+    
     bracket = {
         "number_of_participants": total_participants_including_bye,
         "round": round_number,
@@ -238,13 +241,29 @@ def generate_bracket(matches, round_number=1, total_participants_including_bye=4
     }
 
     for match in matches:
+
+        # TODO: Have to optimize this part by modifying data structures
+        player1_alias = "BYE"
+        player1_id = match["first_player"]
+        player2_alias = "BYE"
+        player2_id = match["second_player"]
+
+        for participant_entry in participants:
+            if player1_id and participant_entry["id"] == player1_id:
+                player1_alias = participant_entry["alias"]
+            elif player2_id and participant_entry["id"] == player2_id:
+                player2_alias = participant_entry["alias"]
+        # -----
+
         match_entry = {
             "match_id": match["id"],
             "player1_id": match["first_player"],
-            "player2_id": match["second_player"] if match["second_player"] else None,
             "player1_username": match["player1_username"],
+            "player1_alias": player1_alias,
             "player1_avatar": match["player1_avatar"],
+            "player2_id": match["second_player"],
             "player2_username": match["player2_username"] if match["player2_username"] else "BYE",
+            "player2_alias": player2_alias,
             "player2_avatar": match["player2_avatar"],
             "status": match["match_status"],
             "winner": None if match["winner"] is None else match["winner"],

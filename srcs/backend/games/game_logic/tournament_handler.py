@@ -31,12 +31,11 @@ class TournamentHandler:
         Main loop for the tournament.
         """
         participants = await get_tournament_participants(self.tournament_id)
-        total_participants_including_bye = determine_number_of_participants_including_bye(len(participants))
 
         while len(participants) > 1:
             round_matches = determine_matches_in_round(participants)
             matches = await create_tournament_matches(round_matches, self.tournament_id, self.round_number)
-            current_bracket = generate_bracket(matches, self.round_number, total_participants_including_bye)
+            current_bracket = generate_bracket(matches, self.round_number, participants)
             self.bracket.append(current_bracket)
 
             await send_group_message(self.group_name, {"event": "tournament_bracket", "data": current_bracket})
@@ -46,7 +45,7 @@ class TournamentHandler:
             await asyncio.gather(*match_futures)
 
             participants = get_round_winners(self.bracket, self.round_number)
-            
+
             if not participants:
                 logger.error("No winners found for round %s", self.round_number)
                 break
