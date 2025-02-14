@@ -98,7 +98,7 @@ class TwoFA_DeactivateAPIView(APIView):
         
         if user.twofa_method == "sms":
             if send_2fa_code(user):
-                pass
+                return Response({"method": "sms", "message": "2FA ready to deactivate."}, status=status.HTTP_200_OK)
             else:
                 return Response({"error": "Failed to send Telegram message"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
@@ -106,11 +106,12 @@ class TwoFA_DeactivateAPIView(APIView):
             code = str(random.randint(100000, 999999))
             if EmailService.send_email(user.email, "2FA Verification Code", f"Your verification code: {code}"):
                 save_2fa_code(user.id, code)
+                return Response({"method": "email", "message": "2FA ready to deactivate."}, status=status.HTTP_200_OK)
             else:
                 delete_2fa_code(user.id)
                 return Response({"error": "Failed to send email"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        return Response({"message": "2FA ready to deactivate."}, status=status.HTTP_200_OK)
+        return Response({"method": "totp", "message": "2FA ready to deactivate."}, status=status.HTTP_200_OK)
     
 class TwoFA_VerifyDeactivateAPIView(APIView):
     def post(self, request):

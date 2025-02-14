@@ -52,7 +52,7 @@ export function renderTOTPPage(qr_code, uri)
     });
 
     document.getElementById("home-button").addEventListener("click", () => {
-        renderHome();
+        navigateTo("/home");
     });
 }
 
