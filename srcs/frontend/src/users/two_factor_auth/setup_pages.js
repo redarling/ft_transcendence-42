@@ -1,7 +1,7 @@
 import { showToast } from "../../tournament_gaming/utils.js";
 import showLoadingSpinner from "./utils.js";
 import navigateTo from "../../navigation/navigateTo.js";
-import TwoFASetup from "./TwoFa_setup.js";
+import TwoFASetup from "./two_factor_setup.js";
 
 export function renderTOTPPage(qr_code, uri)
 {
