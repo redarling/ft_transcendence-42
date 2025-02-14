@@ -7,8 +7,8 @@ import renderUserProfile from "../pages/profile.js"
 import renderTournaments from "../pages/tournaments/tournaments.js";
 import render404 from "../pages/utils/404.js";
 import { getTokenFromUser, checkActiveMatch, connectToWebSocket } from "../online_gaming/recoverySystem.js";
-import TwoFASetup from "../users/TWOFA/TwoFA_setup.js";
-import TwoFARemove from "../users/TWOFA/TwoFA_remove.js";
+import TwoFASetup from "../users/TWOFA/TwoFa_setup.js";
+import TwoFARemove from "../users/TWOFA/TwoFa_remove.js";
 import navigateTo from "./navigateTo.js";
 
 export default async function router() {

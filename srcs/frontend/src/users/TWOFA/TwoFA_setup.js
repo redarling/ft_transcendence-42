@@ -1,9 +1,10 @@
 import { showToast } from "../../tournament_gaming/utils.js";
+import showLoadingSpinner from "./utils.js";
+import { renderTOTPPage, renderWaitingCodePage } from "./setup_pages.js";
 
 export default async function TwoFASetup()
 {
-    let   token = prompt("Please enter your JWT token:", "");
-
+    let  token = prompt("Please enter your JWT token:", "");
     const main = document.getElementById("main");
     let selectedType = null;
 
@@ -92,8 +93,6 @@ function createPayload(type)
 
 async function handleTwoFASetup(payload, token)
 {
-    //const accessToken = localStorage.getItem("access_token");
-    
     if (!payload)
     {
         showToast("Invalid 2FA setup method.", "error");
@@ -106,17 +105,18 @@ async function handleTwoFASetup(payload, token)
         return;
     }
 
-    console.log("2FA setup payload:", payload);
-
     try
     {
-        const response = await fetch("/api/users/2fa/setup/", {
+        showLoadingSpinner(true);
+
+        const url = `/api/users/2fa/setup/`;
+        const response = await fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`
+                Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
         });
 
         const result = await response.json();
@@ -124,9 +124,15 @@ async function handleTwoFASetup(payload, token)
         if (response.ok)
         {
             if (payload.method === "sms")
+            {
+                showLoadingSpinner(false);
                 renderWaitingCodePage("Telegram");
+            }
             else if (payload.method === "email")
+            {
+                showLoadingSpinner(false);
                 renderWaitingCodePage("email");
+            }
             else
                 renderTOTPPage(result.qr_code, result.uri);
         }
@@ -141,83 +147,8 @@ async function handleTwoFASetup(payload, token)
         console.error("Network error during 2FA setup:", error);
         showToast("An error occurred during the 2FA setup. Please try again later.", "error");
     }
-}
-
-async function renderWaitingCodePage(method)
-{
-    const main = document.getElementById("main");
-    main.innerHTML = `
-        <div class="container" style="padding-top: 50px; max-width: 600px; margin: 0 auto;">
-            <h1 class="text-center">Two-Factor Authentication Setup Verification</h1>
-            <p class="text-muted text-center">Please check your ${method} for the verification code.</p>
-            <input type="text" id="verification-code" class="form-control" placeholder="Enter the verification code" maxlength="6" pattern="\\d{6}">
-            <button id="submit-button" class="btn btn-success w-100 mt-3" disabled>Submit</button>
-            <button id="back-button" class="btn btn-secondary w-100 mt-3">Back</button>
-            <p class="text-muted text-center">*The verification code is valid for 15 minutes.</p>
-            <p class="text-muted text-center">*Your 2FA setup will be valid after successful verification.</p>
-        </div>
-    `;
-
-    const submitButton = document.getElementById("submit-button");
-    const verificationCodeInput = document.getElementById("verification-code");
-    const backButton = document.getElementById("back-button");
-
-    verificationCodeInput.addEventListener("input", () => {
-        verificationCodeInput.value = verificationCodeInput.value.replace(/\D/g, "").slice(0, 6);
-        submitButton.disabled = verificationCodeInput.value.length !== 6;
-    });
-
-    submitButton.addEventListener("click", async () => {
-        const verificationCode = verificationCodeInput.value;
-        await handleVerificationCode(verificationCode);
-    });
-
-    backButton.addEventListener("click", () => {
-        window.history.back();
-    });
-}
-
-async function handleVerificationCode(verificationCode)
-{
-    const token = localStorage.getItem("access_token");
-    
-    try
+    finally
     {
-        const response = await fetch("/api/users/2fa/verify/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ code: verificationCode })
-        });
-
-        const result = await response.json();
-
-        if (response.ok)
-            showToast("2FA setup successful!", "success");
-        else
-            showToast(result.error || result.detail || "Verification failed. Please try again.", "error");
+        showLoadingSpinner(false);
     }
-    catch (error)
-    {
-        console.error("Verification error:", error);
-        showToast("An error occurred while verifying the code. Please try again.", "error");
-    }
-}
-
-function renderTOTPPage(qr_code, uri)
-{
-    const main = document.getElementById("main");
-    main.innerHTML = `
-        <div class="container" style="padding-top: 50px; max-width: 600px; margin: 0 auto;">
-            <h1 class="text-center">Two-Factor Authentication (TOTP) Setup</h1>
-            <p class="text-muted text-center">Scan the QR code below with your authenticator app to set up 2FA:</p>
-            <div class="text-center">
-                <img src="${qr_code}" alt="QR Code" />
-            </div>
-            <p class="text-muted text-center">Save your recovery code and secret key for future use.</p>
-            <p class="text-muted text-center">Use the authenticator app to generate codes for login.</p>
-        </div>
-    `;
 }

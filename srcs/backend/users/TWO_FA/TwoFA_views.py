@@ -97,11 +97,9 @@ class TwoFA_DeactivateAPIView(APIView):
             return Response({"message": "2FA is already disabled."}, status=status.HTTP_400_BAD_REQUEST)
         
         if user.twofa_method == "sms":
-            code = str(random.randint(100000, 999999))
             if send_2fa_code(user):
-                save_2fa_code(user.id, code)
+                pass
             else:
-                delete_2fa_code(user.id)
                 return Response({"error": "Failed to send Telegram message"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         if user.twofa_method == "email":
@@ -144,7 +142,7 @@ class TwoFA_VerifyDeactivateAPIView(APIView):
             user.twofa_method = "None"
             delete_2fa_code(user.id)
             user.save()
-            return Response({"message": "2FA has been enabled."}, status=status.HTTP_200_OK)
+            return Response({"message": "2FA has been deactivated."}, status=status.HTTP_200_OK)
 
         return Response({"error": "Invalid verification code."}, status=status.HTTP_400_BAD_REQUEST)
 
