@@ -1,33 +1,5 @@
 import navigateTo from "../navigation/navigateTo.js"
-
-async function handleRegister(event) {
-	console.log("- start: handleRegister()")
-    event.preventDefault();
-
-    const username = document.getElementById("username").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-	
-    try {
-		const response = await fetch('/api/users/register/', {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ username, email, password }),
-		});
-		
-        const data = await response.json();
-
-		if (response.ok) {
-			navigateTo('/login');
-		} 
-		else {
-            alert(data.detail || "Registration failed!");
-        }
-    } 
-	catch (error) {
-        alert("Network error. Try again!");
-    }
-}
+import handleRegister from "../users/handleRegister.js";
 
 export default function renderRegister() {
 	console.log("- start: renderRegister()")
@@ -43,11 +15,12 @@ export default function renderRegister() {
                     <button type="submit" class="btn btn-success w-100">Register</button>
                 </form>
                 <p class="mt-3">
-                    <a id="goToLogin" class="link-like" style="color: grey; cursor: pointer;">Already have an account? Login</a>
+				<a id="goToLogin" class="link-like" style="color: grey; cursor: pointer;">Already have an account? Login</a>
                 </p>
-            </div>
-        </div>
-    `;
-	document.getElementById("goToLogin").addEventListener("click", () => navigateTo("/login"));
-    document.getElementById("registerForm").addEventListener("submit", handleRegister);
-}
+				</div>
+				</div>
+				`;
+				document.getElementById("goToLogin").addEventListener("click", () => navigateTo("/login"));
+				document.getElementById("registerForm").addEventListener("submit", handleRegister);
+			}
+			

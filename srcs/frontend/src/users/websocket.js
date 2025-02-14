@@ -11,7 +11,7 @@ export default function connectWebSocket() {
     }
 
     // 🔹 Establish WebSocket connection with token authentication
-    socket = new WebSocket(`wss://127.0.0.1:7443/ws/status/?token=${accessToken}`);
+    socket = new WebSocket(`wss://transcendence-pong:7443/ws/status/?token=${accessToken}`);
 
     socket.onopen = () => {
         // console.log("✅ WebSocket Connected!");
