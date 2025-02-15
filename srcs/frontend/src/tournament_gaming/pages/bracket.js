@@ -1,15 +1,15 @@
 import { renderErrorPage, renderMatch } from '../../online_gaming/renderPages.js';
 
-export default async function renderTournamentBracketPage(socket, token, tournamentId, title, description, bracket)
+export default async function renderTournamentBracketPage(socket, token, tournamentId, title, description, data)
 {
     let playerId = null;
-    const numberOfParticipants = bracket.number_of_participants;
 
-    const totalRounds = Math.log2(numberOfParticipants);
+    const numberOfParticipants = data["total_participants_including_bye"];
     console.log("Number of participants: ", numberOfParticipants);
+    const totalRounds = Math.log2(numberOfParticipants);
 
     renderTournamentBracket(title, description, numberOfParticipants / 2, totalRounds);
-    fillBracketInfos(bracket);
+    fillBracketInfos(data["bracket"]);
 
     socket.addEventListener("message", (event) => {
         const data = JSON.parse(event.data);
@@ -18,7 +18,7 @@ export default async function renderTournamentBracketPage(socket, token, tournam
                 updateMatchCard(data.data);
                 break;
             case "tournament_bracket":
-                fillBracketInfos(data.data);
+                fillBracketInfos(data.data["bracket"]);
                 break;
             case "tournament_end":
                 showTournamentWinner(data.data.winner, numberOfParticipants);
@@ -96,10 +96,10 @@ function renderTournamentPageHeader(title, description) {
 }
 
 // Create all matches card creating the bracket
-let matchIndex = 0;
+let matchCardIndex = 0;
 function createMatchCard() {
     const matchElement = document.createElement("div");
-    matchElement.setAttribute("id", `match-card${matchIndex}`);
+    matchElement.setAttribute("id", `match-card${matchCardIndex}`);
     matchElement.classList.add("match-card");
 
     matchElement.innerHTML = `
@@ -107,23 +107,23 @@ function createMatchCard() {
             <div class="col d-flex flex-column justify-content-evenly">
                 <div class="row d-flex align-items-center justify-content-between p-2 flex-nowrap">
                     <div class="d-flex align-items-center col-auto">
-                        <img id="pp-player1-match${matchIndex}" src="/src/assets/images/placeholders/bye_avatar_placeholder.png" class="img-fluid profilePictureMatchInfo me-2">
-                        <div id="alias-player1-match${matchIndex}" class="player" style="margin-right: 8px;">TBD</div>
-                        <div id="nickname-player1-match${matchIndex}" class="player">(TBD)</div>
+                        <img id="pp-player1-match${matchCardIndex}" src="/src/assets/images/placeholders/bye_avatar_placeholder.png" class="img-fluid profilePictureMatchInfo me-2">
+                        <div id="alias-player1-match${matchCardIndex}" class="player" style="margin-right: 8px;">TBD</div>
+                        <div id="nickname-player1-match${matchCardIndex}" class="player">(TBD)</div>
                     </div>
                     <div class="col-auto text-end">
-                        <div id="score-player1-match${matchIndex}" class="score">0</div>
+                        <div id="score-player1-match${matchCardIndex}" class="score">0</div>
                     </div>
                 </div>
                 <hr class="hr text-grey" />
                 <div class="row d-flex align-items-center justify-content-between p-2">
                     <div class="d-flex align-items-center col-auto">
-                        <img id="pp-player2-match${matchIndex}" src="/src/assets/images/placeholders/bye_avatar_placeholder.png" class="img-fluid profilePictureMatchInfo me-2">
-                        <div id="alias-player2-match${matchIndex}" class="player" style="margin-right: 8px;">TBD</div>
-                        <div id="nickname-player2-match${matchIndex}" class="player">(TBD)</div>
+                        <img id="pp-player2-match${matchCardIndex}" src="/src/assets/images/placeholders/bye_avatar_placeholder.png" class="img-fluid profilePictureMatchInfo me-2">
+                        <div id="alias-player2-match${matchCardIndex}" class="player" style="margin-right: 8px;">TBD</div>
+                        <div id="nickname-player2-match${matchCardIndex}" class="player">(TBD)</div>
                     </div>
                     <div class="col-auto text-end">
-                        <div id="score-player2-match${matchIndex}" class="score">0</div>
+                        <div id="score-player2-match${matchCardIndex}" class="score">0</div>
                     </div>
                 </div>
             </div>
@@ -142,7 +142,7 @@ function createMatchCard() {
           </div>
         </div>
     `;
-    matchIndex++;
+    matchCardIndex++;
     return matchElement;
 }
 
@@ -168,6 +168,8 @@ function renderRoundColumns(numberOfInitialMatches, totalRounds) {
     const matchesRow = document.createElement("div");
     matchesRow.classList.add("row", "d-flex", "flex-nowrap");
 
+    matchCardIndex = 0;
+    
     for (let i = 0; i < totalRounds; ++i) {
 
         const roundHeader = createRoundHeader(i + 1, numberOfMatchesByRound);
@@ -197,82 +199,57 @@ function renderTournamentBracket(title, description, numberOfInitialMatches, tot
 }
 
 function updateMatchCard(matchInfos) {
-    let matchIndex = -1;
-    for (let i = 0; i < bracket.matches.length; ++i) {
-        if (bracket.matches[i]["match_id"] === matchInfos["match_id"]) {
-            matchIndex = i;
-            break;
-        }
-    }
-    if (matchIndex === -1) {
-        console.error("Failed to retreive the match index based on the match id.");
-        return;
-    }
+    const bracketIdx = matchInfos["bracket_index"];
 
-    const matchCard = document.getElementById(`match-card${matchIndex}`);
+    const matchCardPlayer1pp = document.getElementById(`pp-player1-match${bracketIdx}`);
+    const matchCardPlayer1Alias = document.getElementById(`alias-player1-match${bracketIdx}`);
+    const matchCardPlayer1Nickname = document.getElementById(`nickname-player1-match${bracketIdx}`);
+    const matchCardPlayer1Score = document.getElementById(`score-player1-match${bracketIdx}`);
+
+    const matchCardPlayer2pp = document.getElementById(`pp-player2-match${bracketIdx}`);
+    const matchCardPlayer2Alias = document.getElementById(`alias-player2-match${bracketIdx}`);
+    const matchCardPlayer2Nickname = document.getElementById(`nickname-player2-match${bracketIdx}`);
+    const matchCardPlayer2Score = document.getElementById(`score-player2-match${bracketIdx}`);
+
+    // Fill basic card infos
+    matchCardPlayer1pp.setAttribute("src", (matchInfos["player1_avatar"] ? matchInfos["player1_avatar"] : "/src/assets/images/placeholders/bye_avatar_placeholder.png"));
+    matchCardPlayer1Alias.innerHTML = matchInfos["player1_alias"];
+    matchCardPlayer1Nickname.innerHTML = "(" + matchInfos["player1_username"] + ")";
+    matchCardPlayer1Score.innerHTML = matchInfos["score_player1"];
+
+    matchCardPlayer2pp.setAttribute("src", (matchInfos["player2_avatar"] ? matchInfos["player2_avatar"] : "/src/assets/images/placeholders/bye_avatar_placeholder.png"));
+    matchCardPlayer2Alias.innerHTML = matchInfos["player2_alias"];
+    matchCardPlayer2Nickname.innerHTML = "(" + matchInfos["player2_username"] + ")";
+    matchCardPlayer2Score.innerHTML = matchInfos["score_player2"];
+
+    // Customize style depending on status
+    const matchCard = document.getElementById(`match-card${bracketIdx}`);
     if (matchInfos["status"] === "in_progress") {
         matchCard.classList.add("in-progress");
     } else if (matchInfos["status"] === "completed") {
         matchCard.classList.add("completed");
 
-        const matchCardPlayer1Alias = document.getElementById(`alias-player1-match${i}`);
-        const matchCardPlayer2Alias = document.getElementById(`alias-player2-match${i}`);
+        const winnerId = matchInfos["winner"];
+        const player1Id = matchInfos["player1_id"];
+        const player2Id = matchInfos["player2_id"];
 
-        const winner_id = bracket.matches[i]["winner"];
-        const player1_id = bracket.matches[i]["player1_id"];
-        const player2_id = bracket.matches[i]["player2_id"];
-
-        if (winner_id === player1_id) {
-            matchCardPlayer1Alias.classList.add("winner");
-            matchCardPlayer2Alias.classList.add("loser");
-        } else if (winner_id === player2_id) {
-            matchCardPlayer2Alias.classList.add("winner");
-            matchCardPlayer1Alias.classList.add("loser");
-        }
-    }
-
-}
-
-function fillBracketInfos(bracket) {
-    for (let i = 0; i < bracket.matches.length; ++i) {
-
-        const matchCardPlayer1pp = document.getElementById(`pp-player1-match${i}`);
-        const matchCardPlayer1Nickname = document.getElementById(`nickname-player1-match${i}`);
-        const matchCardPlayer1Alias = document.getElementById(`alias-player1-match${i}`);
-        const matchCardPlayer1Score = document.getElementById(`score-player1-match${i}`);
-        const matchCardPlayer2pp = document.getElementById(`pp-player2-match${i}`);
-        const matchCardPlayer2Nickname = document.getElementById(`nickname-player2-match${i}`);
-        const matchCardPlayer2Alias = document.getElementById(`alias-player2-match${i}`);
-        const matchCardPlayer2Score = document.getElementById(`score-player2-match${i}`);
-
-        const matchCard = document.getElementById(`match-card${i}`);
-        if (bracket.matches[i]["status"] === "in_progress") {
-            matchCard.classList.add("in-progress");
-        } else if (bracket.matches[i]["status"] === "completed") {
-            matchCard.classList.add("completed");
-            const matchCardPlayer1Alias = document.getElementById(`alias-player1-match${i}`);
-            const matchCardPlayer2Alias = document.getElementById(`alias-player2-match${i}`);
-
-            const winner_id = bracket.matches[i]["winner"];
-            const player1_id = bracket.matches[i]["player1_id"];
-            const player2_id = bracket.matches[i]["player2_id"];
-
-            if (winner_id === player1_id) {
+        if (winnerId) {
+            if (winnerId === player1Id) {
                 matchCardPlayer1Alias.classList.add("winner");
                 matchCardPlayer2Alias.classList.add("loser");
-            } else if (winner_id === player2_id) {
+            } else if (winnerId === player2Id) {
                 matchCardPlayer2Alias.classList.add("winner");
                 matchCardPlayer1Alias.classList.add("loser");
             }
         }
+    }
+}
 
-        matchCardPlayer1pp.setAttribute("src", (bracket.matches[i]["player1_avatar"] ? bracket.matches[i]["player1_avatar"] : "/src/assets/images/placeholders/bye_avatar_placeholder.png"));
-        matchCardPlayer1Nickname.innerHTML = "(" + bracket.matches[i]["player1_username"] + ")";
-        matchCardPlayer1Alias.innerHTML = bracket.matches[i]["player1_alias"];
-        matchCardPlayer1Score.innerHTML = bracket.matches[i]["score_player1"];
-        matchCardPlayer2pp.setAttribute("src", (bracket.matches[i]["player2_avatar"] ? bracket.matches[i]["player2_avatar"] : "/src/assets/images/placeholders/bye_avatar_placeholder.png"));
-        matchCardPlayer2Nickname.innerHTML = "(" + bracket.matches[i]["player2_username"] + ")";
-        matchCardPlayer2Alias.innerHTML = bracket.matches[i]["player2_alias"];
-        matchCardPlayer2Score.innerHTML = bracket.matches[i]["score_player2"];
+function fillBracketInfos(bracket) {
+    for (let roundIdx = 0; roundIdx < bracket.length; ++roundIdx) {
+        let matches = bracket[roundIdx]["matches"];
+        for (let matchIdx = 0; matchIdx < matches.length; ++matchIdx) {
+            updateMatchCard(matches[matchIdx]);
+        }
     }
 }

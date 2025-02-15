@@ -149,10 +149,10 @@ def determine_matches_in_round(participants: List[Dict]) -> List[Dict]:
 
     # Determine the next power of two
     next_power_of_two = 2 ** math.ceil(math.log2(total_players))
-    
+
     # Number of bye-pass players (those who automatically advance to the next round)
     num_byes = next_power_of_two - total_players
-    
+
     # Shuffle participants for random distribution
     random.shuffle(participants)
     
@@ -222,20 +222,17 @@ async def create_tournament_matches(matches, tournament_id, round_number):
 
     return created_matches
 
-def generate_bracket(matches, round_number=1, participants=None):
+def generate_bracket(matches, round_number=1, participants=None, bracket_index=0):
     """
     Form the structure of the tournament bracket for the specified round.
 
     :param matches: List of matches created through create_tournament_matches()
     :param round_number: Current round number (default 1)
-    :param participants: List of all participants (userId, )
+    :param participants: All participants participating in the tournament
     :return: Dictionary with tournament bracket data
     """
 
-    total_participants_including_bye = determine_number_of_participants_including_bye(len(participants))
-    
     bracket = {
-        "number_of_participants": total_participants_including_bye,
         "round": round_number,
         "matches": []
     }
@@ -253,12 +250,13 @@ def generate_bracket(matches, round_number=1, participants=None):
                 player1_alias = participant_entry["alias"]
             elif player2_id and participant_entry["id"] == player2_id:
                 player2_alias = participant_entry["alias"]
-        # -----
+        # -------------------------------------------------------------
 
         match_entry = {
             "match_id": match["id"],
+            "bracket_index": bracket_index,
             "player1_id": match["first_player"],
-            "player1_username": match["player1_username"],
+            "player1_username": match["player1_username"] if match["player1_username"] else "BYE",
             "player1_alias": player1_alias,
             "player1_avatar": match["player1_avatar"],
             "player2_id": match["second_player"],
@@ -271,6 +269,8 @@ def generate_bracket(matches, round_number=1, participants=None):
             "score_player2": "0"
         }
         bracket["matches"].append(match_entry)
+
+        bracket_index += 1
 
     return bracket
 
@@ -309,16 +309,20 @@ def get_round_winners(bracket, round_number):
     for round_entry in bracket:
         if round_entry.get("round") == round_number:
             for match in round_entry.get("matches", []):
-                if match.get("status") == "finished" and match.get("winner") is not None:
+                if match.get("status") == "completed" and match.get("winner") is not None:
                     if match.get("winner") == match.get("player1_id"):
                         winners.append({
                             "id": match.get("player1_id"),
-                            "username": match.get("player1")
+                            "username": match.get("player1_username"),
+                            "alias": match.get("player1_alias"),
+                            "avatar": match.get("player1_avatar")
                         })
                     elif match.get("winner") == match.get("player2_id"):
                         winners.append({
                             "id": match.get("player2_id"),
-                            "username": match.get("player2")
+                            "username": match.get("player2_username"),
+                            "alias": match.get("player2_alias"),
+                            "avatar": match.get("player2_avatar")
                         })
             break
     return winners
