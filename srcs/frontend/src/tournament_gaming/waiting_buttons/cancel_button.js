@@ -1,4 +1,5 @@
-import { showToast, AreYouSureModal } from "../utils.js";
+import { AreYouSureModal } from "../utils.js";
+import showToast from "../../utils/toast.js";
 
 export default async function cancelButton(socket, token, tournamentId)
 {

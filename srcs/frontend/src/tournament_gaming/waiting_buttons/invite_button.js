@@ -1,4 +1,4 @@
-import { showToast } from '../utils.js';
+import showToast from "../../utils/toast.js";
 
 export default async function inviteButton(token, tournamentId)
 {

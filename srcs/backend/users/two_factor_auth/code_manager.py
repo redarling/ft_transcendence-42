@@ -1,4 +1,5 @@
 import redis
+import hashlib
 from django.conf import settings
 
 redis_client = redis.StrictRedis(
@@ -10,12 +11,18 @@ redis_client = redis.StrictRedis(
 
 TWOFA_CODE_TTL = 900
 
+def hash_2fa_code(code):
+    """
+    Hash the code before saving it.
+    """
+    return hashlib.sha256(code.encode()).hexdigest()
+
 def save_2fa_code(user_id, code):
     """
     Save the 2FA code in Redis.
     """
     key = f"2fa_code:{user_id}"
-    redis_client.setex(key, TWOFA_CODE_TTL, code)
+    redis_client.setex(key, TWOFA_CODE_TTL, hash_2fa_code(code))
 
 
 def get_2fa_code(user_id):
@@ -24,7 +31,6 @@ def get_2fa_code(user_id):
     """
     key = f"2fa_code:{user_id}"
     return redis_client.get(key)
-
 
 def delete_2fa_code(user_id):
     """

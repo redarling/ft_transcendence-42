@@ -1,4 +1,5 @@
-import { showToast, AreYouSureModal } from "../utils.js";
+import { AreYouSureModal } from "../utils.js";
+import showToast from "../../utils/toast.js";
 import renderHeader from '../../components/header.js';
 import renderTournaments from '../../pages/tournaments/tournaments.js';
 export default async function leaveButton(socket, token, tournamentId)

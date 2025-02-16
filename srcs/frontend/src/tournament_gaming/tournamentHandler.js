@@ -1,5 +1,5 @@
 import renderTournamentWaintingPage from "./pages/waitingPage.js";
-import { showToast } from './utils.js';
+import showToast from "../utils/spinner.js";
 import renderHeader from '../components/header.js';
 import renderTournaments from '../pages/tournaments/tournaments.js';
 import renderTournamentBracketPage from "./pages/bracket.js";

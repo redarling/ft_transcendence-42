@@ -1,5 +1,5 @@
-import { showToast } from "../../tournament_gaming/utils.js";
-import showLoadingSpinner from "./utils.js";
+import showToast from "../../utils/toast.js";
+import showLoadingSpinner from "../../utils/spinner.js";
 import navigateTo from "../../navigation/navigateTo.js";
 import TwoFASetup from "./two_factor_setup.js";
 
@@ -108,9 +108,8 @@ export async function renderWaitingCodePage(method)
             const value = e.target.value.replace(/\D/g, "");
             e.target.value = value;
 
-            if (value && index < 5) {
-                inputs[index + 1].focus();
-            }
+			if (value && value.length === 1 && index < 5)
+				inputs[index + 1].focus();
 
             checkCodeCompletion();
         });
@@ -161,8 +160,8 @@ async function handleVerificationCode(verificationCode, token)
 
         if (response.ok)
         {
-            showToast("2FA setup successful!", "success");
             navigateTo("/home");
+            showToast("2FA setup successful!", "success");
         }
         else
             showToast(result.error || result.detail || "Verification failed. Please try again.", "error");

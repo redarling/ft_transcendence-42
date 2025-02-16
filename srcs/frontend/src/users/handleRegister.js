@@ -1,6 +1,9 @@
 import navigateTo from "../navigation/navigateTo.js"
+import showToast from "../utils/toast.js";
+import showLoadingSpinner from "../utils/spinner.js";
 
-export default async function handleRegister(event) {
+export default async function handleRegister(event)
+{
 	console.log("- start: handleRegister()")
 	event.preventDefault();
 
@@ -8,21 +11,41 @@ export default async function handleRegister(event) {
 	const email = document.getElementById("email").value;
 	const password = document.getElementById("password").value;
 	
-	try {
+	try
+	{
+		showLoadingSpinner(true);
 		const response = await fetch('/api/users/register/', {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ username, email, password }),
 		});
 
-		if (response.ok) {
+		const result = await response.json();
+
+		if (response.ok)
 			navigateTo('/login');
-		} 
-		else {
-			alert("Error: Username or email already taken.");
-		}
+		else if (result.error || result.detail)
+			showToast(result.error, "error");
+		else if (typeof result === "object")
+			showErrors(errorMessage = Object.values(result).flat().join("\n"));
+		else
+			showToast("An unknown error occurred.", "error");
 	} 
-	catch (error) {
-		alert("Network error. Try again!");
+	catch (error)
+	{
+		showToast("Network error. Try again!", "error");
+		console.error("Registration error:", error);
+	}
+	finally
+	{
+		showLoadingSpinner(false);
 	}
 }
+
+function showErrors(errors)
+{
+    const messages = Object.values(errors).flat();
+    const errorText = messages.join("\n");
+    showToast(errorText, "error");
+}
+
