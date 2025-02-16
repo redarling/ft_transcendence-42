@@ -1,5 +1,6 @@
 import { AreYouSureModal } from "../utils.js";
 import showToast from "../../utils/toast.js";
+import showLoadingSpinner from "../../utils/spinner.js";
 
 export default async function cancelButton(socket, token, tournamentId)
 {
@@ -23,6 +24,7 @@ async function cancelTournament(socket, token, tournamentId)
 {
     try
     {
+        showLoadingSpinner(true);
         const url = `/api/games/tournament/cancel/`;
         const response = await fetch(url, {
             method: 'POST',
@@ -35,23 +37,22 @@ async function cancelTournament(socket, token, tournamentId)
             }),
         });
     
-        let result;
-        try
-        {
-            result = await response.json();
-        }
-        catch
-        {
-            result = { error: 'Unexpected server response' };
-        }
+        const result = await response.json();
         
         if (!response.ok)
-            showToast(result.error, 'error');
+        {
+            const errorMsg = result.error || result.detail || 'No tournaments available.';
+            showToast(errorMsg, 'error');
+        }
         else
             socket.send(JSON.stringify({event: 'tournament_cancelled'}));
     }
     catch (error)
     {
         showToast('An error occurred while canceling the tournament.', 'error');
+    }
+    finally
+    {
+        showLoadingSpinner(false);
     }
 }

@@ -52,6 +52,13 @@
     color: red;
 }
 
+.tournament-item {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
 .tournament-item img.avatar {
     margin-right: 10px;
 }

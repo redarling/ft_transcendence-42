@@ -1,4 +1,5 @@
 import { joinTournamentModal } from './join.js';
+import showLoadingSpinner from '../../utils/spinner.js';
 
 export default async function invitationsList(token)
 {
@@ -43,21 +44,33 @@ function createInvitationsModal()
 
 async function fetchInvitations(token)
 {
-    const url = "https://transcendence-pong:7443/api/games/tournament-invitation-list/";
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-    });
-
-    if (!response.ok)
+    try
     {
-        throw new Error(response.statusText);
+        showLoadingSpinner(true);
+        const response = await fetch('/api/games/tournament-invitation-list/', {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+    
+        const result = await response.json();
+        if (!response.ok)
+        {
+            const errorMsg = result.error || result.detail || 'No invitations available.';
+            throw new Error(errorMsg);
+        }
+        return result;
     }
-
-    return await response.json();
+    catch (error)
+    {
+        throw new Error(error.message || 'Failed to fetch invitations.');
+    }
+    finally
+    {
+        showLoadingSpinner(false);
+    }
 }
 
 function renderInvitations(token, invitations, invitationsList)

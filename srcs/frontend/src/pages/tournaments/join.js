@@ -1,11 +1,13 @@
 import { tournamentHandler } from "../../tournament_gaming/tournamentHandler.js";
+import showLoadingSpinner from '../../utils/spinner.js';
+import showToast from '../../utils/toast.js';
 
 export async function joinTournament(token, tournamentId, tournamentAlias)
 {
-    const url = "https://transcendence-pong:7443/api/games/tournament/join/";
     try
     {
-        const response = await fetch(url, {
+        showLoadingSpinner(true);
+        const response = await fetch('/api/games/tournament/join/', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -14,18 +16,21 @@ export async function joinTournament(token, tournamentId, tournamentAlias)
             body: JSON.stringify({ tournament_id: tournamentId, tournament_alias: tournamentAlias }),
         });
 
+        const result = await response.json();
         if (!response.ok)
         {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || "Failed to join the tournament");
+            const errorMsg = result.error || result.detail || 'Failed to join tournament.';
+            throw new Error(errorMsg);
         }
-
-        const responseData = await response.json();
-        return { success: true, webSocketUrl: responseData.webSocketUrl };
+        return { success: true, webSocketUrl: result.webSocketUrl };
     }
     catch (error)
     {
         return { success: false, message: error.message };
+    }
+    finally
+    {
+        showLoadingSpinner(false);
     }
 }
 
@@ -48,9 +53,10 @@ export async function joinTournamentModal(token, tournamentId)
 
     joinBtn.addEventListener('click', async () => {
         const alias = aliasInput.value.trim();
+        
         if (!alias)
         {
-            alert('Please enter a tournament alias.');
+            showToast("Please enter your tournament alias", "info");
             return;
         }
 
@@ -66,7 +72,7 @@ export async function joinTournamentModal(token, tournamentId)
         }
         catch (error)
         {
-            alert(`Error: ${error.message}`);
+            showToast(error.message, "error");
         }
         finally
         {

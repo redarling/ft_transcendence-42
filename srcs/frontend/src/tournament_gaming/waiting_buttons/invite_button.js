@@ -1,4 +1,5 @@
 import showToast from "../../utils/toast.js";
+import showLoadingSpinner from "../../utils/spinner.js";
 
 export default async function inviteButton(token, tournamentId)
 {
@@ -43,22 +44,32 @@ function friendsListModal()
 
 async function fetchFriendsList(token, tournamentId)
 {
-    const url = `/api/games/friend-list/tournament/invite/?tournament_id=${tournamentId}`;
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-    });
-
-    if (!response.ok)
+    try
     {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch friends list.');
-    }
+        showLoadingSpinner(true);
+        const url = `/api/games/friend-list/tournament/invite/?tournament_id=${tournamentId}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
 
-    return await response.json();
+        const result = await response.json();
+        if (!response.ok)
+            throw new Error(result.error || res|| 'No friends available to invite.');
+
+        return result;
+    }
+    catch (error)
+    {
+        throw new Error(error.message || 'Failed to fetch friends list.');
+    }
+    finally
+    {
+        showLoadingSpinner(false);
+    }
 }
 
 function renderFriendsList(token, friends, friendsList, tournamentId)
@@ -96,6 +107,7 @@ async function inviteFriend(token, friendId, tournamentId)
 {
     try
     {
+        showLoadingSpinner(true);
         const response = await fetch('/api/games/tournament/invite/', {
             method: 'POST',
             headers: {
@@ -108,29 +120,19 @@ async function inviteFriend(token, friendId, tournamentId)
             }),
         });
 
-        let result;
-        try
-        {
-            result = await response.json();
-        }
-        catch
-        {
-            result = { error: 'Unexpected server response' };
-        }
-
-        console.log(result);
+        const result = await response.json();
 
         if (response.ok)
-        {
             showToast(result.message, 'success');
-        }
         else
-        {
             showToast(result.error, 'error');
-        }
     }
     catch (error)
     {
         showToast('An error occurred while sending the invitation.', 'error');
+    }
+    finally
+    {
+        showLoadingSpinner(false);
     }
 }
