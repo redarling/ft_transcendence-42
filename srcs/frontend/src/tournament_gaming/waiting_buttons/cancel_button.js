@@ -20,7 +20,7 @@ export default async function cancelButton(socket, token, tournamentId)
     });
 }
 
-async function cancelTournament(socket, token, tournamentId)
+export async function cancelTournament(socket, token, tournamentId)
 {
     try
     {

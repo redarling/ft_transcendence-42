@@ -5,7 +5,6 @@ export default async function renderTournamentBracketPage(socket, token, tournam
     let playerId = null;
 
     const numberOfParticipants = data["total_participants_including_bye"];
-    console.log("Number of participants: ", numberOfParticipants);
     const totalRounds = Math.log2(numberOfParticipants);
 
     renderTournamentBracket(title, description, numberOfParticipants / 2, totalRounds);
