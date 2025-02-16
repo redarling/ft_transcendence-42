@@ -1,4 +1,6 @@
 import { joinTournamentModal } from './join.js';
+import showLoadingSpinner from '../../utils/spinner.js';
+import showToast from '../../utils/toast.js';
 
 export default async function searchTournament(token)
 {
@@ -64,26 +66,45 @@ function createSearchModal()
 
 async function fetchTournaments(token, title)
 {
-    const url = `https://transcendence-pong:7443/api/games/tournament/search/?title=${encodeURIComponent(title)}`;
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-    });
+    try
+    {
+        showLoadingSpinner(true);
+        const titleEncoded = encodeURIComponent(title);
+        const url = `https://transcendence-pong:7443/api/games/tournament/search/?title=${titleEncoded}`;
 
-    if (!response.ok)
-        throw new Error(response.statusText);
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
 
-    return await response.json();
+        const result = await response.json();
+
+        if (!response.ok)
+        {
+            const errorMsg = result.error || result.detail || 'No tournaments available.';
+            throw new Error(errorMsg);
+        }
+        
+        return result;
+    }
+    catch (error)
+    {
+        throw new Error(error.message || 'Sorry, failed to fetch tournaments.');
+    }
+    finally
+    {
+        showLoadingSpinner(false);
+    }
 }
 
 function renderSearchResults(token, tournaments, searchResults)
 {
     searchResults.innerHTML = '';
 
-    if (tournaments.length === 0)
+    if (!tournaments || tournaments.length === 0)
     {
         searchResults.innerHTML = '<p>No tournaments found matching the title.</p>';
         return;
@@ -100,10 +121,10 @@ function renderSearchResults(token, tournaments, searchResults)
         searchResults.appendChild(tournamentElement);
     });
 
-    document.querySelectorAll('.join-tournament-btn').forEach((button) => {
-        button.addEventListener('click', () => {
-            const tournamentId = button.getAttribute('data-id');
+    searchResults.addEventListener('click', (event) => {
+        if (event.target.classList.contains('join-tournament-btn')) {
+            const tournamentId = event.target.getAttribute('data-id');
             joinTournamentModal(token, tournamentId);
-        });
+        }
     });
 }

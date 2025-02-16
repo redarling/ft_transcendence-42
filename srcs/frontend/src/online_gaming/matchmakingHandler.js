@@ -1,5 +1,6 @@
 import { renderErrorPage, renderMatch, renderSearchingPage } from './renderPages.js';
 import renderGame from '../pages/game.js';
+import showToast from '../utils/toast.js';
 
 export async function findMatch()
 {
@@ -21,7 +22,7 @@ export async function findMatch()
     }
     catch (error)
     {
-        alert("Failed to connect to the server. Please try again later.");
+        showToast("Failed to connect to the server. Please try again later.", "error");
         console.error("WebSocket error:", error);
         return;
     }
@@ -96,7 +97,7 @@ export async function findMatch()
 
     // Error event handler
     socket.onerror = (error) => {
-        alert("WebSocket encountered an error.");
+        showToast("Failed to connect to the server. Please try again later.", "error");
         console.error("WebSocket error:", error);
         renderErrorPage("An unexpected error occurred. Please try again later.");
     };

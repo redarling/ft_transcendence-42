@@ -1,5 +1,7 @@
 import { joinTournament } from './join.js';
 import { tournamentHandler } from '../../tournament_gaming/tournamentHandler.js';
+import showLoadingSpinner from '../../utils/spinner.js';
+import showToast from '../../utils/toast.js';
 
 export default async function createTournamentModal(token)
 {
@@ -78,7 +80,7 @@ export default async function createTournamentModal(token)
         }
         catch (error)
         {
-            alert(`Error: ${error.message}`);
+            showToast(error.message, "error");
         }
         finally
         {
@@ -89,10 +91,10 @@ export default async function createTournamentModal(token)
 
 async function createTournament(token, title, description)
 {
-    const url = "https://transcendence-pong:7443/api/games/tournament/create/";
     try
     {
-        const response = await fetch(url, {
+        showLoadingSpinner(true);
+        const response = await fetch('/api/games/tournament/create/', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -101,17 +103,18 @@ async function createTournament(token, title, description)
             body: JSON.stringify({ title, description }),
         });
 
+        const result = await response.json();
         if (!response.ok)
-        {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || "Failed to create tournament");
-        }
+            throw new Error(result.detail || result.error || "Failed to create tournament");
 
-        const responseData = await response.json();
-        return { success: true, tournamentId: responseData.id, message: "Tournament successfully created!" };
+        return { success: true, tournamentId: result.id, message: "Tournament successfully created!" };
     } 
     catch (error)
     {
         return { success: false, message: error.message };
+    }
+    finally
+    {
+        showLoadingSpinner(false);
     }
 }

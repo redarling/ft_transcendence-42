@@ -25,6 +25,11 @@
     color: red;
 }
 
+.custom-toast.info {
+    border-color: blue;
+    color: blue;
+}
+
 .custom-toast .btn-close {
     background: none;
     border: none;

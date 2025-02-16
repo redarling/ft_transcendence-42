@@ -14,6 +14,9 @@ from .serializers import (UserRegistrationSerializer, UserProfileSerializer,
 from .jwt_logic import generate_jwt, decode_jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from .session_id import generate_session_id
+from .two_factor_auth.challenge_manager import save_2fa_challenge
+from .two_factor_auth.utils import send_code
+import uuid
 
 class UserRegistrationAPIView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -49,6 +52,16 @@ class UserLoginAPIView(APIView):
             if user.check_last_activity_key():
                 return Response({"error": "You are already logged in. Please log out from other devices to continue."}, status=status.HTTP_403_FORBIDDEN)
         
+        if user.is_2fa_enabled:
+            challenge_token = str(uuid.uuid4())
+            save_message = save_2fa_challenge(user.id, challenge_token)
+            if save_message == "already_exists":
+                return Response({"error": "Current attempt is still active. Try again later"}, status=status.HTTP_400_BAD_REQUEST)
+            elif save_message == "too_soon":
+                return Response({"error": "Too many attempts. Try again later."}, status=status.HTTP_403_FORBIDDEN)
+            send_code(user)
+            return Response({"challenge_token": challenge_token, "message": "2FA verification required."}, status=status.HTTP_200_OK)
+
         session_id = generate_session_id()
         user.active_session_id = session_id
         user.update_last_activity()
@@ -78,6 +91,7 @@ class UserLoginAPIView(APIView):
             },
             status=status.HTTP_200_OK
         )
+
 
 class UserTokenRefreshAPIView(APIView):
     permission_classes = [permissions.AllowAny]

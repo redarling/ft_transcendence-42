@@ -1,11 +1,15 @@
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from io import BytesIO
 from users.serializers import TwoFactorActivationSerializer
 from .email_service import EmailService
 from core.telegram_bot import send_2fa_code
-from .code_manager import save_2fa_code, get_2fa_code, delete_2fa_code
+from .code_manager import save_2fa_code, get_2fa_code, delete_2fa_code, hash_2fa_code
+from users.session_id import generate_session_id
+from users.jwt_logic import generate_jwt
+from .challenge_manager import get_2fa_challenge, delete_2fa_challenge, is_2fa_attempts_exceeded, increment_2fa_attempts, reset_2fa_attempts
+from users.models import User
 import pyotp, logging, qrcode, base64, random
 
 logger = logging.getLogger(__name__)
@@ -43,10 +47,8 @@ class TwoFA_ActivateAPIView(APIView):
                 if not chat_id:
                     return Response({"error": "Chat ID is required for Telegram verification."}, status=status.HTTP_400_BAD_REQUEST)
                 user.chat_id = chat_id
-                code = str(random.randint(100000, 999999))
                 user.twofa_method = "sms"
                 user.save()
-                save_2fa_code(user.id, code)
                 if send_2fa_code(user):
                     return Response({"method": "telegram", "message": "Verification code sent via Telegram."}, status=status.HTTP_200_OK)
                 else:
@@ -80,7 +82,7 @@ class TwoFA_VerifyAPIView(APIView):
             return Response({"error": "Verification code is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         stored_code = get_2fa_code(user.id)
-        if stored_code and stored_code == code:
+        if stored_code and stored_code == hash_2fa_code(code):
             user.is_2fa_enabled = True
             delete_2fa_code(user.id)
             user.save()
@@ -138,7 +140,7 @@ class TwoFA_VerifyDeactivateAPIView(APIView):
             return Response({"error": "Invalid verification code."}, status=status.HTTP_400_BAD_REQUEST)
         
         stored_code = get_2fa_code(user.id)
-        if stored_code and stored_code == code:
+        if stored_code and stored_code == hash_2fa_code(code):
             user.is_2fa_enabled = False
             user.twofa_method = "None"
             delete_2fa_code(user.id)
@@ -147,3 +149,69 @@ class TwoFA_VerifyDeactivateAPIView(APIView):
 
         return Response({"error": "Invalid verification code."}, status=status.HTTP_400_BAD_REQUEST)
 
+class LoginWith2FA_APIView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        """
+        Handles user 2FA verification and returns JWT tokens upon success.
+
+        payload: {
+            "challenge": <2FA challenge>,
+            "code": <2FA code>
+        }
+        """
+        challenge = request.data.get("challenge")
+        code = request.data.get("code")
+
+        if not challenge or not code:
+            return Response({"error": "Challenge and code are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_id = get_2fa_challenge(challenge)
+        if not user_id:
+            return Response({"error": "Invalid or expired challenge."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if is_2fa_attempts_exceeded(user_id):
+            return Response({"error": "Too many failed attempts. Try again later."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        stored_code = get_2fa_code(user.id)
+        if not stored_code or stored_code != hash_2fa_code(code):
+            increment_2fa_attempts(user.id)
+            return Response({"error": "Invalid 2FA code."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        delete_2fa_code(user.id)
+        reset_2fa_attempts(user.id)
+        delete_2fa_challenge(challenge)
+
+        session_id = generate_session_id()
+        user.active_session_id = session_id
+        user.update_last_activity()
+        user.save(update_fields=['active_session_id'])
+
+        access_payload = {
+            "user_id": user.id,
+            "username": user.username,
+            "type": "access",
+            "session_id": session_id
+        }
+        access_token = generate_jwt(access_payload, expiration_minutes=15, session_id=session_id)  # 15 мин
+
+        refresh_payload = {
+            "user_id": user.id,
+            "type": "refresh",
+            "session_id": session_id
+        }
+        refresh_token = generate_jwt(refresh_payload, expiration_minutes=7 * 24 * 60, session_id=session_id)  # 7 дней
+
+        return Response(
+            {
+                "access_token": access_token,
+                "refresh_token": refresh_token
+            },
+            status=status.HTTP_200_OK
+        )

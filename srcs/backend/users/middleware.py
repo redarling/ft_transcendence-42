@@ -67,7 +67,7 @@ class UpdateLastActivityMiddleware:
             if request.user.is_authenticated:
                 if not getattr(request.user, 'online_status', False):
                     return JsonResponse(
-                        {"detail": "User is not online. Please reconnect to the WebSocket."},
+                        {"detail": "Network error. Please try again later."},
                         status=403
                     )
                 request.user.update_last_activity()

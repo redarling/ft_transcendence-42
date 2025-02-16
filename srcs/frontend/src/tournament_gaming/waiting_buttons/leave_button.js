@@ -1,6 +1,9 @@
-import { showToast, AreYouSureModal } from "../utils.js";
+import { AreYouSureModal } from "../utils.js";
+import showToast from "../../utils/toast.js";
+import showLoadingSpinner from "../../utils/spinner.js";
 import renderHeader from '../../components/header.js';
 import renderTournaments from '../../pages/tournaments/tournaments.js';
+
 export default async function leaveButton(socket, token, tournamentId)
 {
     const modal = AreYouSureModal();
@@ -23,6 +26,7 @@ async function leaveTournament(socket, token, tournamentId)
 {
     try
     {
+        showLoadingSpinner(true);
         const url = `/api/games/tournament/leave/`;
         const response = await fetch(url, {
             method: 'POST',
@@ -35,15 +39,7 @@ async function leaveTournament(socket, token, tournamentId)
             }),
         });
     
-        let result;
-        try
-        {
-            result = await response.json();
-        }
-        catch
-        {
-            result = { error: 'Unexpected server response' };
-        }
+        const result = await response.json();
         
         if (!response.ok)
             showToast(result.error, 'error');
@@ -57,5 +53,9 @@ async function leaveTournament(socket, token, tournamentId)
     catch (error)
     {
         showToast('An error occurred while leaving the tournament.', 'error');
+    }
+    finally
+    {
+        showLoadingSpinner(false);
     }
 }

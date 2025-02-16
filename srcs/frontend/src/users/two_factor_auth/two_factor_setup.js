@@ -1,5 +1,5 @@
-import { showToast } from "../../tournament_gaming/utils.js";
-import showLoadingSpinner from "./utils.js";
+import showToast from "../../utils/toast.js";
+import showLoadingSpinner from "../../utils/spinner.js";
 import { renderTOTPPage, renderWaitingCodePage } from "./setup_pages.js";
 
 export default async function TwoFASetup()

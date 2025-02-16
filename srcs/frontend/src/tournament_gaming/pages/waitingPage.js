@@ -21,7 +21,7 @@ export default async function renderTournamentWaitingPage(socket, token, partici
                             </div>
 
                             <div class="buttons mt-4">
-                                <button class="btn btn-secondary" id="inviteBtn">Invite</button>
+                                <button class="btn btn-warning" id="inviteBtn">Invite</button>
                                 ${
                                     !isAdmin 
                                     ? `
@@ -32,7 +32,7 @@ export default async function renderTournamentWaitingPage(socket, token, partici
                                 ${
                                     isAdmin 
                                     ? `
-                                        <button class="btn btn-warning" id="cancelBtn">Cancel</button>
+                                        <button class="btn btn-danger" id="cancelBtn">Cancel</button>
                                         <button class="btn btn-success" id="startBtn">Start</button>
                                     `
                                     : ''

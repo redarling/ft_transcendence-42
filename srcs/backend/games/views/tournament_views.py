@@ -345,13 +345,13 @@ class SearchTournamentAPIView(ListAPIView):
         query = self.request.query_params.get('title', '').strip()
 
         if not query:
-            return Response({"error": "The 'title' query parameter is required."},
+            return Response({"error": "The title parameter is required."},
                             status=status.HTTP_400_BAD_REQUEST)
 
         queryset = self.get_queryset()
 
         if not queryset.exists():
-            return Response({"error": "No tournaments found matching the 'title' query."},
+            return Response({"error": "No tournaments found matching the title."},
                             status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(queryset, many=True)

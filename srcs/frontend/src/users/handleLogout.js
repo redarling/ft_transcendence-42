@@ -1,13 +1,23 @@
 import navigateTo from "../navigation/navigateTo.js"
 import { socket, stopPinging } from "./websocket.js";
 import renderHeader from "../components/header.js";
+import showToast from "../utils/toast.js";
+import showLoadingSpinner from "../utils/spinner.js";
 
-export default async function handleLogout() {
+export default async function handleLogout()
+{
 	console.log("- start: handleLogout()")
 	const accessToken = localStorage.getItem("access_token");
 
-    try {
-		console.log("logout fetching...");
+    if (!accessToken)
+    {
+        console.error("No access token found");
+        return;
+    }
+
+    try
+    {
+        showLoadingSpinner(true);
 		const response = await fetch("/api/users/logout/", {
             method: "POST",
             headers: {
@@ -16,25 +26,30 @@ export default async function handleLogout() {
             },
         });
 
-        if (response.ok) {
-            console.log("removing tokens...");
+        const result = await response.json();
+        if (response.ok)
+        {
+            console.log("Logout handling successful");
 			localStorage.removeItem("access_token");
             localStorage.removeItem("refresh_token");
-            console.log("stopping pong ...");
 			stopPinging();
-            console.log("close socket ...");
-			if (socket && socket.readyState === WebSocket.OPEN) {
+			if (socket && socket.readyState === WebSocket.OPEN)
                 socket.close();
-            }
 			renderHeader();
-			console.log("move to login page");
 			navigateTo("/login");
         } 
-		else {
-            console.error("Logout failed:", await response.json());
+		else
+        {
+            showToast("Logout failed. Try again!", "error");
+            console.error("Logout failed:", result.error || result.detail || "An unknown error occurred");
         }
     } 
-	catch (error) {
-        console.error("Network error during logout:", error);
+	catch (error)
+    {
+        showToast("Network error. Try again!", "error");
+    }
+    finally
+    {
+        showLoadingSpinner(false);
     }
 }

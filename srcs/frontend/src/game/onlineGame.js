@@ -6,7 +6,7 @@ import { Ball } from './ball.js';
 import { Paddle } from './paddle.js';
 import { Score } from './score.js';
 import { Countdown } from './Countdown.js'; 
-import { showToast } from '../tournament_gaming/utils.js';
+import showToast from "../utils/toast.js";
 
 export const FIELD_DIMENSION_Z = 6;
 

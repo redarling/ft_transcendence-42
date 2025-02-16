@@ -1,10 +1,10 @@
 from django.urls import path
-from .views import UserRegistrationAPIView, UserLoginAPIView, \
-    UserLogoutAPIView, UserProfileAPIView, UserUpdateAPIView, \
-    UserStatsAPIView, FriendshipAPIView, FriendListAPIView, \
-    UserSearchAPIView, UserTokenRefreshAPIView, FriendRequestsAPIView
-
-from .TWO_FA.TwoFA_views import TwoFA_ActivateAPIView, TwoFA_DeactivateAPIView, TwoFA_VerifyAPIView, TwoFA_VerifyDeactivateAPIView
+from .views import (UserRegistrationAPIView, UserLoginAPIView,
+    UserLogoutAPIView, UserProfileAPIView, UserUpdateAPIView,
+    UserStatsAPIView, FriendshipAPIView, FriendListAPIView,
+    UserSearchAPIView, UserTokenRefreshAPIView, FriendRequestsAPIView)
+from .two_factor_auth.TwoFA_views import (TwoFA_ActivateAPIView, TwoFA_DeactivateAPIView, 
+                                          TwoFA_VerifyAPIView, TwoFA_VerifyDeactivateAPIView, LoginWith2FA_APIView)
 
 urlpatterns = [
     path('register/', UserRegistrationAPIView.as_view(), name='register'),
@@ -22,4 +22,5 @@ urlpatterns = [
     path('2fa/remove/', TwoFA_DeactivateAPIView.as_view(), name='2fa-deactivate'),
     path('2fa/verify/', TwoFA_VerifyAPIView.as_view(), name='2fa-verify'),
     path('2fa/verify-remove/', TwoFA_VerifyDeactivateAPIView.as_view(), name='2fa-verify-deactivate'),
+    path('login/with-2fa/', LoginWith2FA_APIView.as_view(), name='2fa-login'),
 ]

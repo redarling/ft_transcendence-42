@@ -2,7 +2,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from .redis_manager import UserActivityRedisManager
-from .TWO_FA.code_manager import save_2fa_code
+from .two_factor_auth.code_manager import save_2fa_code
 
 class UserManager(BaseUserManager):
     def create_user(self, username, email, password, **extra_fields):
