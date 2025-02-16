@@ -1,5 +1,9 @@
 from django.db import models
 from users.models import User
+from django.db import IntegrityError
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Match(models.Model):
     MATCH_TYPES = [('1v1', '1v1'), ('tournament', 'Tournament')]
@@ -67,6 +71,32 @@ class Tournament(models.Model):
         indexes = [
             models.Index(fields=['title']),
         ]
+    
+    def cancel(self):
+        """
+        Cancel the tournament by removing it as well as all links associated to it.
+        """
+        self.delete()
+    
+    def remove_participant(self, user):
+        """
+        Remove a participant from the tournament.
+        """
+        if self.status != "Pending" and self.status != "pending":
+            logger.error(f"Error while removing the participant {user.id} of the tournament {self.id}: Can't remove a participant while the tournament is in '{self.status}' mode.")
+            return False
+        try:
+            deleted_count, _ = TournamentParticipant.objects.filter(tournament=self, user=user).delete()
+            return deleted_count > 0
+        except IntegrityError as e:
+            logger.error(f"Error while removing the participant {user.id} of the tournament {self.id}: {e}")
+            return False
+    
+    def is_participant(self, user_id):
+        """
+        Check if a user is a participant in the tournament.
+        """
+        return TournamentParticipant.objects.filter(tournament=self, user_id=user_id).exists()
 
 class TournamentParticipant(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)

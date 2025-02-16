@@ -1,13 +1,16 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
+from channels.db import database_sync_to_async
 from .channel_handling import send_group_message
 from .utils import (check_active_match, is_participant, get_tournament_data, get_tournament_participants)
 from .tournament_handler import TournamentHandler
+from games.models import Tournament
 from .match_event_queue import MatchEventQueueManager
 import json, logging, asyncio
 
 logger = logging.getLogger(__name__)
 
+# Functions handling a single websocket connection
 class TournamentConsumer(AsyncWebsocketConsumer):
     
     async def connect(self):
@@ -29,13 +32,13 @@ class TournamentConsumer(AsyncWebsocketConsumer):
         await self.accept()
         
         logger.info("User connected (id: %s) to tournament %s", str(self.user.id), self.tournament_id)
-        
+
         self.group_name = f"tournament_{self.tournament_id}"
         self.user_group_name = f"player_{self.user.id}"
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.channel_layer.group_add(self.user_group_name, self.channel_name)
         participants, title, description, self.is_admin, self.status = await get_tournament_data(self.tournament_id, self.user.id)
-        
+
         await self.send(json.dumps(
             {
                 "event": "tournament_data",
@@ -53,11 +56,39 @@ class TournamentConsumer(AsyncWebsocketConsumer):
             },
         )
 
+    # Handle when a user connected close the websocket connection
     async def disconnect(self, close_code):
         """
         Handle disconnection.
         """
+
         logger.info("Disconnection: %s", self.scope["user"])
+
+        try:
+            tournament = await database_sync_to_async(Tournament.objects.get)(id=self.tournament_id)
+        except Tournament.DoesNotExist:
+            if hasattr(self, "group_name"):
+                await self.channel_layer.group_discard(self.group_name, self.channel_name)
+            if hasattr(self, "user_group_name"):
+                await self.channel_layer.group_discard(self.user_group_name, self.channel_name)
+            return
+        
+        self.status = tournament.status
+
+        if self.status == "Pending" or self.status == "pending":
+            if self.is_admin:
+                logger.info("The admin left while the tournament was in pending status, canceling tournament.")
+                await send_group_message(f"tournament_{self.tournament_id}", {"event": "tournament_cancelled"})
+                await database_sync_to_async(tournament.cancel)()
+            else:
+                # Remove the user from the tournament participants list
+                if database_sync_to_async(tournament.is_participant)(self.user.id):
+                    await database_sync_to_async(tournament.remove_participant)(self.user.id)
+                    await send_group_message(f"tournament_{self.tournament_id}", {"event": "user_left", "message": self.user.username})
+                    participants = await get_tournament_participants(self.tournament_id)
+                    await send_group_message(f"tournament_{self.tournament_id}", {"event": "participant_list", "participants": participants})
+
+
         if hasattr(self, "group_name"):
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
         if hasattr(self, "user_group_name"):
@@ -69,7 +100,7 @@ class TournamentConsumer(AsyncWebsocketConsumer):
         """
         data = json.loads(text_data)
         event = data.get("event")
-        
+
         if event == "tournament_cancelled":
             logger.info("Cancelling tournament %s", id)
             await send_group_message(f"tournament_{self.tournament_id}", {"event": "tournament_cancelled"})
@@ -78,8 +109,8 @@ class TournamentConsumer(AsyncWebsocketConsumer):
             {
                 "type": "disconnect_message",
             },
-        )
-            
+            )
+
         elif event == "user_left":
             await self.channel_layer.group_send(
             f"tournament_{self.tournament_id}",
@@ -89,7 +120,7 @@ class TournamentConsumer(AsyncWebsocketConsumer):
                 "username": self.user.username,
             },
             )
-        
+
         elif event == "tournament_start":
             """
             Start the tournament logic.
@@ -101,16 +132,16 @@ class TournamentConsumer(AsyncWebsocketConsumer):
             logger.info("Starting tournament %s", self.tournament_id)
             tournament_handler = TournamentHandler(self.tournament_id, self.group_name)
             asyncio.create_task(tournament_handler.handle_tournament())
-        
+
         elif event == "ready":
             match_id = data.get("matchId")
             if match_id:
                 match_group = f"match_{match_id}"
                 self.eventQueue = MatchEventQueueManager.get_queue(match_group)
                 await self.eventQueue.put({
-                "event": "player_ready",
-                "playerId": self.user.id,
-                "matchId": match_id,
+                    "event": "player_ready",
+                    "playerId": self.user.id,
+                    "matchId": match_id,
                 })
             else:
                 logger.error("Invalid ready signal: missing matchId")

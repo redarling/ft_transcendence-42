@@ -3,6 +3,7 @@ import { showToast } from './utils.js';
 import renderHeader from '../components/header.js';
 import renderTournaments from '../pages/tournaments/tournaments.js';
 import renderTournamentBracketPage from "./pages/bracket.js";
+import cancelTournament from "./waiting_buttons/cancel_button.js"
 
 export async function tournamentHandler(WebSocketUrl, token, tournamentId)
 {
@@ -47,13 +48,13 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
                         else
                             participantsData = data.participants;
                         break;
-                    
+
                     case "tournament_cancelled":
                         renderHeader();
                         renderTournaments();
                         showToast("Tournament has been cancelled.", 'error');
                         break;
-                    
+
                     case "user_left":
                         showToast("User " + data.message + " has left the tournament.", 'error');
                         break;
