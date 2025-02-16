@@ -23,11 +23,17 @@ export default async function handleRegister(event)
 		const result = await response.json();
 
 		if (response.ok)
+		{
 			navigateTo('/login');
+			showToast(result.message, "success");
+		}
 		else if (result.error || result.detail)
 			showToast(result.error, "error");
 		else if (typeof result === "object")
-			showErrors(errorMessage = Object.values(result).flat().join("\n"));
+		{
+			errorMessage = Object.values(result).flat().join("\n")
+			showErrors(errorMessage);
+		}
 		else
 			showToast("An unknown error occurred.", "error");
 	} 

@@ -10,6 +10,7 @@ import { getTokenFromUser, checkActiveMatch, connectToWebSocket } from "../onlin
 import TwoFASetup from "../users/two_factor_auth/two_factor_setup.js";
 import TwoFARemove from "../users/two_factor_auth/two_factor_remove.js";
 import navigateTo from "./navigateTo.js";
+import renderPrivacyPolicy from "../pages/privacy.js";
 
 export default async function router() {
 	console.log("- start: router()")
@@ -23,6 +24,7 @@ export default async function router() {
 		"/tournaments": renderTournaments,
 		"/2fa-setup": TwoFASetup,
 		"/2fa-remove": TwoFARemove,
+		"/privacy": renderPrivacyPolicy,
 	};
 	
 	const path = window.location.pathname;
