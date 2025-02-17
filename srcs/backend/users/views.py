@@ -224,7 +224,7 @@ class UserUpdateAPIView(UpdateAPIView):
         serializer.save()
 
         return Response({"username": instance.username, 
-            "avatar": instance.avatar}, status=status.HTTP_200_OK)
+            "avatar": instance.avatar, "email": instance.email}, status=status.HTTP_200_OK)
 
 class UserStatsAPIView(RetrieveAPIView):
     queryset = UserStats.objects.all()
