@@ -121,7 +121,7 @@ class UserTokenRefreshAPIView(APIView):
                 "type": "access",
                 "session_id": user.active_session_id  # Use the current active session ID
             }
-            access_token = generate_jwt(access_payload, expiration_minutes=15, session_id=user.active_session_id)
+            access_token = generate_jwt(access_payload, expiration_minutes=15, session_id=user.active_session_id) # 15 minutes
             
             return Response({"access_token": access_token}, status=status.HTTP_200_OK)
         except ExpiredSignatureError:
