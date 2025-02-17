@@ -32,7 +32,7 @@ export default function renderRegister() {
     document.getElementById("goToLogin").addEventListener("click", () => navigateTo("/login"));
     document.getElementById("registerForm").addEventListener("submit", handleRegister);
     
-    document.getElementById("privacyLink").setAttribute("href", "/privacy");
+    document.getElementById("privacyLink").setAttribute("href", "/privacy-policy");
     document.getElementById("privacyLink").setAttribute("target", "_blank");
 
     const privacyCheckbox = document.getElementById("privacyPolicy");
