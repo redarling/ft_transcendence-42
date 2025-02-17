@@ -28,10 +28,10 @@ function updateDomContent() {
 
 document.addEventListener("DOMContentLoaded", () => {
 	console.log("- start: Dom content loaded");
-	updateDomContent();
 	const accessToken = localStorage.getItem("access_token");
 	if (accessToken)
 		connectWebSocket();
+	updateDomContent();
 });
 
 window.addEventListener("popstate", router);

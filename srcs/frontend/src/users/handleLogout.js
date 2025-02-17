@@ -35,6 +35,7 @@ export default async function handleLogout()
             console.log("removing tokens...");
 			localStorage.removeItem("access_token");
             localStorage.removeItem("refresh_token");
+			localStorage.removeItem("user_id");
 			console.log("closing socket ...");
 			if (socket && socket.readyState === WebSocket.OPEN)
                 socket.close();

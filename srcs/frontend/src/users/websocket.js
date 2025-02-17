@@ -1,3 +1,5 @@
+import handleLogout from "./handleLogout.js";
+
 export let socket = null;
 
 function openWebSocket(accessToken){
@@ -21,6 +23,7 @@ function openWebSocket(accessToken){
     socket.onclose = (event) => {
         console.warn("❌ WebSocket Disconnected:", event.reason);
 		socket = null;
+		handleLogout();
 	};
 }
 
