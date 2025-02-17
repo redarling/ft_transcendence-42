@@ -1,54 +1,34 @@
 export let socket = null;
-let pingInterval = null;
 
-export default function connectWebSocket() {
-	// console.log("- start: connectWebSocket()")
-    const accessToken = localStorage.getItem("access_token");
-
-    if (!accessToken) {
-        // console.warn("No access token found. Skipping WebSocket connection.");
-        return;
-    }
-
-    // 🔹 Establish WebSocket connection with token authentication
-    socket = new WebSocket(`wss://transcendence-pong:7443/ws/status/?token=${accessToken}`);
+function openWebSocket(accessToken){
+	console.log("- start: openWebSocket()")
+	socket = new WebSocket(`wss://transcendence-pong:7443/ws/status/?token=${accessToken}`);
 
     socket.onopen = () => {
-        // console.log("✅ WebSocket Connected!");
-        startPinging();
+		console.log("✅ WebSocket Connected!");
+		socket.send(JSON.stringify({ type: "pong" }));
     };
 
     socket.onmessage = (event) => {
-        // console.log("📩 Message from server:", event.data);
-    };
+        console.log("📩 Sending pong:", event.data);
+		socket.send(JSON.stringify({ type: "pong" }));
+	};
 
     socket.onerror = (error) => {
-        // console.error("⚠️ WebSocket Error:", error);
+        console.error("⚠️ WebSocket Error:", error);
     };
 
     socket.onclose = (event) => {
-        // console.warn("❌ WebSocket Disconnected:", event.reason);
-        stopPinging();
+        console.warn("❌ WebSocket Disconnected:", event.reason);
 		socket = null;
-
-		setTimeout(connectWebSocket, 5000);
 	};
 }
 
-// 🔹 Function to send "pong" messages every 5 seconds
-function startPinging() {
-    pingInterval = setInterval(() => {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.send("pong");
-            console.log("📤 Sent: pong");
-        }
-    }, 5000);
+export default function connectWebSocket() {
+	console.log("- start: connectWebSocket()")
+	const accessToken = localStorage.getItem("access_token");
+    if (!accessToken)
+		return ;
+	openWebSocket(accessToken);
 }
 
-// 🔹 Stop sending "pong" messages
-export function stopPinging() {
-    if (pingInterval) {
-        clearInterval(pingInterval);
-        pingInterval = null;
-    }
-}

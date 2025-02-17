@@ -1,8 +1,9 @@
 import navigateTo from "../navigation/navigateTo.js"
-import { socket, stopPinging } from "./websocket.js";
+import { socket } from "./websocket.js";
 import renderHeader from "../components/header.js";
 import showToast from "../utils/toast.js";
 import showLoadingSpinner from "../utils/spinner.js";
+import { stopTokenRefreshing } from "./tokenRefreshing.js";
 
 export default async function handleLogout()
 {
@@ -29,13 +30,16 @@ export default async function handleLogout()
         const result = await response.json();
         if (response.ok)
         {
-            console.log("Logout handling successful");
+            console.log("stop token refreshing system...");			
+			stopTokenRefreshing();
+            console.log("removing tokens...");
 			localStorage.removeItem("access_token");
             localStorage.removeItem("refresh_token");
-			stopPinging();
+			console.log("closing socket ...");
 			if (socket && socket.readyState === WebSocket.OPEN)
                 socket.close();
 			renderHeader();
+			console.log("move to login page");
 			navigateTo("/login");
         } 
 		else
