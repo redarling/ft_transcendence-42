@@ -1,3 +1,5 @@
+import navigateTo from "../navigation/navigateTo.js";
+
 export default function renderSettings()
 {
     console.log("- start: renderSettings()");
@@ -19,8 +21,9 @@ export default function renderSettings()
     `;
 
     // TODO: Show only one 2FA button based on user's current 2FA status
-    document.getElementById("enable2FA").addEventListener("click", () => alert("2FA Enabled!"));
-    document.getElementById("disable2FA").addEventListener("click", () => alert("2FA Disabled!"));
+    // TODO: Restrict unauthenticated users from accessing this page
+    document.getElementById("enable2FA").addEventListener("click", () => navigateTo("/2fa-setup"));
+    document.getElementById("disable2FA").addEventListener("click", () => navigateTo("/2fa-remove"));
     document.getElementById("updateProfile").addEventListener("click", () => alert("Profile Updated!"));
     document.getElementById("downloadData").addEventListener("click", () => alert("Downloading Data..."));
     document.getElementById("deleteAccount").addEventListener("click", () => confirm("Are you sure you want to delete your account?"));

@@ -1,6 +1,7 @@
 import showToast from "../../utils/toast.js";
 import showLoadingSpinner from "../../utils/spinner.js";
 import { renderTOTPPage, renderWaitingCodePage } from "./setup_pages.js";
+import navigateTo from "../../navigation/navigateTo.js";
 
 export default async function TwoFASetup()
 {
@@ -14,18 +15,20 @@ export default async function TwoFASetup()
             <p class="text-muted text-center">Enhance your account security by enabling two-factor authentication (2FA). Choose your preferred method below:</p>
             
             <div class="d-flex flex-column gap-2 mt-4">
-                <button class="btn btn-primary twofa-option" data-type="sms">SMS (Telegram Bot)</button>
-                <button class="btn btn-primary twofa-option" data-type="email">Email</button>
-                <button class="btn btn-primary twofa-option" data-type="totp">Authenticator App</button>
+                <button class="btn btn-dark twofa-option" data-type="sms">SMS (Telegram Bot)</button>
+                <button class="btn btn-dark twofa-option" data-type="email">Email</button>
+                <button class="btn btn-dark twofa-option" data-type="totp">Authenticator App</button>
             </div>
             
             <div id="twofa-details" class="mt-4"></div>
             
             <button id="next-button" class="btn btn-success w-100 mt-3" disabled>Next</button>
+            <button id="back-button" class="btn btn-secondary w-100 mt-3 mb-5">Back</button>
         </div>
     `;
     
     const nextButton = document.getElementById("next-button");
+    const backButton = document.getElementById("back-button");
 
     document.querySelectorAll(".twofa-option").forEach(button => {
         button.addEventListener("click", () => {
@@ -38,6 +41,10 @@ export default async function TwoFASetup()
 
     nextButton.addEventListener("click", async () => { 
         await handleTwoFASetup(createPayload(selectedType), token);
+    });
+
+    backButton.addEventListener("click", () => {
+        navigateTo("/settings");
     });
 }
 

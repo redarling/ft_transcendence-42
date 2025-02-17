@@ -14,13 +14,19 @@ export default async function TwoFARemove()
             <p class="text-muted text-center">If you are sure, press the button below and we will send you a code to verify your request.</p>
             
             <button id="remove-button" class="btn btn-danger w-100 mt-3" >Remove</button>
+            <button id="back-button" class="btn btn-secondary w-100 mt-3 mb-5">Back</button>
         </div>
     `;
     
     const removeButton = document.getElementById("remove-button");
+    const backButton = document.getElementById("back-button");
 
     removeButton.addEventListener("click", async () => { 
         await handleTwoFARemove(token);
+    });
+
+    backButton.addEventListener("click", () => {
+        navigateTo("/settings");
     });
 }
 
