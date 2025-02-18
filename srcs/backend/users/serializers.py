@@ -55,7 +55,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'avatar']
+        fields = ['username', 'password', 'avatar', 'email']
 
     def validate(self, attrs):
         if not attrs:
@@ -65,6 +65,11 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if User.objects.filter(username=value).exclude(id=self.instance.id).exists():
             raise ValidationError("This username is already taken.")
+        return value
+    
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exclude(id=self.instance.id).exists():
+            raise ValidationError("This email is already taken.")
         return value
 
     def update(self, instance, validated_data):
@@ -77,6 +82,12 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             instance.avatar = avatar
         
         instance.username = validated_data.get('username', instance.username)
+
+        email = validated_data.get('email', None)
+        if email:
+            instance.email = email
+
+        instance.email = validated_data.get('email', instance.email)
         instance.save()
         return instance
 

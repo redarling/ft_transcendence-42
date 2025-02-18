@@ -7,7 +7,7 @@ export default function renderHome() {
 		<main class="container my-5">
 		<!-- Hero Section -->
 		<section class="text-center bg-light py-5 rounded shadow">
-			<h1 class="display-4 fw-bold">Welcome to Pong Project!</h1>
+			<h1 class="display-4 fw-bold">Welcome to Transcendence Pong!</h1>
 			<p class="lead text-muted">Experience the ultimate online Pong battles with friends or with ai opponent.</p>
 			<a href="game" class="btn btn-primary btn-lg mt-3" id="playNowBtn">Play Now</a>
 		</section>
@@ -44,7 +44,7 @@ export default function renderHome() {
 				<div class="col-md-4 d-flex justify-content-center align-items-center">
 					<div class="card text-center py-3" style="width: 350px; height: 380px;">
 						<img src="./src/assets/images/creators/imehdid.jpg" style="width: 220px; height: 220px;" class="rounded-circle mb-3 mx-auto" alt="Creator 1">
-						<h5>Ismael M.</h5>
+						<h5>Ismael Mehdid</h5>
 						<ul class="list-unstyled mt-3">
 							<li>- Game and AI Developer</li>
 							<li>- Blockchain Integration Engineer</li>
@@ -55,9 +55,9 @@ export default function renderHome() {
 				<div class="col-md-4 d-flex justify-content-center align-items-center">
 					<div class="card text-center py-3" style="width: 350px; height: 380px;">
 					<img src="./src/assets/images/creators/mbriand.png" style="width: 220px; height: 220px;" class="rounded-circle mb-3 mx-auto" alt="Creator 2">
-					<h5>Maxime B.</h5>
+					<h5>Maxime Briand</h5>
 					<ul class="list-unstyled mt-3">
-						<li>- Full-stack Developer</li>
+						<li>- Front-end Developer</li>
 					</ul>
 				</div>
 				</div>
@@ -65,7 +65,7 @@ export default function renderHome() {
 				<div class="col-md-4 d-flex justify-content-center align-items-center">
 					<div class="card text-center py-3" style="width: 350px; height: 380px;">
 					<img src="./src/assets/images/creators/asyvash.jpg" style="width: 220px; height: 220px;" class="rounded-circle mb-3 mx-auto" alt="Creator 1">
-					<h5 >Andrii S.</h5>
+					<h5 >Andrii Syvash</h5>
 					<ul class="list-unstyled mt-3">
 						<li>- Full-stack Developer</li>
 						<li>- Cybersecurity Specialist</li>

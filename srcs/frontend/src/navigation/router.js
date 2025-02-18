@@ -12,6 +12,7 @@ import TwoFARemove from "../users/two_factor_auth/two_factor_remove.js";
 import navigateTo from "./navigateTo.js";
 import renderPrivacyPolicy from "../pages/privacy.js";
 import { tournamentHandler } from "../tournament_gaming/tournamentHandler.js";
+import rednderContactUs from "../pages/contactUs.js";
 
 export default async function router() {
 	console.log("- start: router()")
@@ -25,7 +26,8 @@ export default async function router() {
 		"/tournaments": renderTournaments,
 		"/2fa-setup": TwoFASetup,
 		"/2fa-remove": TwoFARemove,
-		"/privacy": renderPrivacyPolicy,
+		"/privacy-policy": renderPrivacyPolicy,
+		"/contact-us": rednderContactUs,
 	};
 
 	const path = window.location.pathname;

@@ -1,42 +1,30 @@
-function getRandomUsername() {
-	const usernames = ['user123', 'maxime', 'guest', 'admin'];
-	return usernames[Math.floor(Math.random() * usernames.length)];
-}
+import navigateTo from "../navigation/navigateTo.js";
 
-function getRandomEmail() {
-	const emails = ['user123@example.com', 'maxime@example.com', 'guest@example.com', 'admin@example.com'];
-	return emails[Math.floor(Math.random() * emails.length)];
-}
+export default function renderSettings()
+{
+    console.log("- start: renderSettings()");
+    const main = document.getElementById("main");
 
-function getRandomNotificationSetting() {
-	return Math.random() >= 0.5;
-}
-
-export default function renderSettings() {
-	console.log("- start: renderSettings()")
-	const main = document.getElementById("main");
-	main.innerHTML = `
-	<div class="container d-flex justify-content-center align-items-center">
-        <div class="row">
-            <form class="w-70">
-                <div class="row mb-3">
-                    <h1>Settings</h1>
-                </div>
-                <div class="row mb-3">
-                    <label for="username" class="form-label">Username:</label>
-                    <input type="text" id="username" name="username" class="form-control" value="${getRandomUsername()}">
-                </div>
-                <div class="row mb-3">
-                    <label for="email" class="form-label">Email:</label>
-                    <input type="email" id="email" name="email" class="form-control" value="${getRandomEmail()}">
-                </div>
-                <div class="row mb-3">
-                    <label for="password" class="form-label">Password:</label>
-                    <input type="password" id="password" name="password" class="form-control">
-                </div>
-                <button type="submit" class="btn btn-primary">Save</button>
-            </form>
+    main.innerHTML = `
+        <div class="container" style="padding-top: 50px; max-width: 600px; margin: 0 auto;">
+            <h1 class="text-center">Settings</h1>
+            <p class="text-muted text-center">Manage your account preferences and security settings below:</p>
+            
+            <div class="d-flex flex-column gap-2 mt-4">
+                <button class="btn btn-dark" id="enable2FA"><i class="fas fa-shield-alt"></i> Enable Two-Factor Authentication</button>
+                <button class="btn btn-dark" id="disable2FA"><i class="fas fa-user-shield"></i> Disable Two-Factor Authentication</button>
+                <button class="btn btn-dark" id="updateProfile"><i class="fas fa-user-edit"></i> Update Profile</button>
+                <button class="btn btn-dark" id="downloadData"><i class="fas fa-download"></i> Download Your Data</button>
+                <button class="btn btn-dark" id="deleteAccount"><i class="fas fa-trash"></i> Delete Account</button>
+            </div>
         </div>
-	</div>
-	`;
+    `;
+
+    // TODO: Show only one 2FA button based on user's current 2FA status
+    // TODO: Restrict unauthenticated users from accessing this page
+    document.getElementById("enable2FA").addEventListener("click", () => navigateTo("/2fa-setup"));
+    document.getElementById("disable2FA").addEventListener("click", () => navigateTo("/2fa-remove"));
+    document.getElementById("updateProfile").addEventListener("click", () => alert("Profile Updated!"));
+    document.getElementById("downloadData").addEventListener("click", () => alert("Downloading Data..."));
+    document.getElementById("deleteAccount").addEventListener("click", () => confirm("Are you sure you want to delete your account?"));
 }
