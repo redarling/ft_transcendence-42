@@ -31,8 +31,8 @@ export default async function handleRegister(event)
 			showToast(result.error, "error");
 		else if (typeof result === "object")
 		{
-			errorMessage = Object.values(result).flat().join("\n")
-			showErrors(errorMessage);
+			const errorMessage = Object.values(result).flat().join("\n")
+			showToast(errorMessage, "error");
 		}
 		else
 			showToast("An unknown error occurred.", "error");
@@ -46,12 +46,5 @@ export default async function handleRegister(event)
 	{
 		showLoadingSpinner(false);
 	}
-}
-
-function showErrors(errors)
-{
-    const messages = Object.values(errors).flat();
-    const errorText = messages.join("\n");
-    showToast(errorText, "error");
 }
 

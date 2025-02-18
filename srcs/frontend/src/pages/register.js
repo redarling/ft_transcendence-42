@@ -11,7 +11,16 @@ export default function renderRegister() {
                 <form id="registerForm" class="mt-3">
                     <input type="text" id="username" class="form-control mb-2" placeholder="Username" required>
                     <input type="email" id="email" class="form-control mb-2" placeholder="Email" required>
-                    <input type="password" id="password" class="form-control mb-2" placeholder="Password" required>
+
+                    <div class="input-group mb-2">
+                        <input type="password" id="password" class="form-control" placeholder="Password" required>
+                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password">Show</button>
+                    </div>
+
+                    <div class="input-group mb-2">
+                        <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm Password" required>
+                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirmPassword">Show</button>
+                    </div>
 
                     <div class="form-check mb-2">
                         <input type="checkbox" id="privacyPolicy" class="form-check-input" required>
@@ -29,16 +38,43 @@ export default function renderRegister() {
         </div>
     `;
 
+    const registerForm = document.getElementById("registerForm");
+    const passwordInput = document.getElementById("password");
+    const confirmPasswordInput = document.getElementById("confirmPassword");
+    const privacyCheckbox = document.getElementById("privacyPolicy");
+    const registerButton = registerForm.querySelector("button[type='submit']");
+
     document.getElementById("goToLogin").addEventListener("click", () => navigateTo("/login"));
-    document.getElementById("registerForm").addEventListener("submit", handleRegister);
-    
+
     document.getElementById("privacyLink").setAttribute("href", "/privacy-policy");
     document.getElementById("privacyLink").setAttribute("target", "_blank");
 
-    const privacyCheckbox = document.getElementById("privacyPolicy");
-    const registerButton = document.querySelector("#registerForm button");
+    function validateForm() {
+        const passwordsMatch = passwordInput.value === confirmPasswordInput.value;
+        const allFieldsFilled = registerForm.checkValidity();
+        registerButton.disabled = !(passwordsMatch && allFieldsFilled);
+    }
 
-    privacyCheckbox.addEventListener("change", () => {
-        registerButton.disabled = !privacyCheckbox.checked;
+    passwordInput.addEventListener("input", validateForm);
+    confirmPasswordInput.addEventListener("input", validateForm);
+    privacyCheckbox.addEventListener("change", validateForm);
+
+    registerForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (passwordInput.value !== confirmPasswordInput.value) {
+            alert("Passwords do not match!");
+            return;
+        }
+        handleRegister(event);
+    });
+
+    document.querySelectorAll(".toggle-password").forEach(button => {
+        button.addEventListener("click", () => {
+            const targetId = button.getAttribute("data-target");
+            const input = document.getElementById(targetId);
+            const isPassword = input.type === "password";
+            input.type = isPassword ? "text" : "password";
+            button.textContent = isPassword ? "Hide" : "Show";
+        });
     });
 }
