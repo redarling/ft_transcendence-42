@@ -35,6 +35,11 @@ class CreateTournamentAPIView(APIView):
         title = request.data.get("title")
         description = request.data.get("description")
 
+        # Check if the tournament title already exists
+        if Tournament.objects.filter(title=title).exists():
+            return Response({"detail": "A tournament with this title already exists."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         tournament = Tournament.objects.create(
             title=title,
             smartContractAddr= deploy_smart_contract(), # Creation of the new block in the blockhain

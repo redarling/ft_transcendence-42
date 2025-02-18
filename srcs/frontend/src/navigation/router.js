@@ -27,7 +27,7 @@ export default async function router() {
 		"/2fa-setup": TwoFASetup,
 		"/2fa-remove": TwoFARemove,
 		"/privacy-policy": renderPrivacyPolicy,
-		"/contact-us": rednderContactUs,
+		"/contact-us": rednderContactUs
 	};
 
 	const path = window.location.pathname;
