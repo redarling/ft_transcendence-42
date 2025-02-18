@@ -1,6 +1,8 @@
 export async function handleProfileUpdate(event) {
-    event.preventDefault(); // Prevent form submission from reloading the page
     console.log("- start: handleProfileUpdate()");
+	
+	// Prevent form reload
+    event.preventDefault();
 
     const accessToken = localStorage.getItem("access_token");
     if (!accessToken) {
@@ -13,13 +15,15 @@ export async function handleProfileUpdate(event) {
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
     const avatarInput = document.getElementById("avatar");
-    const avatarFile = avatarInput.files.length > 0 ? avatarInput.files[0] : null;
+    const avatarUrl = avatarInput.value;
 
-    // 🔹 Debug: Print avatar file details
-    if (avatarFile) {
-        console.log(`🖼️ Avatar selected: ${avatarFile.name} (type: ${avatarFile.type}, size: ${avatarFile.size} bytes)`);
-    } else {
-        console.log("🚫 No new avatar selected.");
+    // 🔹 Check if the URL is an actual image on Imgur
+    if (avatarUrl) {
+        const isValidImage = await checkImageExists(avatarUrl);
+        if (!isValidImage) {
+            alert("❌ The provided Imgur URL is not a valid image. Please enter a correct direct Imgur image URL.");
+            return;
+        }
     }
 
     // 🔹 Build FormData for file upload
@@ -27,19 +31,11 @@ export async function handleProfileUpdate(event) {
     if (username) formData.append("username", username);
     if (email) formData.append("email", email);
     if (password) formData.append("password", password);
-    if (avatarFile) formData.append("avatar", avatarFile); // Append file if selected
+    if (avatarUrl) formData.append("avatar", avatarUrl);
 
-    // 🔹 Check FormData contents before sending
     console.log("🛠️ FormData content:");
     for (const pair of formData.entries()) {
-        console.log(`   ${pair[0]}:`, pair[1]); // This will print the avatar filename but not the actual file contents
-    }
-
-    // 🔹 Stop if no values were added
-    if ([...formData.entries()].length === 0) {
-        console.warn("⚠️ No changes detected.");
-        alert("No updates were made.");
-        return;
+        console.log(`   ${pair[0]}:`, pair[1]);
     }
 
     try {
@@ -47,10 +43,8 @@ export async function handleProfileUpdate(event) {
 
         const response = await fetch("/api/users/update/", {
             method: "PATCH",
-            headers: {
-                "Authorization": `Bearer ${accessToken}`,
-            },
-            body: formData, // Send as multipart/form-data to support file upload
+            headers: { "Authorization": `Bearer ${accessToken}` },
+            body: formData,
         });
 
         if (!response.ok) {
@@ -63,14 +57,34 @@ export async function handleProfileUpdate(event) {
         const updatedUser = await response.json();
         console.log("✅ Profile updated successfully:", updatedUser);
 
-        // Update the UI with new username & avatar
-        document.getElementById("username").value = updatedUser.username;
-        document.getElementById("avatarPreview").src = updatedUser.avatar;
-
+        // Update avatar preview if changed
+        updateAvatarPreview(avatarUrl);
         alert("✅ Profile updated successfully!");
     } 
-	catch (error) {
+    catch (error) {
         console.error("❌ Error updating profile:", error);
         alert("Network error. Please try again.");
+    }
+}
+
+function updateAvatarPreview(avatarUrl) {
+    if (avatarUrl) {
+        const avatarPreview = document.getElementById("avatarPreview");
+        avatarPreview.src = avatarUrl;
+        document.getElementById("avatar").value = ""; // Clear input field
+    }
+}
+
+async function checkImageExists(url) {
+    try {
+        const response = await fetch(url, { method: "HEAD" });
+
+        // Check if the response is OK and contains a valid image MIME type
+        const contentType = response.headers.get("Content-Type");
+        return response.ok && contentType && contentType.startsWith("image/");
+    } 
+	catch (error) {
+        console.error("❌ Error checking image:", error);
+        return false;
     }
 }

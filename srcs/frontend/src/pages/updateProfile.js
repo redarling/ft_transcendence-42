@@ -28,9 +28,10 @@ export default function renderUpdateProfile() {
 
 				<div class="mb-3">
 					<label for="avatar" class="form-label">Avatar</label>
-					<img id="avatarLoading" src="loading-spinner.gif" alt="Loading..." style="display: none; width: 50px; height: 50px;">
 					<img id="avatarPreview" src="default-avatar.png" alt="Avatar Preview" class="img-fluid avatar-small">
-					<input type="file" id="avatar" class="form-control mt-2">
+					<input type="url" id="avatar" class="form-control" placeholder="Enter Imgur URL of new avatar"
+						pattern="https:\/\/i\.imgur\.com\/[a-zA-Z0-9]+\.(jpeg|jpg|gif|png)" 
+						title="Please enter a valid Imgur image URL (e.g., https://i.imgur.com/xyz123.png)">
 				</div>
                 <button type="submit" class="btn btn-success w-100">Save Changes</button>
             </form>
@@ -38,43 +39,34 @@ export default function renderUpdateProfile() {
             <button class="btn btn-secondary w-100 mt-3" id="returnUpdate">Return</button>
         </div>
     `;
-
-	document.getElementById("avatar").addEventListener("change", function(event) {
-		const file = event.target.files[0];
-		if (file) {
-			const reader = new FileReader();
-			reader.onload = function(e) {
-				document.getElementById("avatarPreview").src = e.target.result;
-			};
-			reader.readAsDataURL(file);
-		}
-	});
-	
-	const userId = localStorage.getItem("user_id");
-	loadUserData(userId);
+	loadUserData();
     document.getElementById("updateProfileForm").addEventListener("submit", handleProfileUpdate);
     document.getElementById("returnUpdate").addEventListener("click", () => navigateTo("/settings"));
 }
 
-async function loadUserData(userId) {
-    console.log("- start: loadUserData()");    
+async function loadUserData() {
+    console.log("- start: loadUserData()");
+
+	// Get userId
+	const userId = localStorage.getItem("user_id");
+	if (!userId){
+        console.error("❌ No userID found.");
+		return;
+	}
+
+	// Get access token to fetch user data
 	const accessToken = localStorage.getItem("access_token");
-    
     if (!accessToken) {
         console.error("❌ No access token found.");
         return;
     }
 
-    // Select avatar elements
+    // Select avatar preview elements in my html
     const avatarPreview = document.getElementById("avatarPreview");
-    const avatarLoading = document.getElementById("avatarLoading");
-
-    // Show loading spinner before fetching data
-    avatarPreview.style.display = "none";
-    avatarLoading.style.display = "block";
 
     try {
-        const response = await fetch(`/api/users/profile/${userId}/`, {
+        // fetch user datas (email, username, avatar)
+		const response = await fetch(`/api/users/profile/${userId}/`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${accessToken}`
@@ -84,25 +76,17 @@ async function loadUserData(userId) {
         if (response.ok) {
             const user = await response.json();
 
-            // Set username and email fields
+            // Set username, email fields + display avatar
             document.getElementById("username").value = user.username;
             document.getElementById("email").value = user.email;
-
-            // Set avatar if exists, otherwise use default
-            if (user.avatar) {
-                avatarPreview.src = user.avatar;
-            } else {
-                avatarPreview.src = "default-avatar.png";
-            }
+			avatarPreview.src = user.avatar;
+			avatarPreview.style.display = "block";
         } 
 		else {
             console.warn("⚠️ Failed to fetch user data. Response:", await response.json());
         }
-    } catch (error) {
+    } 
+	catch (error) {
         console.error("❌ Network error:", error);
-    } finally {
-        // Hide loading spinner and show avatar
-        avatarLoading.style.display = "none";
-        avatarPreview.style.display = "block";
-    }
+    } 
 }

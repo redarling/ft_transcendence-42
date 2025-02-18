@@ -2,7 +2,7 @@
     width: 100px; /* Max width */
     height: 100px; /* Max height */
     object-fit: cover; /* Ensures the image covers the box while maintaining aspect ratio */
-    display: block; /* Ensures proper alignment */
+    display: none; /* Ensures proper alignment */
     border-radius: 50%; /* Optional: Makes it circular */
     margin-bottom: 10px; /* Adds spacing */
 }
