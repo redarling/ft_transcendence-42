@@ -7,7 +7,7 @@ from .match_handler import MatchHandler
 from .match_event_queue import MatchEventQueueManager
 from .recovery_key_manager import RecoveryKeyManager
 from .api_calls import update_tournament_status_api
-import logging, asyncio, copy
+import logging, asyncio, copy, json
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,11 @@ class TournamentHandler:
 
             self.bracket.append(current_bracket)
 
-            await send_group_message(self.group_name, {"event": "tournament_bracket", "data": {"total_participants_including_bye": self.total_participants_including_bye, "bracket": self.bracket}})
+            tournamentBracketEvent = {"event": "tournament_bracket", "data": {"total_participants_including_bye": self.total_participants_including_bye, "bracket": self.bracket}}
+            await RecoveryKeyManager.create_tournament_bracket_recovery_key(self.tournament_id, json.dumps(tournamentBracketEvent))
+
+            await send_group_message(self.group_name, tournamentBracketEvent)
+            
             await self.notify_incoming_matches(matches)
 
             # Two lines used to wait all ongoing matches to finish
@@ -72,6 +76,7 @@ class TournamentHandler:
             }
         )
         await update_tournament_status_api(self.tournament_id, "completed", remaining_participants[0]["id"] if remaining_participants else None)
+        await RecoveryKeyManager.delete_tournament_bracket_recovery_key(self.tournament_id)
 
     async def notify_incoming_matches(self, matches):
         """

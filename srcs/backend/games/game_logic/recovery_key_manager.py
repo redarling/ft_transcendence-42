@@ -1,6 +1,9 @@
 import json
 from redis.asyncio import Redis
 from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 class RecoveryKeyManager:
     """
@@ -59,3 +62,63 @@ class RecoveryKeyManager:
         redis = await cls.get_redis()
         key = f"match:{match_group}:recovery"
         await redis.delete(key)
+
+    @classmethod
+    async def create_tournament_recovery_key(cls, user_id, tournament_id):
+        """
+        Create a recovery key to recover an ongoing tournament of the user.
+        """
+        redis = await cls.get_redis()
+        key = f"userid:{user_id}:tournamentRecovery"
+        await redis.set(key, tournament_id)
+
+    @classmethod
+    async def get_tournament_recovery_key(cls, user_id):
+        """
+        Get back the websocket link to retreive a tournament we are participating in.
+        """
+        redis = await cls.get_redis()
+        key = f"userid:{user_id}:tournamentRecovery"
+        value = await redis.get(key)
+        logger.info(f"REDIS: Recovered value: {value}")
+        return value if value else None
+
+    @classmethod
+    async def delete_tournament_recovery_key(cls, user_id):
+        """
+        Delete the websocket link linked with a user.
+        """
+        redis = await cls.get_redis()
+        key = f"userid:{user_id}:tournamentRecovery"
+        await redis.delete(key)
+    
+    @classmethod
+    async def create_tournament_bracket_recovery_key(cls, tournament_id, bracket):
+        """
+        Create a recovery key to store the bracket of a tournament.
+        """
+        redis = await cls.get_redis()
+        key = f"tournamentId:{tournament_id}:tournamentBracketRecovery"
+        await redis.set(key, bracket)
+
+    @classmethod
+    async def get_tournament_bracket_recovery_key(cls, tournament_id):
+        """
+        Get back the bracket of a tournament with its id.
+        """
+        redis = await cls.get_redis()
+        key = f"tournamentId:{tournament_id}:tournamentBracketRecovery"
+        value = await redis.get(key)
+        logger.info(f"REDIS: Recovered value for tournament bracket: {value}")
+        return value if value else None
+
+    @classmethod
+    async def delete_tournament_bracket_recovery_key(cls, tournament_id):
+        """
+        Delete the bracket cached linked with a tournament id.
+        """
+        redis = await cls.get_redis()
+        key = f"tournamentId:{tournament_id}:tournamentBracketRecovery"
+        await redis.delete(key)
+    
+    

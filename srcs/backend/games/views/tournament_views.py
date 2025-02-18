@@ -9,12 +9,15 @@ from rest_framework.generics import ListAPIView
 from games.models import Tournament, TournamentParticipant, TournamentInvitation, Match
 from users.models import User, Friend, UserStats
 from django.utils import timezone
+from django.core.cache import cache
 from games.serializers import TournamentSerializer, InvitationTournamentSerializer, RoundSerializer
 from games.WebSocket_authentication import WebSocketTokenAuthentication, IsAuthenticatedWebSocket
 from users.serializers import UserProfileSearchSerializer
 from games.utils import validate_required_fields
 import logging
+from asgiref.sync import async_to_sync
 from games.blockchain_score_storage.deployment import deploy_smart_contract
+from ..game_logic.recovery_key_manager import RecoveryKeyManager
 
 logger = logging.getLogger(__name__)
 
@@ -235,12 +238,18 @@ class StartTournamentAPIView(APIView):
         if tournament.creator != user:
             return Response({"error": "Only the creator of the tournament can start it."}, status=status.HTTP_400_BAD_REQUEST)
         
-        participant_count = TournamentParticipant.objects.filter(tournament=tournament).count()
-        if participant_count < 2:
+        participants = TournamentParticipant.objects.filter(tournament=tournament)
+        if len(participants) < 3:
             return Response({"error": "Tournament must have at least 3 participants to start."}, status=status.HTTP_400_BAD_REQUEST)
         
         # Delete all invitations
         TournamentInvitation.objects.filter(tournament=tournament).delete()
+
+        logger.info("Now creating all redis key for tournament recovery")
+        #Map userids to tournament id in redis so they can recover the bracket if they disconnect websocket
+        for participant in participants:
+            logger.info(f"For participant user id: {participant.user.id} mapping tournament id: {tournament_id}")
+            async_to_sync(RecoveryKeyManager.create_tournament_recovery_key)(participant.user.id, tournament_id)
         
         # Update tournament status
         tournament.status = 'in_progress'
@@ -279,6 +288,8 @@ class LeaveTournamentAPIView(APIView):
         with transaction.atomic():
             participant.delete()
 
+        async_to_sync(RecoveryKeyManager.delete_tournament_recovery_key)(user.id)
+
         return Response(
             {"message": "You have successfully left the tournament."},
             status=status.HTTP_200_OK
@@ -313,6 +324,9 @@ class CancelTournamentAPIView(APIView):
 
         participants = TournamentParticipant.objects.filter(tournament=tournament)
         tournament_invitations = TournamentInvitation.objects.filter(tournament=tournament)
+
+        for participant in participants:
+            async_to_sync(RecoveryKeyManager.delete_tournament_recovery_key)(participant.user.id)
 
         # Delete all related data in a single transaction
         with transaction.atomic():
@@ -418,6 +432,7 @@ class TournamentUpdateStatusAPIView(APIView):
             return validation_error
 
         tournament_id = request.data.get("tournament_id")
+        tournament = get_object_or_404(Tournament, id=tournament_id)
         tournament_status = request.data.get("status")
 
         if tournament_status == 'completed':
@@ -426,7 +441,9 @@ class TournamentUpdateStatusAPIView(APIView):
             userStats = get_object_or_404(UserStats, user=user)
             userStats.record_tournament_win()
 
-        tournament = get_object_or_404(Tournament, id=tournament_id)
+            participants = TournamentParticipant.objects.filter(tournament=tournament)
+            for participant in participants:
+                async_to_sync(RecoveryKeyManager.delete_tournament_recovery_key)(participant.user.id)
 
         if tournament_status not in ['in_progress', 'completed']:
             return Response({"error": "Invalid status. Must be 'in_progress' or 'completed'."},

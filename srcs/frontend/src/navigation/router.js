@@ -6,11 +6,12 @@ import renderRegister from "../pages/register.js";
 import renderUserProfile from "../pages/profile.js"
 import renderTournaments from "../pages/tournaments/tournaments.js";
 import render404 from "../pages/utils/404.js";
-import { getTokenFromUser, checkActiveMatch, connectToWebSocket } from "../online_gaming/recoverySystem.js";
+import { getTokenFromUser, checkActiveMatch, checkActiveTournament, connectToWebSocket } from "../online_gaming/recoverySystem.js";
 import TwoFASetup from "../users/two_factor_auth/two_factor_setup.js";
 import TwoFARemove from "../users/two_factor_auth/two_factor_remove.js";
 import navigateTo from "./navigateTo.js";
 import renderPrivacyPolicy from "../pages/privacy.js";
+import { tournamentHandler } from "../tournament_gaming/tournamentHandler.js";
 
 export default async function router() {
 	console.log("- start: router()")
@@ -26,7 +27,7 @@ export default async function router() {
 		"/2fa-remove": TwoFARemove,
 		"/privacy": renderPrivacyPolicy,
 	};
-	
+
 	const path = window.location.pathname;
 	const segments = path.split("/").filter(Boolean);
 	console.log("the path is :", path);
@@ -38,9 +39,15 @@ export default async function router() {
 			if (matchData && matchData.active) {
 				console.log("Active match found:", matchData);
 				await connectToWebSocket(token, matchData.match_group);
-			} 
-			else {
-				console.log("No active match found.");
+			} else {
+                console.log("Checking active tournament");
+				const tournament = await checkActiveTournament(token);
+                console.log("Received from checkActiveTournament: ", tournament);
+                if (tournament && tournament.active) {
+                    console.log("Active tournament found, now restoring the bracket.");
+                    const tournamentWebSocketLink = `wss://transcendence-pong:7443/ws/tournament/${tournament.tournament_id}/`;
+                    await tournamentHandler(tournamentWebSocketLink, token, tournament.tournament_id);
+                }
 			}
 		}
 	}

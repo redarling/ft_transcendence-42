@@ -1,6 +1,6 @@
 from django.urls import path
 from .views.match_views import MatchStartAPIView, MatchEndAPIView
-from .views.recovery_views import CheckActiveMatchAPIView
+from .views.recovery_views import CheckActiveMatchAPIView, CheckActiveTournamentAPIView
 from .views.tournament_views import (CreateTournamentAPIView, JoinTournamentAPIView, InviteTournamentAPIView, 
                     StartTournamentAPIView, CancelTournamentAPIView, SearchTournamentAPIView,
                     GetOnlineFriendsAPIView, LeaveTournamentAPIView, 
@@ -8,7 +8,7 @@ from .views.tournament_views import (CreateTournamentAPIView, JoinTournamentAPIV
 from .views.stats_views import (UserMatchHistoryAPIView, MatchStatsAPIView)
 
 urlpatterns = [
-    
+
     path('match/start/', MatchStartAPIView.as_view(), name='match-start'),
     path('match/finish/', MatchEndAPIView.as_view(), name='match-end'),
 
@@ -27,6 +27,5 @@ urlpatterns = [
     path('tournament/round/create-match/', CreateMatchRoundAPIView.as_view(), name='create-match-round'),
     path('tournament/update-status/', TournamentUpdateStatusAPIView.as_view(), name='create-match-round'),
     path('check-active-match/', CheckActiveMatchAPIView.as_view(), name='check-active-match'),
+    path('check-active-tournament/', CheckActiveTournamentAPIView.as_view(), name='check-active-tournament')
 ]
-
-

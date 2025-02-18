@@ -28,8 +28,7 @@ export default async function renderTournamentBracketPage(socket, token, tournam
                 break;
             case "match_start":
                 console.log("Message received:", data);
-                if (!playerId)
-                {
+                if (!playerId) {
                     renderErrorPage("Failed to start the match. Please try again.");
                     return;
                 }
