@@ -46,7 +46,7 @@ class CreateTournamentAPIView(APIView):
             description=description,
             creator=user,
             created_at=timezone.now(),
-            updated_at=timezone.now(),
+            updated_at=timezone.now()
         )
 
         serializer = TournamentSerializer(tournament)
@@ -71,12 +71,15 @@ class JoinTournamentAPIView(APIView):
         if tournament.status != 'pending':
             return Response({"detail": "You can't join this tournament."},
                             status=status.HTTP_400_BAD_REQUEST)
+    
+        if TournamentParticipant.objects.filter(tournament=tournament, tournament_alias=tournament_alias).exists():
+            return Response({"detail": "This alias is already used."},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # Check if the user has already joined
         if TournamentParticipant.objects.filter(tournament=tournament, user=user).exists():
-            return Response(
-                            {"detail": "You are already participating in this tournament"}
-                            , status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "You are already participating in this tournament"},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # Set maximum number of participants to 16
         participant_count = TournamentParticipant.objects.filter(tournament=tournament).count()
