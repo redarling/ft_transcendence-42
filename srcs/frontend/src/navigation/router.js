@@ -15,6 +15,7 @@ import { tournamentHandler } from "../tournament_gaming/tournamentHandler.js";
 import rednderContactUs from "../pages/contactUs.js";
 import bracketRecoveryToast from "../utils/bracketRecoveryToast.js"
 import matchRecoveryToast from "../utils/matchRecoveryToast.js"
+import renderUpdateProfile from "../pages/updateProfile.js";
 
 export default async function router() {
 	console.log("- start: router()")
@@ -29,7 +30,8 @@ export default async function router() {
 		"/2fa-setup": TwoFASetup,
 		"/2fa-remove": TwoFARemove,
 		"/privacy-policy": renderPrivacyPolicy,
-		"/contact-us": rednderContactUs
+		"/contact-us": rednderContactUs,
+		"/update-profile": renderUpdateProfile
 	};
 
 	const path = window.location.pathname;

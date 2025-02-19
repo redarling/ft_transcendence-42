@@ -24,7 +24,7 @@ export default function renderSettings()
     // TODO: Restrict unauthenticated users from accessing this page
     document.getElementById("enable2FA").addEventListener("click", () => navigateTo("/2fa-setup"));
     document.getElementById("disable2FA").addEventListener("click", () => navigateTo("/2fa-remove"));
-    document.getElementById("updateProfile").addEventListener("click", () => alert("Profile Updated!"));
+    document.getElementById("updateProfile").addEventListener("click", () => navigateTo("/update-profile"));
     document.getElementById("downloadData").addEventListener("click", () => alert("Downloading Data..."));
     document.getElementById("deleteAccount").addEventListener("click", () => confirm("Are you sure you want to delete your account?"));
 }

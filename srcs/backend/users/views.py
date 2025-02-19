@@ -92,7 +92,6 @@ class UserLoginAPIView(APIView):
             status=status.HTTP_200_OK
         )
 
-
 class UserTokenRefreshAPIView(APIView):
     permission_classes = [permissions.AllowAny]
     """
