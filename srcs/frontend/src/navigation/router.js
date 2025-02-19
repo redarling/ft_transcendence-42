@@ -12,7 +12,11 @@ import TwoFARemove from "../users/two_factor_auth/two_factor_remove.js";
 import navigateTo from "./navigateTo.js";
 import renderPrivacyPolicy from "../pages/privacy.js";
 import { tournamentHandler } from "../tournament_gaming/tournamentHandler.js";
-import rednderContactUs from "../pages/contactUs.js";
+import renderContactUs from "../pages/contactUs.js";
+import renderForgotPassword from "../pages/forgotPassword.js";
+import bracketRecoveryToast from "../utils/bracketRecoveryToast.js"
+import matchRecoveryToast from "../utils/matchRecoveryToast.js"
+import renderUpdateInformations from "../pages/updateInformations.js";
 
 export default async function router() {
 	console.log("- start: router()")
@@ -27,7 +31,7 @@ export default async function router() {
 		"/2fa-setup": TwoFASetup,
 		"/2fa-remove": TwoFARemove,
 		"/privacy-policy": renderPrivacyPolicy,
-		"/contact-us": rednderContactUs,
+		"/contact-us": renderContactUs,
 		"/forgot-password": renderForgotPassword,
 		"/update-informations" : renderUpdateInformations,
 	};
