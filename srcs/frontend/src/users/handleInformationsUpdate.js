@@ -1,4 +1,4 @@
-export async function handleProfileUpdate(event) {
+export async function handleInformationsUpdate(event) {
     console.log("- start: handleProfileUpdate()");
 	
 	// Prevent form reload

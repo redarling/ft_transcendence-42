@@ -1,7 +1,7 @@
 import navigateTo from "../navigation/navigateTo.js";
-import { handleProfileUpdate } from "../users/handleProfileUpdate.js";
+import { handleInformationsUpdate } from "../users/handleInformationsUpdate.js";
 
-export default function renderUpdateProfile() {
+export default function renderUpdateInformations() {
     console.log("- start: renderUpdateProfile()");
     const main = document.getElementById("main");
 
@@ -40,7 +40,7 @@ export default function renderUpdateProfile() {
         </div>
     `;
 	loadUserData();
-    document.getElementById("updateProfileForm").addEventListener("submit", handleProfileUpdate);
+    document.getElementById("updateProfileForm").addEventListener("submit", handleInformationsUpdate);
     document.getElementById("returnUpdate").addEventListener("click", () => navigateTo("/settings"));
 }
 

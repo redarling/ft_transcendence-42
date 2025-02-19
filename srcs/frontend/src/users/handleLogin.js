@@ -173,6 +173,7 @@ async function handleVerificationCode(challengeToken, verificationCode)
 function handleSuccessfulLogIn(data)
 {
 	localStorage.setItem("access_token", data.access_token);
+	console.log("Access token: ", data.access_token);
 	localStorage.setItem("refresh_token", data.refresh_token);
 	localStorage.setItem("user_id", getUserId())
 	connectWebSocket();
