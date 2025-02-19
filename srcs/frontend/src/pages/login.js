@@ -16,9 +16,13 @@ export default function renderLogin() {
             <p class="mt-3">
 			<a id="goToRegister" class="link-like" style="color: grey; cursor: pointer;">Not registered?</a>
             </p>
+            <p>
+            <a id="goToForgotPassword" class="link-like" style="color: grey; cursor: pointer;">Forgot your password?</a>
+            </p>
 			</div>
 			`;
 			
 			document.getElementById("goToRegister").addEventListener("click", () => navigateTo("/register"));
+            document.getElementById("goToForgotPassword").addEventListener("click", () => navigateTo("/forgot-password"));
 			document.getElementById("loginForm").addEventListener("submit", handleLogin);
 }

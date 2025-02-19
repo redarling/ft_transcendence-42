@@ -10,7 +10,7 @@ from users.session_id import generate_session_id
 from users.jwt_logic import generate_jwt
 from .challenge_manager import get_2fa_challenge, delete_2fa_challenge, is_2fa_attempts_exceeded, increment_2fa_attempts, reset_2fa_attempts
 from users.models import User
-import pyotp, logging, qrcode, base64, random
+import pyotp, logging, qrcode, base64, secrets
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ class TwoFA_ActivateAPIView(APIView):
                     return Response({"error": "Failed to send Telegram message"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
             elif method == "email":
-                code = str(random.randint(100000, 999999))
+                code = str(secrets.randbelow(900000) + 100000)
                 
                 if EmailService.send_email(user.email, "2FA Verification Code", f"Your verification code: {code}.\nValid for 15 minutes."):
                     save_2fa_code(user.id, code)
@@ -105,7 +105,7 @@ class TwoFA_DeactivateAPIView(APIView):
                 return Response({"error": "Failed to send Telegram message"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         if user.twofa_method == "email":
-            code = str(random.randint(100000, 999999))
+            code = str(secrets.randbelow(900000) + 100000)
             if EmailService.send_email(user.email, "2FA Verification Code", f"Your verification code: {code}"):
                 save_2fa_code(user.id, code)
                 return Response({"method": "email", "message": "2FA ready to deactivate."}, status=status.HTTP_200_OK)

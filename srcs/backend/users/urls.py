@@ -6,6 +6,8 @@ from .views import (UserRegistrationAPIView, UserLoginAPIView,
 from .two_factor_auth.TwoFA_views import (TwoFA_ActivateAPIView, TwoFA_DeactivateAPIView, 
                                           TwoFA_VerifyAPIView, TwoFA_VerifyDeactivateAPIView, LoginWith2FA_APIView)
 
+from .gdpr_views import UserDataExport, UserDeleteAccount, UserResetPassword, UserForgotPassword, UserVerifyResetCode
+
 urlpatterns = [
     path('register/', UserRegistrationAPIView.as_view(), name='register'),
     path('login/', UserLoginAPIView.as_view(), name='login'),
@@ -23,4 +25,11 @@ urlpatterns = [
     path('2fa/verify/', TwoFA_VerifyAPIView.as_view(), name='2fa-verify'),
     path('2fa/verify-remove/', TwoFA_VerifyDeactivateAPIView.as_view(), name='2fa-verify-deactivate'),
     path('login/with-2fa/', LoginWith2FA_APIView.as_view(), name='2fa-login'),
+
+    path('data-export/', UserDataExport.as_view(), name='data-export'),
+    path('delete-account/', UserDeleteAccount.as_view(), name='delete-account'),
+    
+    path('forgot-password/', UserForgotPassword.as_view(), name='forgot-password'),
+    path('verify-reset-code/', UserVerifyResetCode.as_view(), name='verify-reset-code'),
+    path('reset-password/', UserResetPassword.as_view(), name='reset-password'),
 ]
