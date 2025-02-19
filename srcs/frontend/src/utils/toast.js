@@ -14,7 +14,8 @@ export default function showToast(message, type)
     toast.appendChild(messageSpan);
     toast.appendChild(closeButton);
 
-    document.body.appendChild(toast);
+    const toastContainer = document.getElementById("toast-container");
+    toastContainer.appendChild(toast);
 
     setTimeout(() => {
         if (document.body.contains(toast)) {

@@ -4,6 +4,7 @@ import connectWebSocket from "./websocket.js";
 import showToast from "../utils/toast.js";
 import showLoadingSpinner from "../utils/spinner.js";
 import { startTokenRefreshing } from "./tokenRefreshing.js";
+import { getUserId } from "./getUserId.js";
 
 async function loginUser(username, password)
 {
@@ -172,7 +173,9 @@ async function handleVerificationCode(challengeToken, verificationCode)
 function handleSuccessfulLogIn(data)
 {
 	localStorage.setItem("access_token", data.access_token);
+	console.log("Access token: ", data.access_token);
 	localStorage.setItem("refresh_token", data.refresh_token);
+	localStorage.setItem("user_id", getUserId())
 	connectWebSocket();
 	startTokenRefreshing();
 	renderHeader();

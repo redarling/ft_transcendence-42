@@ -70,7 +70,7 @@ export default async function createTournamentModal(token)
 
             const tournamentId = createResult.tournamentId;
             const joinResult = await joinTournament(token, tournamentId, alias);
-            
+
             if (!joinResult.success)
                 throw new Error(joinResult.message);
 
@@ -97,8 +97,8 @@ async function createTournament(token, title, description)
         const response = await fetch('/api/games/tournament/create/', {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({ title, description }),
         });

@@ -12,8 +12,7 @@ import TwoFARemove from "../users/two_factor_auth/two_factor_remove.js";
 import navigateTo from "./navigateTo.js";
 import renderPrivacyPolicy from "../pages/privacy.js";
 import { tournamentHandler } from "../tournament_gaming/tournamentHandler.js";
-import renderContactUs from "../pages/contactUs.js";
-import renderForgotPassword from "../pages/forgotPassword.js";
+import rednderContactUs from "../pages/contactUs.js";
 
 export default async function router() {
 	console.log("- start: router()")
@@ -28,8 +27,9 @@ export default async function router() {
 		"/2fa-setup": TwoFASetup,
 		"/2fa-remove": TwoFARemove,
 		"/privacy-policy": renderPrivacyPolicy,
-		"/contact-us": renderContactUs,
+		"/contact-us": rednderContactUs,
 		"/forgot-password": renderForgotPassword,
+		"/update-informations" : renderUpdateInformations,
 	};
 
 	const path = window.location.pathname;
@@ -42,23 +42,43 @@ export default async function router() {
 			const matchData = await checkActiveMatch(token);
 			if (matchData && matchData.active) {
 				console.log("Active match found:", matchData);
-				await connectToWebSocket(token, matchData.match_group);
-			} else {
-                console.log("Checking active tournament");
-				const tournament = await checkActiveTournament(token);
-                console.log("Received from checkActiveTournament: ", tournament);
-                if (tournament && tournament.active) {
-                    console.log("Active tournament found, now restoring the bracket.");
+                matchRecoveryToast();
+                const matchToastEl = document.getElementById('match-ongoing-toast');
+                const matchToast = new bootstrap.Toast(matchToastEl, {
+                    autohide: false,
+                    delay: Infinity
+                });
+                matchToast.show();
+                const matchRecoveryBtn = document.getElementById("restore-match-btn");
+                matchRecoveryBtn.addEventListener("click", async () => {
+                    await connectToWebSocket(token, matchData.match_group);
+                    matchToast.hide();
+                });
+
+			}
+			const tournament = await checkActiveTournament(token);
+            if (tournament && tournament.active) {
+                console.log("Active tournament found, now restoring the bracket.");
+                bracketRecoveryToast();
+                const tournamentToastEl = document.getElementById('tournament-ongoing-toast');
+                const tournamentToast = new bootstrap.Toast(tournamentToastEl, {
+                    autohide: false,
+                    delay: Infinity
+                });
+                tournamentToast.show();
+                const bracketRecoveryBtn = document.getElementById("restore-bracket-btn");
+                bracketRecoveryBtn.addEventListener("click", async () => {
                     const tournamentWebSocketLink = `wss://transcendence-pong:7443/ws/tournament/${tournament.tournament_id}/`;
                     await tournamentHandler(tournamentWebSocketLink, token, tournament.tournament_id);
-                }
-			}
+                    tournamentToast.hide();
+                });
+
+            }
 		}
 	}
 	catch (error) {
 		console.error("Error during router initialization:", error);
 	}
-
 	const isAuthenticated = localStorage.getItem("access_token") !== null;
 	if (isAuthenticated && (path === "/login" || path === "/register")) {
 	    console.log("🔄 Redirecting to /home...");

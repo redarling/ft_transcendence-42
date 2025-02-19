@@ -16,6 +16,7 @@ function createDivBlocks() {
 		<div id="header"></div>
 		<div id="main"></div>
 		<div id="footer"></div>
+        <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 	`
 }
 
@@ -28,10 +29,10 @@ function updateDomContent() {
 
 document.addEventListener("DOMContentLoaded", () => {
 	console.log("- start: Dom content loaded");
-	updateDomContent();
 	const accessToken = localStorage.getItem("access_token");
 	if (accessToken)
 		connectWebSocket();
+	updateDomContent();
 });
 
 window.addEventListener("popstate", router);
