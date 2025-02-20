@@ -3,6 +3,9 @@ import renderHeader from '../../components/header.js';
 import createTournamentModal from './create.js';
 import searchTournament from './search.js';
 import invitationsList from './invitations.js';
+import { checkActiveTournament } from '../../online_gaming/recoverySystem.js'
+import showToast from '../../utils/toast.js';
+import { tournamentHandler } from "../../tournament_gaming/tournamentHandler.js";
 
 let tournamentToken = null;
 
@@ -18,6 +21,24 @@ async function promptForToken()
 export default async function renderTournaments()
 {
     await promptForToken();
+
+    if (tournamentToken) {
+        try {
+            const tournament = await checkActiveTournament(tournamentToken);
+            if (tournament && tournament.active) {
+                const tournamentWebSocketLink = `wss://transcendence-pong:7443/ws/tournament/${tournament.tournament_id}/`;
+                await tournamentHandler(tournamentWebSocketLink, tournamentToken, tournament.tournament_id);
+            }
+        } catch (error) {
+            showToast(error, "error");
+        }
+    }
+
+    const tournamentToastEl = document.getElementById('tournament-ongoing-toast');
+    if (tournamentToastEl) {
+        const tournamentToast = new bootstrap.Toast(tournamentToastEl);
+        tournamentToast.hide();
+    }
 
     const main = document.getElementById("main");
 

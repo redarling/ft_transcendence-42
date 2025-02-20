@@ -31,6 +31,7 @@ export default async function renderUserProfile(userId)
         const matchHistory = await fetchData(`https://transcendence-pong:7443/api/games/match-history/${userId}/`);
 
         showLoadingSpinner(false);
+        
         let matchesStats = []; // 2d array containing all matches stats (array dims: 2 * matchesStats.length)
         for (let i = 0; i < matchHistory.length; ++i)
         {

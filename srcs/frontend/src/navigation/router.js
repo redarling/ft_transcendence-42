@@ -38,7 +38,9 @@ export default async function router() {
 
 	try {
 		const token = await getTokenFromUser();
-		if (token) {
+        
+        // Toast system to recover match/tournaments
+		if (token && path !== "/game" && path !== "/tournaments") {
 			const matchData = await checkActiveMatch(token);
 			if (matchData && matchData.active) {
 				console.log("Active match found:", matchData);
@@ -51,10 +53,9 @@ export default async function router() {
                 matchToast.show();
                 const matchRecoveryBtn = document.getElementById("restore-match-btn");
                 matchRecoveryBtn.addEventListener("click", async () => {
-                    await connectToWebSocket(token, matchData.match_group);
                     matchToast.hide();
+                    await connectToWebSocket(token, matchData.match_group);
                 });
-
 			}
 			const tournament = await checkActiveTournament(token);
             if (tournament && tournament.active) {
@@ -68,11 +69,10 @@ export default async function router() {
                 tournamentToast.show();
                 const bracketRecoveryBtn = document.getElementById("restore-bracket-btn");
                 bracketRecoveryBtn.addEventListener("click", async () => {
+                    tournamentToast.hide();
                     const tournamentWebSocketLink = `wss://transcendence-pong:7443/ws/tournament/${tournament.tournament_id}/`;
                     await tournamentHandler(tournamentWebSocketLink, token, tournament.tournament_id);
-                    tournamentToast.hide();
                 });
-
             }
 		}
 	}

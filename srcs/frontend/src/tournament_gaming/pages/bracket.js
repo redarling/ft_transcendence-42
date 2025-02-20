@@ -1,4 +1,5 @@
 import { renderErrorPage, renderMatch } from '../../online_gaming/renderPages.js';
+import readyUpToast from '../../utils/readyupToast.js'
 
 export default async function renderTournamentBracketPage(socket, token, tournamentId, title, description, data)
 {
@@ -20,11 +21,11 @@ export default async function renderTournamentBracketPage(socket, token, tournam
                 fillBracketInfos(data.data["bracket"]);
                 break;
             case "tournament_end":
-                showTournamentWinner(data.data.winner, numberOfParticipants);
+                showTournamentWinner(numberOfParticipants);
                 break;
             case "incoming_match":
                 playerId = data.playerId;
-                showReadyPopup(socket, data.match_id);
+                showReadyupToast(socket, data.match_id);
                 break;
             case "match_start":
                 console.log("Message received:", data);
@@ -45,23 +46,30 @@ export default async function renderTournamentBracketPage(socket, token, tournam
 }
 
 // Ready pop up when a match is ready to be played
-function showReadyPopup(socket, matchId) {
-    let readyUpButton = document.getElementById("readyUpButton");
-    let readyUpModal = new bootstrap.Modal(document.getElementById('readyUpModal'));
-    readyUpModal.show();
+function showReadyupToast(socket, matchId) {
+    readyUpToast();
+    const readyUpToastEl = document.getElementById("readyup-toast");
+    const readyUpButton = document.getElementById("readyup-btn");
+    const readyUpToastObj = new bootstrap.Toast(readyUpToastEl, {
+        autohide: true,
+        delay: 30000 // 30 seconds
+    });
+    readyUpToastObj.show();
     readyUpButton.addEventListener("click", () => {
         socket.send(JSON.stringify({ event: "ready", matchId: matchId }));
-        readyUpModal.hide();
+        readyUpToastObj.hide();
     });
 }
 
 // Annimation showing the winner of the tournament
-function showTournamentWinner(winner, numberOfParticipants) {
+function showTournamentWinner(numberOfParticipants) {
     const lastMatchCard = document.getElementById(`match-card${numberOfParticipants - 2}`);
-    lastMatchCard.classList.add("final-win");
-    setTimeout(() => {
-        lastMatchCard.classList.add("winner-animation");
-    }, 500);
+    if (lastMatchCard) {
+        lastMatchCard.classList.add("final-win");
+        setTimeout(() => {
+            lastMatchCard.classList.add("winner-animation");
+        }, 500);
+    }
 }
 
 // Round infos at the top the bracket
@@ -83,14 +91,16 @@ function createRoundHeader(roundIndex, numberOfMatches) {
 // Page header (title + description) at the top of the page
 function renderTournamentPageHeader(title, description) {
     const header = document.getElementById("header");
-    header.innerHTML = `
-      <div class="tournament-header">
-        <div class="header-content">
-          <h1>Tournament - ${title}</h1>
-          <p>${description}</p>
+    if (header) {
+        header.innerHTML = `
+        <div class="tournament-header">
+          <div class="header-content">
+            <h1>Tournament - ${title}</h1>
+            <p>${description}</p>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
 }
 
 // Create all matches card creating the bracket
@@ -209,38 +219,52 @@ function updateMatchCard(matchInfos) {
     const matchCardPlayer2Nickname = document.getElementById(`nickname-player2-match${bracketIdx}`);
     const matchCardPlayer2Score = document.getElementById(`score-player2-match${bracketIdx}`);
 
-    // Fill basic card infos
-    matchCardPlayer1pp.setAttribute("src", (matchInfos["player1_avatar"] ? matchInfos["player1_avatar"] : "/src/assets/images/placeholders/bye_avatar_placeholder.png"));
-    matchCardPlayer1Alias.innerHTML = matchInfos["player1_alias"];
-    matchCardPlayer1Nickname.innerHTML = "(" + matchInfos["player1_username"] + ")";
-    matchCardPlayer1Score.innerHTML = matchInfos["score_player1"];
-
-    matchCardPlayer2pp.setAttribute("src", (matchInfos["player2_avatar"] ? matchInfos["player2_avatar"] : "/src/assets/images/placeholders/bye_avatar_placeholder.png"));
-    matchCardPlayer2Alias.innerHTML = matchInfos["player2_alias"];
-    matchCardPlayer2Nickname.innerHTML = "(" + matchInfos["player2_username"] + ")";
-    matchCardPlayer2Score.innerHTML = matchInfos["score_player2"];
-
-    // Customize style depending on status
     const matchCard = document.getElementById(`match-card${bracketIdx}`);
-    if (matchInfos["status"] === "in_progress") {
-        matchCard.classList.add("in-progress");
-    } else if (matchInfos["status"] === "completed") {
-        matchCard.classList.add("completed");
 
-        const winnerId = matchInfos["winner"];
-        const player1Id = matchInfos["player1_id"];
-        const player2Id = matchInfos["player2_id"];
+    if (matchCardPlayer1pp &&
+        matchCardPlayer1Alias &&
+        matchCardPlayer1Nickname &&
+        matchCardPlayer1Score &&
+        matchCardPlayer2pp &&
+        matchCardPlayer2Alias &&
+        matchCardPlayer2Nickname && 
+        matchCardPlayer2Score &&
+        matchCard)
+    {
+        // Fill basic card infos
+        matchCardPlayer1pp.setAttribute("src", (matchInfos["player1_avatar"] ? matchInfos["player1_avatar"] : "/src/assets/images/placeholders/bye_avatar_placeholder.png"));
+        matchCardPlayer1Alias.innerHTML = matchInfos["player1_alias"];
+        matchCardPlayer1Nickname.innerHTML = "(" + matchInfos["player1_username"] + ")";
+        matchCardPlayer1Score.innerHTML = matchInfos["score_player1"];
 
-        if (winnerId) {
-            if (winnerId === player1Id) {
-                matchCardPlayer1Alias.classList.add("winner");
-                matchCardPlayer2Alias.classList.add("loser");
-            } else if (winnerId === player2Id) {
-                matchCardPlayer2Alias.classList.add("winner");
-                matchCardPlayer1Alias.classList.add("loser");
+        matchCardPlayer2pp.setAttribute("src", (matchInfos["player2_avatar"] ? matchInfos["player2_avatar"] : "/src/assets/images/placeholders/bye_avatar_placeholder.png"));
+        matchCardPlayer2Alias.innerHTML = matchInfos["player2_alias"];
+        matchCardPlayer2Nickname.innerHTML = "(" + matchInfos["player2_username"] + ")";
+        matchCardPlayer2Score.innerHTML = matchInfos["score_player2"];
+
+        // Customize style depending on status
+        if (matchInfos["status"] === "in_progress") {
+            matchCard.classList.add("in-progress");
+        } else if (matchInfos["status"] === "completed") {
+            matchCard.classList.add("completed");
+        
+            const winnerId = matchInfos["winner"];
+            const player1Id = matchInfos["player1_id"];
+            const player2Id = matchInfos["player2_id"];
+        
+            if (winnerId) {
+                if (winnerId === player1Id) {
+                    matchCardPlayer1Alias.classList.add("winner");
+                    matchCardPlayer2Alias.classList.add("loser");
+                } else if (winnerId === player2Id) {
+                    matchCardPlayer2Alias.classList.add("winner");
+                    matchCardPlayer1Alias.classList.add("loser");
+                }
             }
         }
     }
+
+    
 }
 
 function fillBracketInfos(bracket) {

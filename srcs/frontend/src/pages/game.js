@@ -3,11 +3,43 @@ import renderHeader from '../components/header.js';
 import { Game } from '../game/game.js';
 import { findMatch } from '../online_gaming/matchmakingHandler.js';
 import navigateTo from "../navigation/navigateTo.js"
+import showToast from '../utils/toast.js';
+import { checkActiveMatch, connectToWebSocket } from '../online_gaming/recoverySystem.js'
 
 export let againstBot;
 export let botDifficulty;
 
+let token = null;
+
+async function promptForToken()
+{
+    while (!token)
+    {
+        token = prompt("JWT token for profile access (not possible to leave empty):");
+    }
+    return token;
+}
+
 export default function renderGame() {
+    promptForToken();
+    if (token) {
+        try {
+            const matchData = checkActiveMatch(token);
+            if (matchData && matchData.active) {
+                connectToWebSocket(token, matchData.match_group);
+            }
+        } catch(error) {
+            showToast(error, "error");
+            navigateTo("/home");
+        }
+    }
+
+    const matchToastEl = document.getElementById('match-ongoing-toast');
+    if (matchToastEl) {
+        const matchToast = new bootstrap.Toast(matchToastEl);
+        matchToast.hide();
+    }
+
 	const main = document.getElementById("main");
     main.innerHTML = `
         <div class="container-fluid game-mode-container">
@@ -89,7 +121,7 @@ export default function renderGame() {
     let game = null;
 
     const startGame = (isThereBot) => {
-        
+            
         document.getElementById('main').innerHTML= '';
         document.getElementById('header').innerHTML= '';
         document.getElementById('footer').innerHTML= '';

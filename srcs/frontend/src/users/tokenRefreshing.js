@@ -29,8 +29,7 @@ async function refreshToken(){
 		console.log("Error during token refreshing:", error);
 		return null;
 	}
-
-	}
+}
 
 let refreshInterval = null;
 

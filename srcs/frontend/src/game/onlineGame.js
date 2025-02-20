@@ -305,7 +305,6 @@ export class Game {
     
         requestAnimationFrame(animate);
     }
-    
 
     clear()
     {
@@ -318,6 +317,7 @@ export class Game {
             nicknamesDiv.remove();
 
         const canvas = this.#renderer.domElement;
-        canvas.parentNode.removeChild(canvas);
+        if (canvas)
+            canvas.parentNode.removeChild(canvas);
     }
 }

@@ -2,6 +2,11 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
+import showToast from '../utils/toast.js';
+import renderFooter from '../components/footer.js';
+import renderHeader from '../components/header.js';
+import renderGame from '../pages/game.js';
+
 export const FIELD_DIMENSION_Z = 6;
 
 import { Ball } from './ball.js';
@@ -62,7 +67,7 @@ const SCORE_RIGHT_POS = {x: 0.5, y: 1, z: -3};
 const SCORE_FONT_SIZE = 1;
 const SCORE_FONT_DEPTH = 0.2;
 const SCORE_FONT_COLOR = 0xffffff;
-const MAX_SCORE = 11;
+const MAX_SCORE = 1;
 
 const keyPressed = new Set();
 window.addEventListener('keydown', (e) => keyPressed.add(e.key));
@@ -133,7 +138,7 @@ export class Game {
             color: SCORE_FONT_COLOR
         });
 
-        if (againstBot === true) { 
+        if (againstBot === true) {
             this.#ai = new AI(this.#paddleRight, this.#ball, botDifficulty);
         }
     }
@@ -249,9 +254,17 @@ export class Game {
                 lastTime = time - (delta % INTERVAL);
 
                 if (this.#score.getScoreLeft() === MAX_SCORE || this.#score.getScoreRight() === MAX_SCORE) {
-                    let playerWhoWon = this.#score.getScoreLeft() === MAX_SCORE ? "left" : "right";
-                    alert(`The ${playerWhoWon} player won!`);
                     this.clear();
+                    renderHeader();
+                    renderGame();
+                    renderFooter();
+                    if (againstBot) {
+                        if (this.#score.getScoreLeft() === MAX_SCORE) {
+                            showToast("You won!", "success");
+                        } else {
+                            showToast("You lost!", "error");
+                        }
+                    }
                     return;
                 }
 
