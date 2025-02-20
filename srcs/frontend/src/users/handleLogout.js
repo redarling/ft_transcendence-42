@@ -1,47 +1,34 @@
 import navigateTo from "../navigation/navigateTo.js"
-import { socket } from "./websocket.js";
 import renderHeader from "../components/header.js";
 import showToast from "../utils/toast.js";
 import showLoadingSpinner from "../utils/spinner.js";
 import { stopTokenRefreshing } from "./tokenRefreshing.js";
+import { resetSocket } from "./websocket.js";
 
 export async function handleLogout()
 {
-	console.log("- function: handleLogout()")
-	const accessToken = localStorage.getItem("access_token");
-
-    if (!accessToken)
-    {
-        console.error("No access token found");
-        return;
-    }
-
+	console.log("- function: handleLogout()");
+    
     try
     {
         showLoadingSpinner(true);
 		const response = await fetch("/api/users/logout/", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`
-            },
+            credentials: "include"
         });
 
-        const result = await response.json();
-
-		if (response.ok)
+        if (response.ok)
         {
-            stopTokenRefreshing();
             clearUserData();
             navigateTo("/login");
         } 
 		else
 		{
-			console.log("we should take a look to check what happens before u pass in this condition");
-
+            console.log("❌ Logout failed:", result.error);
+			const result = await response.json();
             clearUserData();
 			navigateTo("/login");
-			showToast(result.error || result.detail || "Unknown error. Please, try again.", "error");
+			showToast(result.error || "Unknown error. Please, try again.", "error");
         }
     } 
 	catch (error)
@@ -54,12 +41,11 @@ export async function handleLogout()
     }
 }
 
-export function clearUserData()
-{	
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_id");
-    if (socket && socket.readyState === WebSocket.OPEN)
-        socket.close();
+function clearUserData()
+{
+    stopTokenRefreshing();
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user_id');
+    resetSocket();
     renderHeader();
 }

@@ -19,7 +19,7 @@ class UserManager(BaseUserManager):
         return user
 
 class User(AbstractUser):
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, null=True)
     online_status = models.BooleanField(default=False)
     avatar = models.URLField(null=True, blank=True)
     password = models.CharField(max_length=128, default='default_password', null=False)
@@ -79,6 +79,20 @@ class User(AbstractUser):
 
     def save_code(self, code):
         save_2fa_code(self.id, code)
+
+    def deactivate_user(self):
+        from games.models import TournamentParticipant
+        self.is_active = False
+        TournamentParticipant.objects.filter(user=self).update(tournament_alias='deleted_user')
+        self.username = f"deleted_user_{self.pk}"
+        self.email = None
+        self.avatar = "https://i.imgur.com/1QyvYbd.jpeg"
+        self.active_session_id = None
+        self.twofa_method = "None"
+        self.is_2fa_enabled = False
+        self.otp_secret = None
+        self.chat_id = None
+        self.save()
 
 class UserStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='stats')

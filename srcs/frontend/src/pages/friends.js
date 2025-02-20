@@ -3,8 +3,10 @@ import acceptFriendRequest from "../users/friends_management/acceptFriendRequest
 import declineFriendRequest from "../users/friends_management/declineFriendRequest.js";
 import renderUserProfile from "./profile.js";
 import navigateTo from "../navigation/navigateTo.js";
+import { fetchWithAuth } from "../utils/fetchWithAuth.js";
 
-export default function renderFriends() {
+export default function renderFriends()
+{
     console.log("- function: renderFriends()");
     const main = document.getElementById("main");
 
@@ -47,7 +49,8 @@ export default function renderFriends() {
     loadFriendRequests();
 }
 
-function toggleTab(tabId, tabButtonId) {
+function toggleTab(tabId, tabButtonId)
+{
     document.getElementById("friendList").classList.add("d-none");
     document.getElementById("friendRequests").classList.add("d-none");
     document.getElementById(tabId).classList.remove("d-none");
@@ -58,27 +61,30 @@ function toggleTab(tabId, tabButtonId) {
 }
 
 
-async function getFriends() {
-    try {
-        const userId = localStorage.getItem("user_id");
-        const response = await fetch(`https://transcendence-pong:7443/api/users/friends/${userId}/`, {
+async function getFriends()
+{
+    try
+    {
+        const response = await fetchWithAuth(`/api/users/friends/${localStorage.getItem('user_id')}/`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("access_token")}`
             }
         });
-        if (!response.ok) throw new Error("Failed to fetch friends list");
+        if (!response.ok)
+            throw new Error("Failed to fetch friends list");
         const data = await response.json();
-        console.log("Friends List Response:", data);
         return data;
-    } catch (error) {
+    }
+    catch (error)
+    {
         console.error("Error fetching friends list:", error);
         return [];
     }
 }
 
-async function loadFriends() {
+async function loadFriends()
+{
     const friendsContainer = document.getElementById("friendsContainer");
     friendsContainer.innerHTML = "";
 
@@ -98,26 +104,30 @@ async function loadFriends() {
     });
 }
 
-async function getFriendRequests() {
-    try {
-        const response = await fetch("https://transcendence-pong:7443/api/users/friendship-requests/", {
+async function getFriendRequests()
+{
+    try
+    {
+        const response = await fetchWithAuth("/api/users/friendship-requests/", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("access_token")}`
             }
         });
-        if (!response.ok) throw new Error("Failed to fetch friend requests");
+        if (!response.ok)
+            throw new Error("Failed to fetch friend requests");
         const data = await response.json();
-        console.log("Parsed Response:", data);
         return data;
-    } catch (error) {
+    }
+    catch (error)
+    {
         console.error("Error fetching friend requests:", error);
         return [];
     }
 }
 
-async function loadFriendRequests() {
+async function loadFriendRequests()
+{
     const requestsContainer = document.getElementById("requestsContainer");
     requestsContainer.innerHTML = "";
 

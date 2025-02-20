@@ -1,4 +1,5 @@
 import { tournamentHandler } from "../../tournament_gaming/tournamentHandler.js";
+import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
 import showLoadingSpinner from '../../utils/spinner.js';
 import showToast from '../../utils/toast.js';
 
@@ -6,18 +7,11 @@ export async function joinTournament(tournamentId, tournamentAlias)
 {
     try
     {
-        const token = localStorage.getItem('access_token');
-        if (!token)
-        {
-            throw new Error('Unauthorized.');
-        }
-
         showLoadingSpinner(true);
-        const response = await fetch('/api/games/tournament/join/', {
+        const response = await fetchWithAuth('/api/games/tournament/join/', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({ tournament_id: tournamentId, tournament_alias: tournamentAlias }),
         });

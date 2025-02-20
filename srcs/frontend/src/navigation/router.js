@@ -21,7 +21,7 @@ import renderFriends from "../pages/friends.js"
 import isAuthenticated from "../utils/isAuthenticated.js";
 import showToast from "../utils/toast.js";
 
-function protectRoute(protectedRoutes = [], guestOnlyRoutes = [])
+async function protectRoute(protectedRoutes = [], guestOnlyRoutes = [])
 {
     const path = window.location.pathname;
 
@@ -63,7 +63,7 @@ export default async function router()
         "/friends": renderFriends,
     };
 
-    if (protectRoute(["/game", "/settings", "/friends", 
+    if (await protectRoute(["/game", "/settings", "/friends", 
 		"/tournaments", "/2fa-setup", "/2fa-remove", "/update-informations", "/friends"], 
 		["/login", "/register", "/forgot-password"]))
 	{
@@ -98,10 +98,9 @@ async function recoverySystem()
 {
 	try
 	{
-        const token = localStorage.getItem("access_token");
-        if (token)
+        if (localStorage.getItem('access_token'))
 		{
-            const matchData = await checkActiveMatch(token);
+            const matchData = await checkActiveMatch();
             if (matchData && matchData.active)
 			{
                 console.log("Active match found:", matchData);
@@ -115,10 +114,10 @@ async function recoverySystem()
                 const matchRecoveryBtn = document.getElementById("restore-match-btn");
                 matchRecoveryBtn.addEventListener("click", async () => {
                     matchToast.hide();
-                    await connectToWebSocket(token, matchData.match_group);
+                    await connectToWebSocket(matchData.match_group);
                 });
             }
-            const tournament = await checkActiveTournament(token);
+            const tournament = await checkActiveTournament();
             if (tournament && tournament.active)
 			{
                 console.log("Active tournament found, now restoring the bracket.");
@@ -133,7 +132,7 @@ async function recoverySystem()
                 bracketRecoveryBtn.addEventListener("click", async () => {
                     tournamentToast.hide();
                     const tournamentWebSocketLink = `wss://transcendence-pong:7443/ws/tournament/${tournament.tournament_id}/`;
-                    await tournamentHandler(tournamentWebSocketLink, token, tournament.tournament_id);
+                    await tournamentHandler(tournamentWebSocketLink, tournament.tournament_id);
                 });
             }
         }

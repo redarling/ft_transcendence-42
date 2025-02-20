@@ -9,23 +9,18 @@ import { tournamentHandler } from "../../tournament_gaming/tournamentHandler.js"
 
 export default async function renderTournaments()
 {
-    const token = localStorage.getItem("access_token");
-
-    if (token)
+    try
     {
-        try
+        const tournament = await checkActiveTournament(localStorage.getItem('access_token'));
+        if (tournament && tournament.active)
         {
-            const tournament = await checkActiveTournament(token);
-            if (tournament && tournament.active)
-            {
-                const tournamentWebSocketLink = `wss://transcendence-pong:7443/ws/tournament/${tournament.tournament_id}/`;
-                await tournamentHandler(tournamentWebSocketLink, token, tournament.tournament_id);
-            }
+            const tournamentWebSocketLink = `wss://transcendence-pong:7443/ws/tournament/${tournament.tournament_id}/`;
+            await tournamentHandler(tournamentWebSocketLink, token, tournament.tournament_id);
         }
-        catch (error)
-        {
-            showToast(error, "error");
-        }
+    }
+    catch (error)
+    {
+        showToast(error, "error");
     }
 
     const tournamentToastEl = document.getElementById('tournament-ongoing-toast');

@@ -1,5 +1,6 @@
 import { joinTournamentModal } from './join.js';
 import showLoadingSpinner from '../../utils/spinner.js';
+import { fetchWithAuth } from '../../utils/fetchWithAuth.js';
 
 export default async function invitationsList()
 {
@@ -46,17 +47,10 @@ async function fetchInvitations()
 {
     try
     {
-        const token = localStorage.getItem('access_token');
-        if (!token)
-        {
-            throw new Error('Unauthorized.');
-        }
-
         showLoadingSpinner(true);
-        const response = await fetch('/api/games/tournament-invitation-list/', {
+        const response = await fetchWithAuth('/api/games/tournament-invitation-list/', {
             method: 'GET',
             headers: {
-                Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
         });

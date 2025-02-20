@@ -2,6 +2,7 @@ import { joinTournament } from './join.js';
 import { tournamentHandler } from '../../tournament_gaming/tournamentHandler.js';
 import showLoadingSpinner from '../../utils/spinner.js';
 import showToast from '../../utils/toast.js';
+import { fetchWithAuth } from '../../utils/fetchWithAuth.js';
 
 export default async function createTournamentModal()
 {
@@ -93,17 +94,10 @@ async function createTournament(title, description)
 {
     try
     {
-        const token = localStorage.getItem('access_token');
-        if (!token)
-        {
-            throw new Error('Unauthorized.');
-        }
-
         showLoadingSpinner(true);
-        const response = await fetch('/api/games/tournament/create/', {
+        const response = await fetchWithAuth('/api/games/tournament/create/', {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({ title, description }),

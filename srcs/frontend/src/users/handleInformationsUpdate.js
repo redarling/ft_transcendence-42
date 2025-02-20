@@ -1,14 +1,11 @@
-export async function handleInformationsUpdate(event) {
+import { fetchWithAuth } from "../utils/fetchWithAuth.js";
+
+export async function handleInformationsUpdate(event)
+{
     console.log("- function: handleProfileUpdate()");
 	
 	// Prevent form reload
     event.preventDefault();
-
-    const accessToken = localStorage.getItem("access_token");
-    if (!accessToken) {
-        console.error("❌ No access token found. User must be authenticated.");
-        return;
-    }
 
     // 🔹 Get form values
     const username = document.getElementById("username").value.trim();
@@ -41,9 +38,8 @@ export async function handleInformationsUpdate(event) {
     try {
         console.log("📤 Sending update request...");
 
-        const response = await fetch("/api/users/update/", {
+        const response = await fetchWithAuth("/api/users/update/", {
             method: "PATCH",
-            headers: { "Authorization": `Bearer ${accessToken}` },
             body: formData,
         });
 

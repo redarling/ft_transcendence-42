@@ -1,6 +1,7 @@
 import showToast from "../../utils/toast.js";
 import showLoadingSpinner from "../../utils/spinner.js";
 import navigateTo from "../../navigation/navigateTo.js";
+import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
 
 export default async function TwoFARemove()
 {
@@ -31,17 +32,14 @@ export default async function TwoFARemove()
 
 async function handleTwoFARemove()
 {
-    const token = localStorage.getItem("access_token");
-
     try
     {
         showLoadingSpinner(true);
 
-        const response = await fetch("/api/users/2fa/remove/", {
+        const response = await fetchWithAuth("/api/users/2fa/remove/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
             },
         });
 
@@ -154,17 +152,14 @@ export async function renderWaitingCodePage(method)
 
 async function handleVerificationCode(verificationCode)
 {
-    const token = localStorage.getItem("access_token");
-    
     try
     {
         showLoadingSpinner(true);
 
-        const response = await fetch("/api/users/2fa/verify-remove/", {
+        const response = await fetchWithAuth("/api/users/2fa/verify-remove/", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({ code: verificationCode })
         });

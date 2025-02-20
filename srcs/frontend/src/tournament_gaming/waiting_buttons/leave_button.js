@@ -3,6 +3,7 @@ import showToast from "../../utils/toast.js";
 import showLoadingSpinner from "../../utils/spinner.js";
 import renderHeader from '../../components/header.js';
 import renderTournaments from '../../pages/tournaments/tournaments.js';
+import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
 
 export default async function leaveButton(socket, tournamentId)
 {
@@ -25,19 +26,12 @@ export default async function leaveButton(socket, tournamentId)
 async function leaveTournament(socket, tournamentId)
 {
     try
-    {
-        const token = localStorage.getItem('access_token');
-        if (!token)
-        {
-            throw new Error('Unauthorized.');
-        }
-        
+    {        
         showLoadingSpinner(true);
         const url = `/api/games/tournament/leave/`;
-        const response = await fetch(url, {
+        const response = await fetchWithAuth(url, {
             method: 'POST',
             headers: {
-                Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({

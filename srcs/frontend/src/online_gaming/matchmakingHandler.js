@@ -5,17 +5,9 @@ import navigateTo from '../navigation/navigateTo.js';
 
 export async function findMatch()
 {
-    const token = localStorage.getItem("access_token");
     let playerId = null;
 
-    if (!token)
-    {
-        navigateTo("/login");
-        showToast("Please log in to play", "info");
-        return;
-    }
-
-    const   wsUrl = `wss://transcendence-pong:7443/ws/matchmaking/?token=${encodeURIComponent(token)}`;
+    const   wsUrl = `wss://transcendence-pong:7443/ws/matchmaking/?token=${encodeURIComponent(localStorage.getItem('access_token'))}`;
     let     socket;
 
     try

@@ -1,7 +1,8 @@
 import navigateTo from "../navigation/navigateTo.js";
 import showToast from "../utils/toast.js";
 import showLoadingSpinner from "../utils/spinner.js";
-import { clearUserData } from "./handleLogout.js";
+import { handleLogout } from "./handleLogout.js";
+import { fetchWithAuth } from "../utils/fetchWithAuth.js";
 
 export default function handleAccountDeletion()
 {
@@ -32,30 +33,20 @@ export default function handleAccountDeletion()
     });
 
     deleteButton.addEventListener("click", async () => {
-        //await fetchAccountDeletion();
-        console.log("Account deletion is disabled in the frontend.");
+        await fetchAccountDeletion();
     });
 }
 
 async function fetchAccountDeletion()
 {
-    const accessToken = localStorage.getItem("access_token");
-
-    if (!accessToken)
-    {
-        navigateTo("/home");
-        showToast("An error occurred. Please, try again.", "error");
-        return;
-    }
     try
     {
         showLoadingSpinner(true);
 
-        const response = await fetch("/api/users/delete-account/", {
+        const response = await fetchWithAuth("/api/users/delete-account/", {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`
             },
         });
 
@@ -64,6 +55,7 @@ async function fetchAccountDeletion()
         if (response.ok)
         {
             showToast("Account deleted successfully.", "success");
+            handleLogout();
         }
         else
             showToast(result.error || result.detail || "Unknown error. Please, try again.", "error");

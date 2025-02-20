@@ -1,5 +1,6 @@
 import { joinTournamentModal } from './join.js';
 import showLoadingSpinner from '../../utils/spinner.js';
+import { fetchWithAuth } from '../../utils/fetchWithAuth.js';
 
 export default async function searchTournament()
 {
@@ -67,20 +68,13 @@ async function fetchTournaments(title)
 {
     try
     {
-        const token = localStorage.getItem('access_token');
-        if (!token)
-        {
-            throw new Error('Unauthorized.');
-        }
-
         showLoadingSpinner(true);
         const titleEncoded = encodeURIComponent(title);
         const url = `https://transcendence-pong:7443/api/games/tournament/search/?title=${titleEncoded}`;
 
-        const response = await fetch(url, {
+        const response = await fetchWithAuth(url, {
             method: 'GET',
             headers: {
-                Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
         });

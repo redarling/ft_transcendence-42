@@ -4,6 +4,7 @@ import UserHeaderComponent from "../users/profile/userHeader.js"
 import navigateTo from "../navigation/navigateTo.js"
 import showLoadingSpinner from "../utils/spinner.js";
 import showToast from "../utils/toast.js";
+import { fetchWithAuth } from "../utils/fetchWithAuth.js";
 
 export default async function renderUserProfile(userId)
 {
@@ -12,16 +13,16 @@ export default async function renderUserProfile(userId)
 
     try
     {
-        const userProfile = await fetchData(`https://transcendence-pong:7443/api/users/profile/${userId}/`);
-        const userStats = await fetchData(`https://transcendence-pong:7443/api/users/stats/${userId}/`);
-        const matchHistory = await fetchData(`https://transcendence-pong:7443/api/games/match-history/${userId}/`);
+        const userProfile = await fetchData(`/api/users/profile/${userId}/`);
+        const userStats = await fetchData(`/api/users/stats/${userId}/`);
+        const matchHistory = await fetchData(`/api/games/match-history/${userId}/`);
 
         showLoadingSpinner(false);
         
         let matchesStats = []; // 2d array containing all matches stats (array dims: 2 * matchesStats.length)
         for (let i = 0; i < matchHistory.length; ++i)
         {
-            const matchStats = await fetchData(`https://transcendence-pong:7443/api/games/match-stats/${matchHistory[i].match.id}/`);
+            const matchStats = await fetchData(`/api/games/match-stats/${matchHistory[i].match.id}/`);
             matchesStats.push(matchStats);
         }
 
@@ -85,18 +86,10 @@ export default async function renderUserProfile(userId)
 }
 
 async function fetchData(requestUrl)
-{
-    const accessToken = localStorage.getItem("access_token")
-	if (!accessToken)
-	{
-		console.log("No access token stored!");
-		return ;
-	}
-	
-	const response = await fetch(requestUrl, {
+{	
+	const response = await fetchWithAuth(requestUrl, {
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
         }
     });

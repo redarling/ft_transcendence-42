@@ -4,7 +4,8 @@ from .views import (UserRegistrationAPIView, UserLoginAPIView,
     UserStatsAPIView, FriendshipAPIView, FriendListAPIView,
     UserSearchAPIView, UserTokenRefreshAPIView, FriendRequestsAPIView)
 from .two_factor_auth.TwoFA_views import (TwoFA_ActivateAPIView, TwoFA_DeactivateAPIView, 
-                                          TwoFA_VerifyAPIView, TwoFA_VerifyDeactivateAPIView, LoginWith2FA_APIView)
+                                          TwoFA_VerifyAPIView, TwoFA_VerifyDeactivateAPIView, 
+                                          LoginWith2FA_APIView, Is2FAEnabled)
 
 from .gdpr_views import UserDataExport, UserDeleteAccount, UserResetPassword, UserForgotPassword, UserVerifyResetCode
 
@@ -32,4 +33,5 @@ urlpatterns = [
     path('forgot-password/', UserForgotPassword.as_view(), name='forgot-password'),
     path('verify-reset-code/', UserVerifyResetCode.as_view(), name='verify-reset-code'),
     path('reset-password/', UserResetPassword.as_view(), name='reset-password'),
+    path('is-2fa-enabled/', Is2FAEnabled.as_view(), name='is-2fa-enabled'),
 ]

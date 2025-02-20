@@ -1,14 +1,16 @@
 import renderHeader from "./components/header.js";
 import renderFooter from "./components/footer.js";
-import connectWebSocket from "./users/websocket.js";
+import { connectWebSocket } from "./users/websocket.js";
 import router from "./navigation/router.js"
 
-function renderStaticElements() {
+function renderStaticElements()
+{
 	renderHeader();
 	renderFooter();
 }
 
-function createDivBlocks() {
+function createDivBlocks()
+{
 	const app = document.getElementById("app");
 	app.innerHTML = `
 		<div id="header"></div>
@@ -18,18 +20,25 @@ function createDivBlocks() {
 	`
 }
 
-function updateDomContent() {
+function updateDomContent()
+{
 	console.log("- function: updateDomContent()")
 	createDivBlocks();
 	renderStaticElements();
 	router();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 	console.log("- function: Dom content loaded");
-	const accessToken = localStorage.getItem("access_token");
-	if (accessToken)
-		connectWebSocket();
+    try
+	{
+        if (localStorage.getItem('access_token'))
+            await connectWebSocket();
+    }
+	catch (error)
+	{
+        console.error("❌ WebSocket connection failed:", error);
+    }
 	updateDomContent();
 });
 

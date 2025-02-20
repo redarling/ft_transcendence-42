@@ -75,7 +75,6 @@ export default function renderHeader()
             authHeaderButton.addEventListener("click", () => navigateTo("/login"));
     }
 
-    const userId = localStorage.getItem("user_id");
     if (auth)
     {
         const settingsHeaderButton = document.getElementById("settingsHeaderButton");
@@ -84,9 +83,9 @@ export default function renderHeader()
             settingsHeaderButton.addEventListener("click", () => navigateTo("/settings"));
         }
         const profileHeaderButton = document.getElementById("profileHeaderButton");
-        if (profileHeaderButton && userId)
+        if (profileHeaderButton)
         {
-            profileHeaderButton.addEventListener("click", () => navigateTo(`/profile/${userId}/`));
+            profileHeaderButton.addEventListener("click", () => navigateTo(`/profile/${localStorage.getItem('user_id')}/`));
         }
     }
 }

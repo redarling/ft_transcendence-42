@@ -1,13 +1,13 @@
+import { fetchWithAuth } from '../utils/fetchWithAuth.js';
 import { renderErrorPage, renderMatch, handleMatchOver } from './renderPages.js';
 
-export async function checkActiveMatch(token)
+export async function checkActiveMatch()
 {
     try
     {
-        const response = await fetch("https://transcendence-pong:7443/api/games/check-active-match/", {
+        const response = await fetchWithAuth("/api/games/check-active-match/", {
             method: "GET",
             headers: {
-                "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
             },
         });
@@ -25,14 +25,13 @@ export async function checkActiveMatch(token)
     }
 }
 
-export async function checkActiveTournament(token)
+export async function checkActiveTournament()
 {
     try
     {
-        const response = await fetch("https://transcendence-pong:7443/api/games/check-active-tournament/", {
+        const response = await fetchWithAuth("/api/games/check-active-tournament/", {
             method: "GET",
             headers: {
-                "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             },
         });
@@ -50,10 +49,9 @@ export async function checkActiveTournament(token)
     }
 }
 
-export async function connectToWebSocket(token, matchGroup)
+export async function connectToWebSocket(matchGroup)
 {
-    const wsUrl = `wss://transcendence-pong:7443/ws/matchmaking/?token=${encodeURIComponent(token)}`;
-    console.log("Match group:", matchGroup);
+    const wsUrl = `wss://transcendence-pong:7443/ws/matchmaking/?token=${encodeURIComponent(localStorage.getItem('access_token'))}`;
     const socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
