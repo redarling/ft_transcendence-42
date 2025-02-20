@@ -7,7 +7,7 @@ import { stopTokenRefreshing } from "./tokenRefreshing.js";
 
 export default async function handleLogout()
 {
-	console.log("- start: handleLogout()")
+	console.log("- function: handleLogout()")
 	const accessToken = localStorage.getItem("access_token");
 
     if (!accessToken)
@@ -28,9 +28,10 @@ export default async function handleLogout()
         });
 
         const result = await response.json();
-        if (response.ok)
+		console.log("handleLogout: before check if response.ok");
+		if (response.ok)
         {
-            console.log("stop token refreshing system...");			
+			console.log("stop token refreshing system...");			
 			stopTokenRefreshing();
             console.log("removing tokens...");
 			localStorage.removeItem("access_token");
@@ -44,8 +45,16 @@ export default async function handleLogout()
 			navigateTo("/login");
         } 
 		else
-        {
-            showToast("Logout failed. Try again!", "error");
+		{
+			console.log("we should take a look to check what happens before u pass in this condition");
+			localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+			localStorage.removeItem("user_id");
+			if (socket && socket.readyState === WebSocket.OPEN)
+                socket.close();
+			renderHeader();
+			navigateTo("/login");
+			showToast("Logout failed. Try again!", "error");
             console.error("Logout failed:", result.error || result.detail || "An unknown error occurred");
         }
     } 

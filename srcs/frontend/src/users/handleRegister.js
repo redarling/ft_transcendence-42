@@ -4,7 +4,7 @@ import showLoadingSpinner from "../utils/spinner.js";
 
 export default async function handleRegister(event)
 {
-	console.log("- start: handleRegister()")
+	console.log("- function: handleRegister()")
 	event.preventDefault();
 
 	const username = document.getElementById("username").value;

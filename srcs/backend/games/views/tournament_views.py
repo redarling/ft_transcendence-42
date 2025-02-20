@@ -1,5 +1,4 @@
-from django.db import IntegrityError
-from django.db import transaction
+from django.db import IntegrityError, transaction, models
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
@@ -347,7 +346,6 @@ class CancelTournamentAPIView(APIView):
             status=status.HTTP_200_OK
         )
 
-# TODO: exclude tournament with 16 participants and where the user is already a participant
 class SearchTournamentAPIView(ListAPIView):
     serializer_class = TournamentSerializer
 
@@ -361,7 +359,13 @@ class SearchTournamentAPIView(ListAPIView):
         return Tournament.objects.filter(
             status='pending',
             title__icontains=query
-        ).exclude(creator=user)
+        ).exclude(
+            creator=user
+        ).exclude(
+            id__in=TournamentParticipant.objects.values_list('tournament_id', flat=True).filter(user=user)
+        ).annotate(
+            participant_count=models.Count('tournamentparticipant')
+        ).exclude(participant_count=16)
 
     def list(self, request, *args, **kwargs):
         query = self.request.query_params.get('title', '').strip()

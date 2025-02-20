@@ -2,7 +2,7 @@ import navigateTo from "../navigation/navigateTo.js";
 import handleLogin from "../users/handleLogin.js";
 
 export default function renderLogin() {
-	console.log("- start: renderLogin()");
+	console.log("- function: renderLogin()");
 	const main = document.getElementById("main");
 	main.innerHTML = `
         <div class="container d-flex justify-content-center align-items-center">
@@ -16,9 +16,13 @@ export default function renderLogin() {
             <p class="mt-3">
 			<a id="goToRegister" class="link-like" style="color: grey; cursor: pointer;">Not registered?</a>
             </p>
+            <p>
+            <a id="goToForgotPassword" class="link-like" style="color: grey; cursor: pointer;">Forgot your password?</a>
+            </p>
 			</div>
 			`;
 			
 			document.getElementById("goToRegister").addEventListener("click", () => navigateTo("/register"));
+            document.getElementById("goToForgotPassword").addEventListener("click", () => navigateTo("/forgot-password"));
 			document.getElementById("loginForm").addEventListener("submit", handleLogin);
 }

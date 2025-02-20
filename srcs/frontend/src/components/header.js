@@ -40,26 +40,21 @@ export default function renderHeader() {
     </nav>
     `;
 
-	document.getElementById("logoHeaderButton").addEventListener("click", () => {
-		navigateTo("/home");
-	});
-	document.getElementById("homeHeaderButton").addEventListener("click", () => {
-		navigateTo("/home");
-	});
-	document.getElementById("gameHeaderButton").addEventListener("click", () => {
-		navigateTo("/game");
-	});
-	document.getElementById("settingsHeaderButton").addEventListener("click", () => {
-		navigateTo("/settings");
-	});
-	document.getElementById("profileHeaderButton").addEventListener("click", () => {
-		navigateTo("/profile/1");
-	});
+	let userId = localStorage.getItem("user_id");
+	if (!userId)
+		userId = 1;
+
+	document.getElementById("logoHeaderButton").addEventListener("click", () => {navigateTo("/home");});
+	document.getElementById("homeHeaderButton").addEventListener("click", () => {navigateTo("/home");});
+	document.getElementById("gameHeaderButton").addEventListener("click", () => {navigateTo("/game");});
+	document.getElementById("settingsHeaderButton").addEventListener("click", () => {navigateTo("/settings");});
+	document.getElementById("profileHeaderButton").addEventListener("click", () => {navigateTo(`/profile/${userId}/`);});
 
 	const authButton = document.getElementById("authHeaderButton");
 	if (isAuthenticated) {
 		authButton.addEventListener("click", handleLogout);
-	} else {
+	} 
+	else {
 		authButton.addEventListener("click", () => navigateTo("/login"));
 	}
 }

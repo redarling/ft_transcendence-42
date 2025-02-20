@@ -1,4 +1,4 @@
-import logging, random, requests, os, django, sys
+import logging, secrets, requests, os, django, sys
 from django.conf import settings
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
@@ -24,7 +24,7 @@ async def start(update: Update, context: CallbackContext):
 
 def send_2fa_code(user):
     if user.chat_id and user.twofa_method == 'sms':  
-        code = str(random.randint(100000, 999999))
+        code = str(secrets.randbelow(900000) + 100000)
         user.save_code(code)
 
         message = f"🔐 Your 2FA code: {code}.\nDon't show it to anyone!\nValid for 15 minutes."

@@ -1,7 +1,7 @@
 import router from "./router.js"
 
 export default function navigateTo(path) {
-	console.log("- start: navigateTo()")
+	console.log("- function: navigateTo()")
     history.pushState({}, "", path);
     router();
 }

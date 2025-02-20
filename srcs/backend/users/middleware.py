@@ -42,10 +42,13 @@ class UpdateLastActivityMiddleware:
         '/api/users/login/',
         '/api/users/register/',
         '/api/users/refresh-token/',
+        '/api/users/forgot-password/',
+        '/api/users/verify-reset-code/',
+        '/api/users/reset-password/',
         '/api/games/match/start/',
         '/api/games/match/finish/',
         '/api/games/tournament/round/create-match/',
-        '/api/games/tournament/update-status/'
+        '/api/games/tournament/update-status/',
     ]
 
     def __init__(self, get_response):

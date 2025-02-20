@@ -1,8 +1,8 @@
 import navigateTo from "../navigation/navigateTo.js";
-import { handleProfileUpdate } from "../users/handleProfileUpdate.js";
+import { handleInformationsUpdate } from "../users/handleInformationsUpdate.js";
 
-export default function renderUpdateProfile() {
-    console.log("- start: renderUpdateProfile()");
+export default function renderUpdateInformations() {
+    console.log("- function: renderUpdateProfile()");
     const main = document.getElementById("main");
 
     main.innerHTML = `
@@ -40,12 +40,12 @@ export default function renderUpdateProfile() {
         </div>
     `;
 	loadUserData();
-    document.getElementById("updateProfileForm").addEventListener("submit", handleProfileUpdate);
+    document.getElementById("updateProfileForm").addEventListener("submit", handleInformationsUpdate);
     document.getElementById("returnUpdate").addEventListener("click", () => navigateTo("/settings"));
 }
 
 async function loadUserData() {
-    console.log("- start: loadUserData()");
+    console.log("- function: loadUserData()");
 
 	// Get userId
 	const userId = localStorage.getItem("user_id");

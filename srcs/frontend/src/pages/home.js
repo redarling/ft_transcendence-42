@@ -1,7 +1,7 @@
 import navigateTo from "../navigation/navigateTo.js";
 
 export default function renderHome() {
-	console.log("- start: renderHome()")
+	console.log("- function: renderHome()")
 	const main = document.getElementById("main");
 	main.innerHTML = `
 		<main class="container my-5">

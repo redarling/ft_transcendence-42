@@ -12,6 +12,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
             raise ValidationError("This username is already taken.")
+        
+        if value in ['BYE', 'bye', 'deleted_user']:
+            raise ValidationError("This username is not allowed.")
         return value
 
     def validate_email(self, value):
