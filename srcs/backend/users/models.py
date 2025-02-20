@@ -32,7 +32,7 @@ class User(AbstractUser):
         default='None')
     
     is_2fa_enabled = models.BooleanField(default=False)
-    otp_secret = models.CharField(max_length=32, blank=True, null=True)
+    otp_secret = models.CharField(max_length=255, blank=True, null=True)
     chat_id = models.CharField(max_length=15, blank=True, null=True)
     
     groups = models.ManyToManyField(

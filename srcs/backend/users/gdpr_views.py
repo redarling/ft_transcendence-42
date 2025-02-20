@@ -11,21 +11,84 @@ import logging, uuid, secrets
 
 logger = logging.getLogger(__name__)
 
-# TODO: unfinished
 class UserDataExport(APIView):
     """
-    View to download all user data in JSON format.
+    View to download all user data in JSON format (GDPR compliance).
     """
+
     def post(self, request):
         user = request.user
+        
+        friends = [
+            {'username': friend.friend.username, 'status': friend.status}
+            for friend in user.friends.filter(status='accepted')
+        ]
+
+        friend_requests = [
+            {'username': friend.friend.username, 'status': friend.status}
+            for friend in user.friends.filter(status='pending')
+        ]
+        incoming_requests = [
+            {'username': friend.user.username, 'status': friend.status}
+            for friend in user.friends_with.filter(status='pending')
+        ]
+
+        match_history = [
+            {
+                'match_id': match.id,
+                'opponent': match.second_player.username if match.first_player == user else match.first_player.username,
+                'score': f'{match.score_player1}-{match.score_player2}',
+                'status': match.match_status,
+                'winner': match.winner.username if match.winner else None,
+                'started_at': match.started_at,
+                'finished_at': match.finished_at,
+                'player_stats': {
+                    'points_scored': stats.points_scored,
+                    'serves': stats.serves,
+                    'successful_serves': stats.successful_serves,
+                    'total_hits': stats.total_hits,
+                    'longest_rally': stats.longest_rally
+                } if (stats := match.player_stats.filter(player=user).first()) else None
+            }
+            for match in user.matches_as_first.all() | user.matches_as_second.all()
+        ]
+
+
+        tournament_participations = [
+            {
+                'tournament_id': tp.tournament.id,
+                'tournament_title': tp.tournament.title,
+                'status': tp.tournament.status,
+                'alias': tp.tournament_alias
+            }
+            for tp in user.tournamentparticipant_set.all()
+        ]
+
+        sent_tournament_invitations = [
+            {'tournament': invite.tournament.title, 'invitee': invite.invitee.username, 'created_at': invite.created_at}
+            for invite in user.sent_invitations.all()
+        ]
+        received_tournament_invitations = [
+            {'tournament': invite.tournament.title, 'inviter': invite.inviter.username, 'created_at': invite.created_at}
+            for invite in user.received_invitations.all()
+        ]
+
         data = {
             'username': user.username,
             'email': user.email,
-            'friends': [{'username': friend.friend.username, 'status': friend.status} for friend in user.friends.filter(status='accepted')],
-            'match_history': [{'match_id': match.id, 'score': f'{match.score_player1}-{match.score_player2}'} for match in user.matches_as_first.all()],
-            'tournament_participations': [{'tournament_title': tournament.title, 'status': tournament.status} for tournament in user.tournaments.all()],
+            'registered_at': user.stats.registered_at,
             'avatar': user.avatar,
-            '2fa_method': user.twofa_method,
+            'is_2fa_enabled': user.is_2fa_enabled,
+            
+            'friends': friends,
+            'friend_requests_sent': friend_requests,
+            'friend_requests_received': incoming_requests,
+            
+            'match_history': match_history,
+            'tournament_participations': tournament_participations,
+            'sent_tournament_invitations': sent_tournament_invitations,
+            'received_tournament_invitations': received_tournament_invitations,
+            
             'stats': {
                 'total_matches': user.stats.total_matches,
                 'total_wins': user.stats.total_wins,
@@ -33,10 +96,12 @@ class UserDataExport(APIView):
                 'total_points_against': user.stats.total_points_against,
                 'current_win_streak': user.stats.current_win_streak,
                 'longest_win_streak': user.stats.longest_win_streak,
+                'tournaments_won': user.stats.tournaments_won,
+                'last_match_date': user.stats.last_match_date
             }
         }
 
-        return JsonResponse(data)
+        return JsonResponse(data, json_dumps_params={'indent': 4})
 
 # TODO: unfinished
 class UserDeleteAccount(APIView):

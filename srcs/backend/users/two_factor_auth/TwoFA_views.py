@@ -10,9 +10,11 @@ from users.session_id import generate_session_id
 from users.jwt_logic import generate_jwt
 from .challenge_manager import get_2fa_challenge, delete_2fa_challenge, is_2fa_attempts_exceeded, increment_2fa_attempts, reset_2fa_attempts
 from users.models import User
+from .otp_encryption import encrypt_otp, decrypt_otp
 import pyotp, logging, qrcode, base64, secrets
 
 logger = logging.getLogger(__name__)
+
 
 class TwoFA_ActivateAPIView(APIView):
     def post(self, request):
@@ -29,9 +31,10 @@ class TwoFA_ActivateAPIView(APIView):
             
             if method == "totp":
                 if not user.otp_secret:
-                    user.otp_secret = pyotp.random_base32()
+                    raw_secret = pyotp.random_base32()
+                    user.otp_secret = encrypt_otp(raw_secret)
                     user.save()
-                totp = pyotp.TOTP(user.otp_secret)
+                totp = pyotp.TOTP(decrypt_otp(user.otp_secret))
                 uri = totp.provisioning_uri(name=user.username, issuer_name="Transcendence-pong")
                 img = qrcode.make(uri)
                 buffered = BytesIO()
@@ -130,7 +133,7 @@ class TwoFA_VerifyDeactivateAPIView(APIView):
             return Response({"message": "2FA is already disabled."}, status=status.HTTP_400_BAD_REQUEST)
         
         if user.twofa_method == "totp":
-            totp = pyotp.TOTP(user.otp_secret)
+            totp = pyotp.TOTP(decrypt_otp(user.otp_secret))
             if totp.verify(code):
                 user.is_2fa_enabled = False
                 user.otp_secret = None
@@ -179,10 +182,16 @@ class LoginWith2FA_APIView(APIView):
         except User.DoesNotExist:
             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        stored_code = get_2fa_code(user.id)
-        if not stored_code or stored_code != hash_2fa_code(code):
-            increment_2fa_attempts(user.id)
-            return Response({"error": "Invalid 2FA code."}, status=status.HTTP_401_UNAUTHORIZED)
+        if user.twofa_method == "totp":
+            totp = pyotp.TOTP(decrypt_otp(user.otp_secret))
+            if not totp.verify(code):
+                increment_2fa_attempts(user.id)
+                return Response({"error": "Invalid 2FA code."}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            stored_code = get_2fa_code(user.id)
+            if not stored_code or stored_code != hash_2fa_code(code):
+                increment_2fa_attempts(user.id)
+                return Response({"error": "Invalid 2FA code."}, status=status.HTTP_401_UNAUTHORIZED)
 
         delete_2fa_code(user.id)
         reset_2fa_attempts(user.id)
@@ -199,14 +208,14 @@ class LoginWith2FA_APIView(APIView):
             "type": "access",
             "session_id": session_id
         }
-        access_token = generate_jwt(access_payload, expiration_minutes=15, session_id=session_id)  # 15 мин
+        access_token = generate_jwt(access_payload, expiration_minutes=15, session_id=session_id)  # 15 min
 
         refresh_payload = {
             "user_id": user.id,
             "type": "refresh",
             "session_id": session_id
         }
-        refresh_token = generate_jwt(refresh_payload, expiration_minutes=7 * 24 * 60, session_id=session_id)  # 7 дней
+        refresh_token = generate_jwt(refresh_payload, expiration_minutes=7 * 24 * 60, session_id=session_id)  # 7 days
 
         return Response(
             {

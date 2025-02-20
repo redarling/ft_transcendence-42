@@ -13,6 +13,7 @@ TWOFA_BOT_URL = os.getenv("TWOFA_BOT_URL")
 WEBSOCKET_API_TOKEN = os.getenv('WEBSOCKET_API_TOKEN')
 DEBUG = os.getenv('DJANGO_DEBUG')
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "transcendence-pong").split(",")
+ENCRYPTION_KEY=os.getenv("ENCRYPTION_KEY")
 
 TEMPLATES = [
     {

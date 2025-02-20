@@ -19,6 +19,7 @@ REQUIRED_VARS=(
   "TWOFA_SERVER"
   "TWOFA_SERVER_PORT"
   "TWOFA_BOT"
+  "ENCRYPTION_KEY"
 )
 
 if [[ ! -f "$ENV_FILE" ]]; then

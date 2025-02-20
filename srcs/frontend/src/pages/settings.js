@@ -1,4 +1,5 @@
 import navigateTo from "../navigation/navigateTo.js";
+import { handleDataExport } from "../users/handleDataExport.js";
 
 export default function renderSettings()
 {
@@ -25,6 +26,8 @@ export default function renderSettings()
     document.getElementById("enable2FA").addEventListener("click", () => navigateTo("/2fa-setup"));
     document.getElementById("disable2FA").addEventListener("click", () => navigateTo("/2fa-remove"));
     document.getElementById("updateInformations").addEventListener("click", () => navigateTo("/update-informations"));
-    document.getElementById("downloadData").addEventListener("click", () => alert("Downloading Data..."));
+    document.getElementById("downloadData").addEventListener("click", async () => {
+        await handleDataExport();
+    });    
     document.getElementById("deleteAccount").addEventListener("click", () => confirm("Are you sure you want to delete your account?"));
 }
