@@ -2,7 +2,7 @@ import navigateTo from "../navigation/navigateTo.js";
 import handleRegister from "../users/handleRegister.js";
 
 export default function renderRegister() {
-    console.log("- start: renderRegister()");
+    console.log("- function: renderRegister()");
     const main = document.getElementById("main");
     main.innerHTML = `
         <div class="container d-flex justify-content-center align-items-center">

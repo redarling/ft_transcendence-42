@@ -17,6 +17,7 @@ import renderForgotPassword from "../pages/forgotPassword.js";
 import bracketRecoveryToast from "../utils/bracketRecoveryToast.js"
 import matchRecoveryToast from "../utils/matchRecoveryToast.js"
 import renderUpdateInformations from "../pages/updateInformations.js";
+import renderFriends from "../pages/friends.js"
 
 export default async function router() {
 	console.log("- start: router()")
@@ -34,6 +35,7 @@ export default async function router() {
 		"/contact-us": renderContactUs,
 		"/forgot-password": renderForgotPassword,
 		"/update-informations" : renderUpdateInformations,
+		"/friends" : renderFriends,
 	};
 
 	const path = window.location.pathname;
@@ -41,7 +43,8 @@ export default async function router() {
 	console.log("the path is :", path);
 
 	try {
-		const token = await getTokenFromUser();
+		// const token = await getTokenFromUser();
+		const token = localStorage.getItem("access_token");
 		if (token) {
 			const matchData = await checkActiveMatch(token);
 			if (matchData && matchData.active) {

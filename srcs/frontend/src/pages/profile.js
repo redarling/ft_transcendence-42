@@ -1,28 +1,15 @@
-import UserStatsComponent from "../components/profile/userStats.js"
-import UserMatchHistoryComponent from "../components/profile/userMatchHistory.js"
-import UserHeaderComponent from "../components/profile/userHeader.js"
+import UserStatsComponent from "../users/profile/userStats.js"
+import UserMatchHistoryComponent from "../users/profile/userMatchHistory.js"
+import UserHeaderComponent from "../users/profile/userHeader.js"
 import navigateTo from "../navigation/navigateTo.js"
 import showLoadingSpinner from "../utils/spinner.js";
 import showToast from "../utils/toast.js";
-
-let profileToken = null;
-
-async function promptForToken()
-{
-    while (!profileToken)
-    {
-        profileToken = prompt("JWT token for profile access (not possible to leave empty):");
-    }
-    return profileToken;
-}
-
+import handleLogout from "../users/handleLogout.js";
 
 export default async function renderUserProfile(userId)
 {
-    showLoadingSpinner(true);
-    await promptForToken();
-
-    console.log(profileToken);
+    console.log("function: renderUserProfile");
+	showLoadingSpinner(true);
 
     try
     {
@@ -43,13 +30,15 @@ export default async function renderUserProfile(userId)
             <div class="container-fluid profile-container">
                 <div class="row justify-content-md-center">
                     <div class="col col-md-10">
-                    <section id="userHeader"></section>
-                    <hr class="hr" style="color: white;" />
-                    ${matchHistory.length > 0 ? `
-                        <section id="userStats"></section>
-                        <hr class="hr" style="color: white;" />
-                        <section id="userMatchHistory"></section>
-                    ` : '<p class="text-light" style="text-align: center;">This user has not played any matches yet.</p>'}
+						<section id="userHeader"></section>
+						<hr class="hr" style="color: white;" />
+						${matchHistory.length > 0 ? `
+						
+						<section id="userStats"></section>
+						<hr class="hr" style="color: white;" />
+						
+						<section id="userMatchHistory"></section>
+						` : '<p class="text-light" style="text-align: center;">This user has not played any matches yet.</p>'}
                     </div>
                 </div>
             </div>
@@ -97,10 +86,17 @@ export default async function renderUserProfile(userId)
 
 async function fetchData(requestUrl)
 {
-    const response = await fetch(requestUrl, {
+    const accessToken = localStorage.getItem("access_token")
+	if (!accessToken)
+	{
+		console.log("No access token stored!");
+		return ;
+	}
+	
+	const response = await fetch(requestUrl, {
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${profileToken}`,
+            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
         }
     });

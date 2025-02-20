@@ -1,5 +1,5 @@
 export async function handleInformationsUpdate(event) {
-    console.log("- start: handleProfileUpdate()");
+    console.log("- function: handleProfileUpdate()");
 	
 	// Prevent form reload
     event.preventDefault();
