@@ -1,7 +1,7 @@
 import showToast from "../../utils/toast.js";
 import showLoadingSpinner from "../../utils/spinner.js";
 
-export default async function inviteButton(token, tournamentId)
+export default async function inviteButton(tournamentId)
 {
     const modal = friendsListModal();
     document.body.appendChild(modal);
@@ -15,8 +15,8 @@ export default async function inviteButton(token, tournamentId)
 
     try
     {
-        const friends = await fetchFriendsList(token, tournamentId);
-        renderFriendsList(token, friends, friendsList, tournamentId);
+        const friends = await fetchFriendsList(tournamentId);
+        renderFriendsList(friends, friendsList, tournamentId);
     }
     catch (error)
     {
@@ -42,10 +42,16 @@ function friendsListModal()
     return modal;
 }
 
-async function fetchFriendsList(token, tournamentId)
+async function fetchFriendsList(tournamentId)
 {
     try
     {
+        const token = localStorage.getItem('access_token');
+        if (!token)
+        {
+            throw new Error('Unauthorized.');
+        }
+
         showLoadingSpinner(true);
         const url = `/api/games/friend-list/tournament/invite/?tournament_id=${tournamentId}`;
         const response = await fetch(url, {
@@ -72,7 +78,7 @@ async function fetchFriendsList(token, tournamentId)
     }
 }
 
-function renderFriendsList(token, friends, friendsList, tournamentId)
+function renderFriendsList(friends, friendsList, tournamentId)
 {
     friendsList.innerHTML = '';
 
@@ -98,15 +104,21 @@ function renderFriendsList(token, friends, friendsList, tournamentId)
     document.querySelectorAll('.invite-friend-btn').forEach((button) => {
         button.addEventListener('click', () => {
             const friendId = button.getAttribute('data-id');
-            inviteFriend(token, friendId, tournamentId);
+            inviteFriend(friendId, tournamentId);
         });
     });
 }
 
-async function inviteFriend(token, friendId, tournamentId)
+async function inviteFriend(friendId, tournamentId)
 {
     try
     {
+        const token = localStorage.getItem('access_token');
+        if (!token)
+        {
+            throw new Error('Unauthorized.');
+        }
+
         showLoadingSpinner(true);
         const response = await fetch('/api/games/tournament/invite/', {
             method: 'POST',

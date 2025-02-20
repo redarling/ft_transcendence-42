@@ -1,9 +1,10 @@
 import navigateTo from "../navigation/navigateTo.js";
 import { handleDataExport } from "../users/handleDataExport.js";
+import handleAccountDeletion from "../users/handleAccountDeletion.js";
+import { is_2fa_enabled } from "../users/handleLogin.js";
 
 export default function renderSettings()
 {
-    console.log("- function: renderSettings()");
     const main = document.getElementById("main");
 
     main.innerHTML = `
@@ -13,8 +14,7 @@ export default function renderSettings()
             
             <div class="d-flex flex-column gap-2 mt-4">
                 <button class="btn btn-dark" id="friendList"><i class="fas fa-user-edit"></i> Friend List</button>
-				<button class="btn btn-dark" id="enable2FA"><i class="fas fa-shield-alt"></i> Enable Two-Factor Authentication</button>
-                <button class="btn btn-dark" id="disable2FA"><i class="fas fa-user-shield"></i> Disable Two-Factor Authentication</button>
+				<button class="btn btn-dark" id="2FA"><i class="fas fa-shield-alt"></i> Two-Factor Authentication</button>
                 <button class="btn btn-dark" id="updateInformations"><i class="fas fa-user-edit"></i> Update Informations</button>
                 <button class="btn btn-dark" id="downloadData"><i class="fas fa-download"></i> Download Your Data</button>
                 <button class="btn btn-dark" id="deleteAccount"><i class="fas fa-trash"></i> Delete Account</button>
@@ -22,14 +22,13 @@ export default function renderSettings()
         </div>
     `;
 
-    // TODO: Show only one 2FA button based on user's current 2FA status
-    // TODO: Restrict unauthenticated users from accessing this page
+    if (is_2fa_enabled)
+        document.getElementById("2FA").addEventListener("click", () => navigateTo("/2fa-setup"));
+    else
+        document.getElementById("2FA").addEventListener("click", () => navigateTo("/2fa-remove"));
+
     document.getElementById("friendList").addEventListener("click", () => navigateTo("/friends"));
-	document.getElementById("enable2FA").addEventListener("click", () => navigateTo("/2fa-setup"));
-    document.getElementById("disable2FA").addEventListener("click", () => navigateTo("/2fa-remove"));
     document.getElementById("updateInformations").addEventListener("click", () => navigateTo("/update-informations"));
-    document.getElementById("downloadData").addEventListener("click", async () => {
-        await handleDataExport();
-    });    
-    document.getElementById("deleteAccount").addEventListener("click", () => confirm("Are you sure you want to delete your account?"));
+    document.getElementById("downloadData").addEventListener("click", async () => {await handleDataExport();});    
+    document.getElementById("deleteAccount").addEventListener("click", () => handleAccountDeletion());
 }

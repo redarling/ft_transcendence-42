@@ -1,7 +1,7 @@
 import navigateTo from "../navigation/navigateTo.js";
 
-export default function renderHome() {
-	console.log("- function: renderHome()")
+export default function renderHome()
+{	
 	const main = document.getElementById("main");
 	main.innerHTML = `
 		<main class="container my-5">
@@ -76,9 +76,12 @@ export default function renderHome() {
 		</main>
 	`;
     
-    const playNowBtn = document.getElementById("playNowBtn");
-    playNowBtn.addEventListener("click", () => {
-        navigateTo("/game");
-    });
+	const playNowBtn = document.getElementById("playNowBtn");
 
+	if (playNowBtn)
+	{
+		playNowBtn.addEventListener("click", () => {
+			navigateTo("/game");
+		});
+	}
 }

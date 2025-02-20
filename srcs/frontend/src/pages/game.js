@@ -9,22 +9,29 @@ import { checkActiveMatch, connectToWebSocket } from '../online_gaming/recoveryS
 export let againstBot;
 export let botDifficulty;
 
-export default function renderGame() {
+export default function renderGame()
+{
     const token = localStorage.getItem("access_token");
-    if (token) {
-        try {
+    if (token)
+    {
+        try
+        {
             const matchData = checkActiveMatch(token);
-            if (matchData && matchData.active) {
+            if (matchData && matchData.active)
+            {
                 connectToWebSocket(token, matchData.match_group);
             }
-        } catch(error) {
-            showToast(error, "error");
+        } catch(error)
+        {
             navigateTo("/home");
+            showToast(error, "error");
         }
     }
 
     const matchToastEl = document.getElementById('match-ongoing-toast');
-    if (matchToastEl) {
+    
+    if (matchToastEl)
+    {
         const matchToast = new bootstrap.Toast(matchToastEl);
         matchToast.hide();
     }

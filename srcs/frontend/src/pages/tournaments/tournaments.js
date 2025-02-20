@@ -11,20 +11,27 @@ export default async function renderTournaments()
 {
     const token = localStorage.getItem("access_token");
 
-    if (token) {
-        try {
+    if (token)
+    {
+        try
+        {
             const tournament = await checkActiveTournament(token);
-            if (tournament && tournament.active) {
+            if (tournament && tournament.active)
+            {
                 const tournamentWebSocketLink = `wss://transcendence-pong:7443/ws/tournament/${tournament.tournament_id}/`;
                 await tournamentHandler(tournamentWebSocketLink, token, tournament.tournament_id);
             }
-        } catch (error) {
+        }
+        catch (error)
+        {
             showToast(error, "error");
         }
     }
 
     const tournamentToastEl = document.getElementById('tournament-ongoing-toast');
-    if (tournamentToastEl) {
+    
+    if (tournamentToastEl)
+    {
         const tournamentToast = new bootstrap.Toast(tournamentToastEl);
         tournamentToast.hide();
     }
@@ -81,7 +88,7 @@ export default async function renderTournaments()
     renderFooter();
     renderHeader();
 
-    document.getElementById("createTournamentBtn").addEventListener("click", () => createTournamentModal(tournamentToken));
-    document.getElementById("searchTournamentBtn").addEventListener("click", () => searchTournament(tournamentToken));
-    document.getElementById("myInvitationsBtn").addEventListener("click", () => invitationsList(tournamentToken));
+    document.getElementById("createTournamentBtn").addEventListener("click", () => createTournamentModal());
+    document.getElementById("searchTournamentBtn").addEventListener("click", () => searchTournament());
+    document.getElementById("myInvitationsBtn").addEventListener("click", () => invitationsList());
 }

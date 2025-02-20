@@ -4,7 +4,6 @@ import UserHeaderComponent from "../users/profile/userHeader.js"
 import navigateTo from "../navigation/navigateTo.js"
 import showLoadingSpinner from "../utils/spinner.js";
 import showToast from "../utils/toast.js";
-import handleLogout from "../users/handleLogout.js";
 
 export default async function renderUserProfile(userId)
 {

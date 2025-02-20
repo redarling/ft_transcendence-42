@@ -2,7 +2,7 @@ import { AreYouSureModal } from "../utils.js";
 import showToast from "../../utils/toast.js";
 import showLoadingSpinner from "../../utils/spinner.js";
 
-export default async function startButton(socket, token, tournamentId)
+export default async function startButton(socket, tournamentId)
 {
     const modal = AreYouSureModal();
     document.body.appendChild(modal);
@@ -11,7 +11,7 @@ export default async function startButton(socket, token, tournamentId)
     const noBtn = document.getElementById('noBtn');
 
     yesBtn.addEventListener('click', () => {
-        startTournament(socket, token, tournamentId);
+        startTournament(socket, tournamentId);
         document.body.removeChild(modal);
     });
 
@@ -20,10 +20,16 @@ export default async function startButton(socket, token, tournamentId)
     });
 }
 
-async function startTournament(socket, token, tournamentId)
+async function startTournament(socket, tournamentId)
 {
     try
     {
+        const token = localStorage.getItem('access_token');
+        if (!token)
+        {
+            throw new Error('Unauthorized.');
+        }
+        
         showLoadingSpinner(true);
         const url = `/api/games/tournament/start/`;
         const response = await fetch(url, {

@@ -5,7 +5,6 @@ import navigateTo from "../../navigation/navigateTo.js";
 
 export default async function TwoFASetup()
 {
-    let  token = prompt("Please enter your JWT token:", "");
     const main = document.getElementById("main");
     let selectedType = null;
 
@@ -40,7 +39,7 @@ export default async function TwoFASetup()
     });
 
     nextButton.addEventListener("click", async () => { 
-        await handleTwoFASetup(createPayload(selectedType), token);
+        await handleTwoFASetup(createPayload(selectedType));
     });
 
     backButton.addEventListener("click", () => {
@@ -98,8 +97,10 @@ function createPayload(type)
     return null;
 }
 
-async function handleTwoFASetup(payload, token)
+async function handleTwoFASetup(payload)
 {
+    const token = localStorage.getItem("access_token");
+    
     if (!payload)
     {
         showToast("Invalid 2FA setup method.", "error");

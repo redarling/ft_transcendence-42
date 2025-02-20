@@ -1,8 +1,9 @@
-import handleLogout from "./handleLogout.js";
+import { handleLogout } from "./handleLogout.js";
 
 export let socket = null;
 
-function openWebSocket(accessToken){
+function openWebSocket(accessToken)
+{
 	console.log("- function: openWebSocket()")
 	socket = new WebSocket(`wss://transcendence-pong:7443/ws/status/?token=${accessToken}`);
 
@@ -35,7 +36,8 @@ function openWebSocket(accessToken){
 	};
 }
 
-export default function connectWebSocket() {
+export default function connectWebSocket()
+{
 	console.log("- function: connectWebSocket()")
 	const accessToken = localStorage.getItem("access_token");
     if (!accessToken)

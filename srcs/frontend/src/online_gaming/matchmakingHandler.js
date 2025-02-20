@@ -1,6 +1,7 @@
 import { renderErrorPage, renderMatch, renderSearchingPage } from './renderPages.js';
 import renderGame from '../pages/game.js';
 import showToast from '../utils/toast.js';
+import navigateTo from '../navigation/navigateTo.js';
 
 export async function findMatch()
 {
@@ -9,7 +10,8 @@ export async function findMatch()
 
     if (!token)
     {
-        alert("Token is required to connect.");
+        navigateTo("/login");
+        showToast("Please log in to play", "info");
         return;
     }
 

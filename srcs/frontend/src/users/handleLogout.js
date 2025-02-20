@@ -5,7 +5,7 @@ import showToast from "../utils/toast.js";
 import showLoadingSpinner from "../utils/spinner.js";
 import { stopTokenRefreshing } from "./tokenRefreshing.js";
 
-export default async function handleLogout()
+export async function handleLogout()
 {
 	console.log("- function: handleLogout()")
 	const accessToken = localStorage.getItem("access_token");
@@ -28,34 +28,20 @@ export default async function handleLogout()
         });
 
         const result = await response.json();
-		console.log("handleLogout: before check if response.ok");
+
 		if (response.ok)
         {
-			console.log("stop token refreshing system...");			
-			stopTokenRefreshing();
-            console.log("removing tokens...");
-			localStorage.removeItem("access_token");
-            localStorage.removeItem("refresh_token");
-			localStorage.removeItem("user_id");
-			console.log("closing socket ...");
-			if (socket && socket.readyState === WebSocket.OPEN)
-                socket.close();
-			renderHeader();
-			console.log("move to login page");
-			navigateTo("/login");
+            stopTokenRefreshing();
+            clearUserData();
+            navigateTo("/login");
         } 
 		else
 		{
 			console.log("we should take a look to check what happens before u pass in this condition");
-			localStorage.removeItem("access_token");
-            localStorage.removeItem("refresh_token");
-			localStorage.removeItem("user_id");
-			if (socket && socket.readyState === WebSocket.OPEN)
-                socket.close();
-			renderHeader();
+
+            clearUserData();
 			navigateTo("/login");
-			showToast("Logout failed. Try again!", "error");
-            console.error("Logout failed:", result.error || result.detail || "An unknown error occurred");
+			showToast(result.error || result.detail || "Unknown error. Please, try again.", "error");
         }
     } 
 	catch (error)
@@ -66,4 +52,14 @@ export default async function handleLogout()
     {
         showLoadingSpinner(false);
     }
+}
+
+export function clearUserData()
+{	
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_id");
+    if (socket && socket.readyState === WebSocket.OPEN)
+        socket.close();
+    renderHeader();
 }

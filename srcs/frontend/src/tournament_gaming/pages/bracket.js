@@ -1,7 +1,7 @@
 import { renderErrorPage, renderMatch } from '../../online_gaming/renderPages.js';
 import readyUpToast from '../../utils/readyupToast.js'
 
-export default async function renderTournamentBracketPage(socket, token, tournamentId, title, description, data)
+export default async function renderTournamentBracketPage(socket, tournamentId, title, description, data)
 {
     let playerId = null;
 
@@ -46,7 +46,8 @@ export default async function renderTournamentBracketPage(socket, token, tournam
 }
 
 // Ready pop up when a match is ready to be played
-function showReadyupToast(socket, matchId) {
+function showReadyupToast(socket, matchId)
+{
     readyUpToast();
     const readyUpToastEl = document.getElementById("readyup-toast");
     const readyUpButton = document.getElementById("readyup-btn");
@@ -62,9 +63,11 @@ function showReadyupToast(socket, matchId) {
 }
 
 // Annimation showing the winner of the tournament
-function showTournamentWinner(numberOfParticipants) {
+function showTournamentWinner(numberOfParticipants)
+{
     const lastMatchCard = document.getElementById(`match-card${numberOfParticipants - 2}`);
-    if (lastMatchCard) {
+    if (lastMatchCard)
+    {
         lastMatchCard.classList.add("final-win");
         setTimeout(() => {
             lastMatchCard.classList.add("winner-animation");
@@ -73,7 +76,8 @@ function showTournamentWinner(numberOfParticipants) {
 }
 
 // Round infos at the top the bracket
-function createRoundHeader(roundIndex, numberOfMatches) {
+function createRoundHeader(roundIndex, numberOfMatches)
+{
     const matchHeader = document.createElement("div");
     matchHeader.classList.add("col-auto");
 
@@ -89,9 +93,11 @@ function createRoundHeader(roundIndex, numberOfMatches) {
 }
 
 // Page header (title + description) at the top of the page
-function renderTournamentPageHeader(title, description) {
+function renderTournamentPageHeader(title, description)
+{
     const header = document.getElementById("header");
-    if (header) {
+    if (header)
+    {
         header.innerHTML = `
         <div class="tournament-header">
           <div class="header-content">
@@ -105,7 +111,8 @@ function renderTournamentPageHeader(title, description) {
 
 // Create all matches card creating the bracket
 let matchCardIndex = 0;
-function createMatchCard() {
+function createMatchCard()
+{
     const matchElement = document.createElement("div");
     matchElement.setAttribute("id", `match-card${matchCardIndex}`);
     matchElement.classList.add("match-card");
@@ -154,11 +161,13 @@ function createMatchCard() {
     return matchElement;
 }
 
-function createRoundMatchesCards(numberOfMatchesByRound) {
+function createRoundMatchesCards(numberOfMatchesByRound)
+{
     const roundMatches = document.createElement("div");
     roundMatches.classList.add("col-auto", "d-flex", "flex-column", "justify-content-around");
 
-    for (let i = 0; i < numberOfMatchesByRound; ++i) {
+    for (let i = 0; i < numberOfMatchesByRound; ++i)
+    {
         let matchCard = createMatchCard(); // change matchid
         roundMatches.appendChild(matchCard);
     }
@@ -166,7 +175,8 @@ function createRoundMatchesCards(numberOfMatchesByRound) {
     return roundMatches;
 }
 
-function renderRoundColumns(numberOfInitialMatches, totalRounds) {
+function renderRoundColumns(numberOfInitialMatches, totalRounds)
+{
     const bracketDiv = document.getElementById("bracket");
     let numberOfMatchesByRound = numberOfInitialMatches;
 
@@ -193,7 +203,8 @@ function renderRoundColumns(numberOfInitialMatches, totalRounds) {
     bracketDiv.appendChild(matchesRow);
 }
 
-function renderTournamentBracket(title, description, numberOfInitialMatches, totalRounds) {
+function renderTournamentBracket(title, description, numberOfInitialMatches, totalRounds)
+{
     const main = document.getElementById("main");
 
     main.innerHTML = `
@@ -206,7 +217,8 @@ function renderTournamentBracket(title, description, numberOfInitialMatches, tot
     renderRoundColumns(numberOfInitialMatches, totalRounds);
 }
 
-function updateMatchCard(matchInfos) {
+function updateMatchCard(matchInfos)
+{
     const bracketIdx = matchInfos["bracket_index"];
 
     const matchCardPlayer1pp = document.getElementById(`pp-player1-match${bracketIdx}`);
@@ -263,8 +275,6 @@ function updateMatchCard(matchInfos) {
             }
         }
     }
-
-    
 }
 
 function fillBracketInfos(bracket) {

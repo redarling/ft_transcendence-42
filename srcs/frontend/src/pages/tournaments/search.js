@@ -1,8 +1,7 @@
 import { joinTournamentModal } from './join.js';
 import showLoadingSpinner from '../../utils/spinner.js';
-import showToast from '../../utils/toast.js';
 
-export default async function searchTournament(token)
+export default async function searchTournament()
 {
     const modal = createSearchModal();
     document.body.appendChild(modal);
@@ -27,8 +26,8 @@ export default async function searchTournament(token)
 
         try
         {
-            const tournaments = await fetchTournaments(token, title);
-            renderSearchResults(token, tournaments, searchResults);
+            const tournaments = await fetchTournaments(title);
+            renderSearchResults(tournaments, searchResults);
         }
         catch (error)
         {
@@ -64,10 +63,16 @@ function createSearchModal()
     return modal;
 }
 
-async function fetchTournaments(token, title)
+async function fetchTournaments(title)
 {
     try
     {
+        const token = localStorage.getItem('access_token');
+        if (!token)
+        {
+            throw new Error('Unauthorized.');
+        }
+
         showLoadingSpinner(true);
         const titleEncoded = encodeURIComponent(title);
         const url = `https://transcendence-pong:7443/api/games/tournament/search/?title=${titleEncoded}`;
@@ -100,7 +105,7 @@ async function fetchTournaments(token, title)
     }
 }
 
-function renderSearchResults(token, tournaments, searchResults)
+function renderSearchResults(tournaments, searchResults)
 {
     searchResults.innerHTML = '';
 
@@ -124,7 +129,7 @@ function renderSearchResults(token, tournaments, searchResults)
     searchResults.addEventListener('click', (event) => {
         if (event.target.classList.contains('join-tournament-btn')) {
             const tournamentId = event.target.getAttribute('data-id');
-            joinTournamentModal(token, tournamentId);
+            joinTournamentModal(tournamentId);
         }
     });
 }

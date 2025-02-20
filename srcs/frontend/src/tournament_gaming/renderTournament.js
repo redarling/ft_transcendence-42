@@ -3,7 +3,7 @@ import leaveButton from "./waiting_buttons/leave_button.js";
 import cancelButton from "./waiting_buttons/cancel_button.js";
 import startButton from "./waiting_buttons/start_button.js";
 
-export default async function renderTournamentWaitingPage(socket, token, participants, title, description, isAdmin, tournamentId)
+export default async function renderTournamentWaitingPage(socket, participants, title, description, isAdmin, tournamentId)
 {
     const main = document.getElementById("main");
     document.getElementById('header').innerHTML= '';
@@ -44,16 +44,16 @@ export default async function renderTournamentWaitingPage(socket, token, partici
         </div>
     `;
 
-    document.getElementById("inviteBtn").addEventListener("click", () => inviteButton(token, tournamentId));
+    document.getElementById("inviteBtn").addEventListener("click", () => inviteButton(tournamentId));
 
     if (!isAdmin)
     {
-        document.getElementById("leaveBtn").addEventListener("click", () => leaveButton(socket, token, tournamentId));
+        document.getElementById("leaveBtn").addEventListener("click", () => leaveButton(socket, tournamentId));
     }
 
     if (isAdmin)
     {
-        document.getElementById("cancelBtn").addEventListener("click", () => cancelButton(socket, token, tournamentId));
+        document.getElementById("cancelBtn").addEventListener("click", () => cancelButton(socket, tournamentId));
         document.getElementById("startBtn").addEventListener("click", () => startButton());
     }
 

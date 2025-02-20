@@ -10,6 +10,7 @@ export async function handleDataExport()
     {
         navigateTo("/home");
         showToast("An error occurred. Please, try again.", "error");
+        return;
     }
 
     try

@@ -6,6 +6,8 @@ import showLoadingSpinner from "../utils/spinner.js";
 import { startTokenRefreshing } from "./tokenRefreshing.js";
 import { getUserId } from "./getUserId.js";
 
+export let is_2fa_enabled = false;
+
 async function loginUser(username, password)
 {
 	try
@@ -84,7 +86,7 @@ async function render2FAForm(challengeToken)
 			</div>
 
 			<div class="text-center mt-3">
-				<button id="submit-button" class="btn btn-danger w-100" disabled>Submit</button>
+				<button id="submit-button" class="btn btn-success w-100" disabled>Submit</button>
 				<button id="back-button" class="btn btn-secondary w-100 mt-2">Back</button>
 			</div>
 
@@ -155,7 +157,10 @@ async function handleVerificationCode(challengeToken, verificationCode)
 		const result = await response.json();
 
 		if (response.ok)
+		{
+			is_2fa_enabled = true;
 			handleSuccessfulLogIn(result);
+		}
 		else
 			showToast(result.error || result.detail || "Error occurred. Please try again later.", "error");
 	}
@@ -175,10 +180,9 @@ function handleSuccessfulLogIn(data)
 	localStorage.setItem("access_token", data.access_token);
 	console.log("Access token: ", data.access_token);
 	localStorage.setItem("refresh_token", data.refresh_token);
-	localStorage.setItem("user_id", getUserId())
+	localStorage.setItem("user_id", getUserId());
 	connectWebSocket();
 	startTokenRefreshing();
 	renderHeader();
 	navigateTo("/home");
-	console.log("- end: handleLogin()");
 }

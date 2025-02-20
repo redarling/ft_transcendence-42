@@ -1,13 +1,5 @@
 import { renderErrorPage, renderMatch, handleMatchOver } from './renderPages.js';
 
-export async function getTokenFromUser()
-{
-    return new Promise((resolve) => {
-        const token = prompt("Enter JWT token to recover a game (temp solution, should be reworked after login system implementation)");
-        resolve(token);
-    });
-}
-
 export async function checkActiveMatch(token)
 {
     try

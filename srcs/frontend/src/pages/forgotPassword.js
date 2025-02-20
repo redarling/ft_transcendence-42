@@ -5,8 +5,6 @@ import showLoadingSpinner from "../utils/spinner.js";
 
 export default function renderForgotPassword()
 {
-    console.log("- start: renderForgotPassword()");
-
     const main = document.getElementById("main");
     main.innerHTML = `
     <div class="container d-flex justify-content-center align-items-center" style="height: 80vh;">
@@ -30,7 +28,6 @@ export default function renderForgotPassword()
         </div>
     </div>
 `;
-
 
     document.getElementById("forgotPasswordForm").addEventListener("submit", async (event) => {
         event.preventDefault();

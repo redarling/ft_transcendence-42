@@ -1,4 +1,4 @@
-import logging, secrets, requests, os, django, sys
+import logging, secrets, requests, os, django, sys, httpx
 from django.conf import settings
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
@@ -35,8 +35,8 @@ def send_2fa_code(user):
             response.raise_for_status()
             logger.info("2FA code sent successfully")
             return True
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error sending 2FA code: {e}")
+        except (requests.exceptions.RequestException, httpx.ConnectError) as e:
+            logger.warning(f"⚠️ Network issue: {e}")
             return False
     return False
 

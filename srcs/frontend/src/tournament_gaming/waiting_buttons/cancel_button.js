@@ -2,7 +2,7 @@ import { AreYouSureModal } from "../utils.js";
 import showToast from "../../utils/toast.js";
 import showLoadingSpinner from "../../utils/spinner.js";
 
-export default async function cancelButton(socket, token, tournamentId)
+export default async function cancelButton(socket, tournamentId)
 {
     const modal = AreYouSureModal();
     document.body.appendChild(modal);
@@ -11,7 +11,7 @@ export default async function cancelButton(socket, token, tournamentId)
     const noBtn = document.getElementById('noBtn');
 
     yesBtn.addEventListener('click', () => {
-        cancelTournament(socket, token, tournamentId);
+        cancelTournament(socket, tournamentId);
         document.body.removeChild(modal);
     });
 
@@ -20,10 +20,16 @@ export default async function cancelButton(socket, token, tournamentId)
     });
 }
 
-export async function cancelTournament(socket, token, tournamentId)
+export async function cancelTournament(socket, tournamentId)
 {
     try
     {
+        const token = localStorage.getItem('access_token');
+        if (!token)
+        {
+            throw new Error('Unauthorized.');
+        }
+
         showLoadingSpinner(true);
         const url = `/api/games/tournament/cancel/`;
         const response = await fetch(url, {

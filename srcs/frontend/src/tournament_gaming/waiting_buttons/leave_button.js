@@ -4,7 +4,7 @@ import showLoadingSpinner from "../../utils/spinner.js";
 import renderHeader from '../../components/header.js';
 import renderTournaments from '../../pages/tournaments/tournaments.js';
 
-export default async function leaveButton(socket, token, tournamentId)
+export default async function leaveButton(socket, tournamentId)
 {
     const modal = AreYouSureModal();
     document.body.appendChild(modal);
@@ -13,7 +13,7 @@ export default async function leaveButton(socket, token, tournamentId)
     const noBtn = document.getElementById('noBtn');
 
     yesBtn.addEventListener('click', () => {
-        leaveTournament(socket, token, tournamentId);
+        leaveTournament(socket, tournamentId);
         document.body.removeChild(modal);
     });
 
@@ -22,10 +22,16 @@ export default async function leaveButton(socket, token, tournamentId)
     });
 }
 
-async function leaveTournament(socket, token, tournamentId)
+async function leaveTournament(socket, tournamentId)
 {
     try
     {
+        const token = localStorage.getItem('access_token');
+        if (!token)
+        {
+            throw new Error('Unauthorized.');
+        }
+        
         showLoadingSpinner(true);
         const url = `/api/games/tournament/leave/`;
         const response = await fetch(url, {

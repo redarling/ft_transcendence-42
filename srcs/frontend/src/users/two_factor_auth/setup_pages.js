@@ -58,8 +58,6 @@ export function renderTOTPPage(qr_code, uri)
 
 export async function renderWaitingCodePage(method)
 {
-    const token = prompt("Please enter your JWT token:", "");
-
     const main = document.getElementById("main");
     main.innerHTML = `
         <div class="container" style="padding-top: 50px; max-width: 600px; margin: 0 auto;">
@@ -129,7 +127,7 @@ export async function renderWaitingCodePage(method)
 
     submitButton.addEventListener("click", async () => {
         const verificationCode = Array.from(inputs).map(input => input.value).join("");
-        await handleVerificationCode(verificationCode, token);
+        await handleVerificationCode(verificationCode);
     });
 
     backButton.addEventListener("click", () => {
@@ -139,12 +137,16 @@ export async function renderWaitingCodePage(method)
     inputs[0].focus();
 }
 
-async function handleVerificationCode(verificationCode, token)
+async function handleVerificationCode(verificationCode)
 {
-    //const token = localStorage.getItem("access_token");
-    
     try
     {
+        const token = localStorage.getItem('access_token');
+        if (!token)
+        {
+            throw new Error('Unauthorized.');
+        }
+
         showLoadingSpinner(true);
 
         const response = await fetch("/api/users/2fa/verify/", {

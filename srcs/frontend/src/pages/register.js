@@ -1,7 +1,9 @@
 import navigateTo from "../navigation/navigateTo.js";
 import handleRegister from "../users/handleRegister.js";
+import showToast from "../utils/toast.js";
 
-export default function renderRegister() {
+export default function renderRegister()
+{
     console.log("- function: renderRegister()");
     const main = document.getElementById("main");
     main.innerHTML = `
@@ -49,7 +51,8 @@ export default function renderRegister() {
     document.getElementById("privacyLink").setAttribute("href", "/privacy-policy");
     document.getElementById("privacyLink").setAttribute("target", "_blank");
 
-    function validateForm() {
+    function validateForm()
+    {
         const passwordsMatch = passwordInput.value === confirmPasswordInput.value;
         const allFieldsFilled = registerForm.checkValidity();
         registerButton.disabled = !(passwordsMatch && allFieldsFilled);
@@ -61,8 +64,9 @@ export default function renderRegister() {
 
     registerForm.addEventListener("submit", (event) => {
         event.preventDefault();
-        if (passwordInput.value !== confirmPasswordInput.value) {
-            alert("Passwords do not match!");
+        if (passwordInput.value !== confirmPasswordInput.value)
+        {
+            showToast("Passwords do not match", "error");
             return;
         }
         handleRegister(event);

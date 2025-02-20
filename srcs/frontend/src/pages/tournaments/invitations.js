@@ -1,7 +1,7 @@
 import { joinTournamentModal } from './join.js';
 import showLoadingSpinner from '../../utils/spinner.js';
 
-export default async function invitationsList(token)
+export default async function invitationsList()
 {
     const modal = createInvitationsModal();
     document.body.appendChild(modal);
@@ -15,8 +15,8 @@ export default async function invitationsList(token)
 
     try
     {
-        const invitations = await fetchInvitations(token);
-        renderInvitations(token, invitations, invitationsList);
+        const invitations = await fetchInvitations();
+        renderInvitations(invitations, invitationsList);
     }
     catch (error)
     {
@@ -42,10 +42,16 @@ function createInvitationsModal()
     return modal;
 }
 
-async function fetchInvitations(token)
+async function fetchInvitations()
 {
     try
     {
+        const token = localStorage.getItem('access_token');
+        if (!token)
+        {
+            throw new Error('Unauthorized.');
+        }
+
         showLoadingSpinner(true);
         const response = await fetch('/api/games/tournament-invitation-list/', {
             method: 'GET',
@@ -73,7 +79,7 @@ async function fetchInvitations(token)
     }
 }
 
-function renderInvitations(token, invitations, invitationsList)
+function renderInvitations(invitations, invitationsList)
 {
     invitationsList.innerHTML = '';
 
@@ -98,7 +104,7 @@ function renderInvitations(token, invitations, invitationsList)
     document.querySelectorAll('.join-tournament-btn').forEach((button) => {
         button.addEventListener('click', () => {
             const tournamentId = button.getAttribute('data-id');
-            joinTournamentModal(token, tournamentId);
+            joinTournamentModal(tournamentId);
         });
     });
 }

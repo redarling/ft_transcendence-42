@@ -3,10 +3,16 @@ import showToast from "../utils/toast.js";
 import renderHeader from '../components/header.js';
 import renderTournaments from '../pages/tournaments/tournaments.js';
 import renderTournamentBracketPage from "./pages/bracket.js";
-import cancelTournament from "./waiting_buttons/cancel_button.js"
 
-export async function tournamentHandler(WebSocketUrl, token, tournamentId)
+export async function tournamentHandler(WebSocketUrl, tournamentId)
 {
+    const token = localStorage.getItem('access_token');
+    if (!token)
+    {
+        console.error("Unauthorized.");
+        return;
+    }
+
     const url = WebSocketUrl + `?token=${encodeURIComponent(token)}`;
 
     let socket, title, description, isAdmin;
@@ -44,7 +50,7 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
 
                     case "participant_list":
                         if (tournamentDataReceived)
-                            renderTournamentWaintingPage(socket, token, data.participants, title, description, isAdmin, tournamentId);
+                            renderTournamentWaintingPage(socket, data.participants, title, description, isAdmin, tournamentId);
                         else
                             participantsData = data.participants;
                         break;
@@ -60,7 +66,7 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
                         break;
                     
                     case "tournament_bracket":
-                        renderTournamentBracketPage(socket, token, tournamentId, title, description, data.data);
+                        renderTournamentBracketPage(socket, tournamentId, title, description, data.data);
                         break ;
 
                     default:
@@ -69,7 +75,7 @@ export async function tournamentHandler(WebSocketUrl, token, tournamentId)
 
                 if (tournamentDataReceived && participantsData)
                 {
-                    renderTournamentWaintingPage(token, participantsData, title, description, isAdmin, tournamentId);
+                    renderTournamentWaintingPage(participantsData, title, description, isAdmin, tournamentId);
                     resolve();
                 }
             }

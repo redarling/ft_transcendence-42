@@ -2,10 +2,16 @@ import { tournamentHandler } from "../../tournament_gaming/tournamentHandler.js"
 import showLoadingSpinner from '../../utils/spinner.js';
 import showToast from '../../utils/toast.js';
 
-export async function joinTournament(token, tournamentId, tournamentAlias)
+export async function joinTournament(tournamentId, tournamentAlias)
 {
     try
     {
+        const token = localStorage.getItem('access_token');
+        if (!token)
+        {
+            throw new Error('Unauthorized.');
+        }
+
         showLoadingSpinner(true);
         const response = await fetch('/api/games/tournament/join/', {
             method: "POST",
@@ -34,7 +40,7 @@ export async function joinTournament(token, tournamentId, tournamentAlias)
     }
 }
 
-export async function joinTournamentModal(token, tournamentId)
+export async function joinTournamentModal(tournamentId)
 {
     const modal = createJoinAliasModal();
     document.body.appendChild(modal);
@@ -62,13 +68,13 @@ export async function joinTournamentModal(token, tournamentId)
 
         try
         {
-            const joinResult = await joinTournament(token, tournamentId, alias);
+            const joinResult = await joinTournament(tournamentId, alias);
             if (!joinResult.success)
                 throw new Error(joinResult.message);
 
             const webSocketUrl = joinResult.webSocketUrl;
             document.querySelectorAll('.modal-overlay').forEach((modal) => modal.remove());
-            await tournamentHandler(webSocketUrl, token, tournamentId);
+            await tournamentHandler(webSocketUrl, tournamentId);
         }
         catch (error)
         {

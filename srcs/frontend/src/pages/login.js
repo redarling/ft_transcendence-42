@@ -1,7 +1,8 @@
 import navigateTo from "../navigation/navigateTo.js";
 import handleLogin from "../users/handleLogin.js";
 
-export default function renderLogin() {
+export default function renderLogin()
+{
 	console.log("- function: renderLogin()");
 	const main = document.getElementById("main");
 	main.innerHTML = `
@@ -22,7 +23,7 @@ export default function renderLogin() {
 			</div>
 			`;
 			
-			document.getElementById("goToRegister").addEventListener("click", () => navigateTo("/register"));
-            document.getElementById("goToForgotPassword").addEventListener("click", () => navigateTo("/forgot-password"));
-			document.getElementById("loginForm").addEventListener("submit", handleLogin);
+    document.getElementById("goToRegister").addEventListener("click", () => navigateTo("/register"));
+    document.getElementById("goToForgotPassword").addEventListener("click", () => navigateTo("/forgot-password"));
+    document.getElementById("loginForm").addEventListener("submit", handleLogin);
 }
