@@ -7,27 +7,16 @@ import { checkActiveTournament } from '../../online_gaming/recoverySystem.js'
 import showToast from '../../utils/toast.js';
 import { tournamentHandler } from "../../tournament_gaming/tournamentHandler.js";
 
-let tournamentToken = null;
-
-async function promptForToken()
-{
-    while (!tournamentToken)
-    {
-        tournamentToken = prompt("JWT token for tournament access (not possible to leave empty):");
-    }
-    return tournamentToken;
-}
-
 export default async function renderTournaments()
 {
-    await promptForToken();
+    const token = localStorage.getItem("access_token");
 
-    if (tournamentToken) {
+    if (token) {
         try {
-            const tournament = await checkActiveTournament(tournamentToken);
+            const tournament = await checkActiveTournament(token);
             if (tournament && tournament.active) {
                 const tournamentWebSocketLink = `wss://transcendence-pong:7443/ws/tournament/${tournament.tournament_id}/`;
-                await tournamentHandler(tournamentWebSocketLink, tournamentToken, tournament.tournament_id);
+                await tournamentHandler(tournamentWebSocketLink, token, tournament.tournament_id);
             }
         } catch (error) {
             showToast(error, "error");

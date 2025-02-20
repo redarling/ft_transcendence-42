@@ -9,19 +9,8 @@ import { checkActiveMatch, connectToWebSocket } from '../online_gaming/recoveryS
 export let againstBot;
 export let botDifficulty;
 
-let token = null;
-
-async function promptForToken()
-{
-    while (!token)
-    {
-        token = prompt("JWT token for profile access (not possible to leave empty):");
-    }
-    return token;
-}
-
 export default function renderGame() {
-    promptForToken();
+    const token = localStorage.getItem("access_token");
     if (token) {
         try {
             const matchData = checkActiveMatch(token);

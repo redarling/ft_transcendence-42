@@ -67,7 +67,7 @@ const SCORE_RIGHT_POS = {x: 0.5, y: 1, z: -3};
 const SCORE_FONT_SIZE = 1;
 const SCORE_FONT_DEPTH = 0.2;
 const SCORE_FONT_COLOR = 0xffffff;
-const MAX_SCORE = 1;
+const MAX_SCORE = 11;
 
 const keyPressed = new Set();
 window.addEventListener('keydown', (e) => keyPressed.add(e.key));

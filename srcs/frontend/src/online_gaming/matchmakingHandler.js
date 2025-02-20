@@ -4,8 +4,8 @@ import showToast from '../utils/toast.js';
 
 export async function findMatch()
 {
-    const   token = prompt("Please enter your JWT token:", "");
-    let     playerId = null;
+    const token = localStorage.getItem("access_token");
+    let playerId = null;
 
     if (!token)
     {
