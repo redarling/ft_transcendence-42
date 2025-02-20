@@ -2,6 +2,7 @@ import renderFooter from '../components/footer.js';
 import renderHeader from '../components/header.js';
 import renderGame from '../pages/game.js';
 import { Game } from '../game/onlineGame.js';
+import showToast from '../utils/toast.js';
 
 function renderPageTemplate({ header = true, footer = true, content = '' })
 {
@@ -144,49 +145,16 @@ export function renderMatch(socket, playerId, player1Username, player2Username, 
     game.loop();
 }
 
+// Check if tournament ?
 export function handleMatchOver(winner, player1Score, player2Score, playerId)
 {
     const isWinner = winner === playerId;
-
-    // Create modal for match results
-    const modal = document.createElement("div");
-    modal.id = "match-result-modal";
-    modal.style.position = "fixed";
-    modal.style.top = "0";
-    modal.style.left = "0";
-    modal.style.width = "100vw";
-    modal.style.height = "100vh";
-    modal.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
-    modal.style.display = "flex";
-    modal.style.flexDirection = "column";
-    modal.style.justifyContent = "center";
-    modal.style.alignItems = "center";
-    modal.style.zIndex = "9999";
-    modal.style.color = "#fff";
-
-    const resultText = document.createElement("h1");
-    resultText.textContent = isWinner ? "YOU WON!" : "YOU LOST!";
-    resultText.style.marginBottom = "20px";
-
-    const scoreText = document.createElement("p");
-    scoreText.textContent = `Final Score: ${player1Score} - ${player2Score}`;
-    scoreText.style.marginBottom = "30px";
-
-    const returnButton = document.createElement("button");
-    returnButton.textContent = "RETURN";
-    returnButton.style.padding = "10px 20px";
-    returnButton.style.fontSize = "16px";
-    returnButton.style.cursor = "pointer";
-    returnButton.onclick = () => {
-        // Remove modal and redirect user to the main screen
-        modal.remove();
-        renderHeader();
-        renderGame();
-        renderFooter();
-    };
-
-    modal.appendChild(resultText);
-    modal.appendChild(scoreText);
-    modal.appendChild(returnButton);
-    document.body.appendChild(modal);
+    if (isWinner) {
+        showToast("You won!", "success");
+    } else {
+        showToast("You lost!", "error");
+    }
+    renderHeader();
+    renderGame();
+    renderFooter();
 }

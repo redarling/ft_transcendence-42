@@ -40,7 +40,7 @@ async function loginUser(username, password)
 
 export default async function handleLogin(event)
 {
-	console.log("- start: handleLogin()");
+	console.log("- function: handleLogin()");
 	event.preventDefault();
 
 	const username = document.getElementById("username").value;

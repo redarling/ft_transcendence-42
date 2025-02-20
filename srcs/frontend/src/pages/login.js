@@ -2,7 +2,7 @@ import navigateTo from "../navigation/navigateTo.js";
 import handleLogin from "../users/handleLogin.js";
 
 export default function renderLogin() {
-	console.log("- start: renderLogin()");
+	console.log("- function: renderLogin()");
 	const main = document.getElementById("main");
 	main.innerHTML = `
         <div class="container d-flex justify-content-center align-items-center">
