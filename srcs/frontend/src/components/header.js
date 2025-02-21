@@ -33,6 +33,9 @@ export default function renderHeader()
                             <a class="nav-link" id="profileHeaderButton" role="menuitem">Profile</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" id="friendsHeaderButton" role="menuitem">Friends</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" id="settingsHeaderButton" role="menuitem">Settings</a>
                         </li>
                         ` : ``}
@@ -57,6 +60,14 @@ export default function renderHeader()
 
     if (homeHeaderButton)
         homeHeaderButton.addEventListener("click", () => navigateTo("/home"));
+
+    const friendsButton = document.getElementById("friendsHeaderButton");
+    if (friendsButton)
+    {
+        friendsButton.addEventListener("click", () => {
+            navigateTo("/friends");
+        });
+    }
 
     const gameHeaderButton = document.getElementById("gameHeaderButton");
     if (gameHeaderButton)

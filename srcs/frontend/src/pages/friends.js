@@ -15,10 +15,13 @@ export default function renderFriends() {
 
             <ul class="nav nav-tabs" id="friendTabs">
                 <li class="nav-item">
-                    <a class="nav-link active" id="friendListTab" href="#">Friends</a>
+                    <a class="nav-link active" id="friendListTab">Friends</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="friendRequestTab" href="#">Requests</a>
+                    <a class="nav-link" id="friendRequestTab">Requests</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="invitationsTab">Invitations</a>
                 </li>
             </ul>
 
@@ -28,8 +31,10 @@ export default function renderFriends() {
             <div id="friendRequests" class="friend-content d-none">
                 <ul id="requestsContainer" class="list-group mt-3"></ul>
             </div>
+            <div id="invitations" class="friend-content d-none">
+                <ul id="invitationsContainer" class="list-group mt-3"></ul>
+            </div>
 
-            <button class="btn btn-secondary w-100 mt-3" id="returnFriends">Return</button>
         </div>
     `;
 
@@ -41,19 +46,25 @@ export default function renderFriends() {
         event.preventDefault();
         toggleTab("friendRequests", "friendRequestTab");
     });
-    document.getElementById("returnFriends").addEventListener("click", () => navigateTo("/settings"));
+    document.getElementById("invitationsTab").addEventListener("click", (event) => {
+        event.preventDefault();
+        toggleTab("invitations", "invitationsTab");
+    });
 
     loadFriends();
     loadFriendRequests();
+    loadInvitations();
 }
 
 function toggleTab(tabId, tabButtonId) {
     document.getElementById("friendList").classList.add("d-none");
     document.getElementById("friendRequests").classList.add("d-none");
+    document.getElementById("invitations").classList.add("d-none");
     document.getElementById(tabId).classList.remove("d-none");
 
     document.getElementById("friendListTab").classList.remove("active");
     document.getElementById("friendRequestTab").classList.remove("active");
+    document.getElementById("invitationsTab").classList.remove("active");
     document.getElementById(tabButtonId).classList.add("active");
 }
 
@@ -123,18 +134,42 @@ async function loadFriendRequests() {
 
     const requests = await getFriendRequests();
 
+    // PLACEHOLDER
+
+    requests.push({
+        friend: {
+            avatar: "https://i.imgur.com/5eMAuXg.jpeg",
+            username: "bobibob",
+            online_status: true,
+            id: 69
+        }
+    });
+
+    requests.push({
+        friend: {
+            avatar: "https://i.imgur.com/5eMAuXg.jpeg",
+            username: "bobibob2",
+            online_status: false,
+            id: 42
+        }
+    });
+    // ---------------
+
+
     requests.forEach(requestObj => {
         const friend = requestObj.friend;
         const li = document.createElement("li");
         li.className = "list-group-item d-flex justify-content-between align-items-center";
         li.innerHTML = `
-            <img src="${friend.avatar}" class="avatar-small"> 
-            <span class="username" data-userid="${friend.id}">${friend.username}</span>
-            <span class="badge ${friend.online_status ? 'bg-success' : 'bg-secondary'}">${friend.online_status ? 'Online' : 'Offline'}</span>
-            <div class="d-flex gap-2">
-                <button class="btn btn-success btn-sm accept-btn" data-id="${friend.id}">v</button>
-                <button class="btn btn-danger btn-sm decline-btn" data-id="${friend.id}">&times;</button>
-            </div>
+        <div class="col d-flex align-items-center">
+            <span class="badge ${friend.online_status ? 'bg-success' : 'bg-secondary'} me-2">${friend.online_status ? 'Online' : 'Offline'}</span>
+            <img src="${friend.avatar}" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;" />
+            <span class="username me-2" data-userid="${friend.id}">${friend.username}</span>
+        </div>
+        <div class="col d-flex align-items-center justify-content-end">
+            <button class="btn btn-success btn-sm accept-btn me-2" data-id="${friend.id}">accept</button>
+            <button class="btn btn-danger btn-sm decline-btn" data-id="${friend.id}">decline</button>
+        </div>
         `;
         li.querySelector(".username").addEventListener("click", () => navigateTo(`/profile/${friend.id}/`));
         requestsContainer.appendChild(li);
@@ -153,5 +188,54 @@ async function loadFriendRequests() {
             const friendId = event.target.getAttribute("data-id");
             declineFriendRequest(friendId);
         });
+    });
+}
+
+async function loadInvitations() {
+    const invitationsContainer = document.getElementById("invitationsContainer");
+    invitationsContainer.innerHTML = "";
+
+    const invitations = await getFriendRequests();
+
+
+    invitations.push({
+        invitation: {
+            avatar: "https://i.imgur.com/5eMAuXg.jpeg",
+            username: "bobibob",
+            online_status: true,
+            id: 69,
+            type: "1V1"
+        }
+    });
+
+    invitations.push({
+        invitation: {
+            avatar: "https://i.imgur.com/5eMAuXg.jpeg",
+            username: "bobibob2",
+            online_status: false,
+            id: 42,
+            type: "Tournament"
+        }
+    });
+
+    invitations.forEach(requestObj => {
+        const invitation = requestObj.invitation;
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+        li.innerHTML = `
+            <div class="col d-flex align-items-center">
+                <span class="badge ${invitation.online_status ? 'bg-success' : 'bg-secondary'} me-2">${invitation.online_status ? 'Online' : 'Offline'}</span>
+                <img src="${invitation.avatar}" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;" />
+                <span class="username me-2" data-userid="${invitation.id}">${invitation.username}</span>
+            </div>
+            <div class="col d-flex align-items-center justify-content-end">
+                <span>${invitation.type}</span>
+                <div class="vr mx-3"></div>
+                <button class="btn btn-success btn-sm accept-btn me-2" data-id="${invitation.id}">accept</button>
+                <button class="btn btn-danger btn-sm decline-btn" data-id="${invitation.id}">decline</button>
+            </div>
+        `;
+        li.querySelector(".username").addEventListener("click", () => navigateTo(`/profile/${invitation.id}/`));
+        invitationsContainer.appendChild(li);
     });
 }
