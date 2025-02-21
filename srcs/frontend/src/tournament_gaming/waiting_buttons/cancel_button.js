@@ -1,6 +1,7 @@
 import { AreYouSureModal } from "../utils.js";
 import showToast from "../../utils/toast.js";
 import showLoadingSpinner from "../../utils/spinner.js";
+import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
 
 export default async function cancelButton(socket, tournamentId)
 {
@@ -24,18 +25,11 @@ export async function cancelTournament(socket, tournamentId)
 {
     try
     {
-        const token = localStorage.getItem('access_token');
-        if (!token)
-        {
-            throw new Error('Unauthorized.');
-        }
-
         showLoadingSpinner(true);
         const url = `/api/games/tournament/cancel/`;
-        const response = await fetch(url, {
+        const response = await fetchWithAuth(url, {
             method: 'POST',
             headers: {
-                Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({

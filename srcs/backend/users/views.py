@@ -3,6 +3,7 @@ from django.db.models import Q
 from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework import permissions
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound
@@ -42,10 +43,15 @@ class UserLoginAPIView(APIView):
             return Response({"error": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Authenticate user
-        user = authenticate(username=username, password=password)
-        if not user:
-            # Authentication failed
-            return Response({"error": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            user = authenticate(username=username, password=password)
+            if not user:
+                return Response({"error": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+
+            if not user.is_active:
+                raise ValidationError("User account is disabled.")
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
         # Check if the user already has an active session
         if user.active_session_id:
@@ -84,13 +90,19 @@ class UserLoginAPIView(APIView):
         }
         refresh_token = generate_jwt(refresh_payload, expiration_minutes=7 * 24 * 60, session_id=session_id)  # 7 days
         
-        return Response(
-            {
-                "access_token": access_token,
-                "refresh_token": refresh_token
-            },
-            status=status.HTTP_200_OK
+        response = Response({"access_token": access_token, "user_id": user.id}, status=status.HTTP_200_OK)
+
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            secure=True,
+            samesite="Strict",
+            max_age=60 * 60 * 24 * 7,
+            path="/"
         )
+
+        return response
 
 class UserTokenRefreshAPIView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -98,9 +110,9 @@ class UserTokenRefreshAPIView(APIView):
     Handles refreshing of JWT tokens.
     """
     def post(self, request):
-        refresh_token = request.data.get('refresh_token')
+        refresh_token = request.COOKIES.get("refresh_token")
         if not refresh_token:
-            return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Refresh token is required."}, status=status.HTTP_401_UNAUTHORIZED)
     
         try:
             # Decode the refresh token
@@ -131,18 +143,34 @@ class UserTokenRefreshAPIView(APIView):
             return Response({"error": "User not found."}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserLogoutAPIView(APIView):
+    """
+    Handles user logout by revoking the refresh token.
+    """
+    permission_classes = [permissions.AllowAny]
+
     def post(self, request):
+        refresh_token = request.COOKIES.get("refresh_token")
+        if not refresh_token:
+            return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
         try:
-            user = request.user
+            payload = decode_jwt(refresh_token)
+            if payload.get("type") != "refresh":
+                return Response({"error": "Invalid token type."}, status=status.HTTP_400_BAD_REQUEST)
 
-            if not user or not user.is_authenticated:
-                return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
-
+            user = User.objects.get(id=payload["user_id"])
+            
             user.invalidate_session()
 
-            return Response({"message": "Successfully logged out."}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            response = Response({"message": "Logout successful."}, status=status.HTTP_200_OK)
+            response.delete_cookie("refresh_token")
+            return response
+        except ExpiredSignatureError:
+            return Response({"error": "Refresh token has expired."}, status=status.HTTP_401_UNAUTHORIZED)
+        except InvalidTokenError:
+            return Response({"error": "Invalid refresh token."}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserSearchAPIView(ListAPIView):
     serializer_class = UserProfileSearchSerializer
@@ -180,7 +208,9 @@ class UserProfileAPIView(RetrieveAPIView):
         user_id = self.kwargs.get('user_id')
         if user_id:
             try:
-                return User.objects.get(id=user_id)
+                user = User.objects.get(id=user_id)
+                if not user.is_active:
+                    raise NotFound(detail="User not found.")
             except User.DoesNotExist:
                 raise NotFound(detail="User not found.")
         return self.request.user

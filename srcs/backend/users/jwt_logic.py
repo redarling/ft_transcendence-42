@@ -3,6 +3,7 @@ from django.utils import timezone
 from datetime import timedelta
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
+from rest_framework.exceptions import NotAuthenticated
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
 # Generate RSA private and public keys
@@ -54,6 +55,6 @@ def decode_jwt(token: str) -> dict:
         decoded_payload = jwt.decode(token, PUBLIC_KEY, algorithms=["RS256"])
         return decoded_payload
     except ExpiredSignatureError:
-        raise ExpiredSignatureError("The token has expired.")
+        raise NotAuthenticated("The token has expired.")
     except InvalidTokenError:
-        raise InvalidTokenError("The token is invalid.")
+        raise NotAuthenticated("The token has expired.")

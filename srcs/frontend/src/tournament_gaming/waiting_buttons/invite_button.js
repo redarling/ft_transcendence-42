@@ -1,5 +1,6 @@
 import showToast from "../../utils/toast.js";
 import showLoadingSpinner from "../../utils/spinner.js";
+import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
 
 export default async function inviteButton(tournamentId)
 {
@@ -46,18 +47,11 @@ async function fetchFriendsList(tournamentId)
 {
     try
     {
-        const token = localStorage.getItem('access_token');
-        if (!token)
-        {
-            throw new Error('Unauthorized.');
-        }
-
         showLoadingSpinner(true);
         const url = `/api/games/friend-list/tournament/invite/?tournament_id=${tournamentId}`;
-        const response = await fetch(url, {
+        const response = await fetchWithAuth(url, {
             method: 'GET',
             headers: {
-                Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
         });
@@ -113,18 +107,11 @@ async function inviteFriend(friendId, tournamentId)
 {
     try
     {
-        const token = localStorage.getItem('access_token');
-        if (!token)
-        {
-            throw new Error('Unauthorized.');
-        }
-
         showLoadingSpinner(true);
-        const response = await fetch('/api/games/tournament/invite/', {
+        const response = await fetchWithAuth('/api/games/tournament/invite/', {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
                 tournament_id: tournamentId,

@@ -1,50 +1,48 @@
-import  { clearUserData } from "./handleLogout.js";
+import { handleLogout } from "./handleLogout.js";
+import showToast from "../utils/toast.js";
 
 let refreshInterval = null;
 
-async function refreshToken()
+export async function refreshToken()
 {
-	const refreshToken = localStorage.getItem('refresh_token');
-	
-	if (!refreshToken)
-	{
-		console.log('no refresh token found.');
-		clearUserData();
-		return null;
-	}
-
 	try
 	{
-		const response = await fetch ('/api/users/token-refresh/', {
-			method: 'POST',
-			headers:{'Content-Type': 'application/json'},
-			body: JSON.stringify({refresh_token: refreshToken}),
+		const response = await fetch("/api/users/token-refresh/", {
+			method: "POST",
+			credentials: "include",
 		});
 
-		if (!response.ok)
+		const result = await response.json();
+		
+		if (response.ok)
 		{
-			console.log("Failed to refresh token", response.status);
-			clearUserData();
-			return null;
+			localStorage.setItem('access_token', result.access_token);
+			console.log("Access token refreshed successfully.");
+			return true;
 		}
-
-		const data = await response.json();
-		localStorage.setItem('access_token', data.access_token);
-		console.log("New access token set.");
-		return data.access_token;
+		else
+		{
+			console.warn("Token refresh failed:", result.error);
+			showToast("Session expired. Please log in again.", "error");
+			if (localStorage.getItem('access_token'))
+				handleLogout();
+			return false;
+		}
 	}
 	catch (error)
 	{
-		console.log("Error during token refreshing:", error);
-		return null;
+		console.warn("Network error during token refresh:", error);
+		showToast("Network error. Please check your connection.", "error");
+		handleLogout();
 	}
 }
 
 export function startTokenRefreshing()
 {
-	refreshInterval = setInterval(async () => {
-		await refreshToken();
-	}, 14 * 60 * 1000);
+	stopTokenRefreshing();
+
+	refreshInterval = setInterval(refreshToken, 14 * 60 * 1000);
+	console.log("Token refreshing started.");
 }
 
 export function stopTokenRefreshing()
@@ -53,6 +51,7 @@ export function stopTokenRefreshing()
 	{
 		clearInterval(refreshInterval);
 		refreshInterval = null;
-        console.log("🛑 Stopped token refresh.");
+		console.log("Token refreshing stopped.");
 	}
 }
+

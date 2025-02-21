@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from .models import User, Friend
+from .models import User
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -103,15 +103,14 @@ class UserDataExport(APIView):
 
         return JsonResponse(data, json_dumps_params={'indent': 4})
 
-# TODO: unfinished
 class UserDeleteAccount(APIView):
     """
     View to delete user account.
     """
-    def post(self, request):
+    def delete(self, request, *args, **kwargs):
         user = request.user
-        user.delete()
-        return JsonResponse({'message': 'Account deleted successfully'})
+        user.deactivate_user()
+        return Response({"message": "User deleted successfully."}, status=status.HTTP_200_OK)
     
 class UserForgotPassword(APIView):
     permission_classes = [permissions.AllowAny]
@@ -134,7 +133,7 @@ class UserForgotPassword(APIView):
             save_2fa_code(user.id, code)
             user.save()
             return Response({"message": "Verification code sent to your email."}, status=status.HTTP_200_OK)
-        return JsonResponse({"error": "Failed to send email."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"error": "Failed to send email."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserVerifyResetCode(APIView):
     permission_classes = [permissions.AllowAny]
@@ -158,7 +157,7 @@ class UserVerifyResetCode(APIView):
             delete_2fa_code(user.id)
             user.save()
         else:
-            return JsonResponse({'error': 'Invalid code.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Invalid code.'}, status=status.HTTP_400_BAD_REQUEST)
         
         challenge_token = str(uuid.uuid4())
         save_message = save_2fa_challenge(user.id, challenge_token)

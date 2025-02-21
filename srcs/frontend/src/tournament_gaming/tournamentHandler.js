@@ -6,14 +6,7 @@ import renderTournamentBracketPage from "./pages/bracket.js";
 
 export async function tournamentHandler(WebSocketUrl, tournamentId)
 {
-    const token = localStorage.getItem('access_token');
-    if (!token)
-    {
-        console.error("Unauthorized.");
-        return;
-    }
-
-    const url = WebSocketUrl + `?token=${encodeURIComponent(token)}`;
+    const url = WebSocketUrl + `?token=${encodeURIComponent(localStorage.getItem('access_token'))}`;
 
     let socket, title, description, isAdmin;
     let tournamentDataPromise = new Promise((resolve) => {

@@ -1,16 +1,13 @@
-export default async function sendFriendRequest(friendId) {
-    const accessToken = localStorage.getItem("access_token");
-    if (!accessToken) {
-        console.error("No access token available");
-        return;
-    }
+import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
 
-    try {
-        const response = await fetch("https://transcendence-pong:7443/api/users/friendship/", {
+export default async function sendFriendRequest(friendId)
+{
+    try
+    {
+        const response = await fetchWithAuth("https://transcendence-pong:7443/api/users/friendship/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`
             },
             body: JSON.stringify({ friend_id: friendId })
         });
@@ -33,7 +30,9 @@ export default async function sendFriendRequest(friendId) {
             button.disabled = true;
             button.textContent = "Request Sent";
         }
-    } catch (error) {
+    }
+    catch (error)
+    {
         console.error("Error sending friend request:", error);
     }
 }

@@ -217,10 +217,24 @@ class LoginWith2FA_APIView(APIView):
         }
         refresh_token = generate_jwt(refresh_payload, expiration_minutes=7 * 24 * 60, session_id=session_id)  # 7 days
 
-        return Response(
-            {
-                "access_token": access_token,
-                "refresh_token": refresh_token
-            },
-            status=status.HTTP_200_OK
+        response = Response({"access_token": access_token, "user_id": user.id}, status=status.HTTP_200_OK)
+
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            secure=True,
+            samesite="Strict",
+            max_age=60 * 60 * 24 * 7,
+            path="/"
         )
+
+        return response
+
+class Is2FAEnabled(APIView):
+    def get(self, request):
+        """
+        Check if 2FA is enabled for the user.
+        """
+        user = request.user
+        return Response({"is_2fa_enabled": user.is_2fa_enabled}, status=status.HTTP_200_OK)

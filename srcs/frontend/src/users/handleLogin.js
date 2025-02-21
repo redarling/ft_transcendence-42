@@ -1,12 +1,9 @@
 import navigateTo from "../navigation/navigateTo.js";
 import renderHeader from "../components/header.js";
-import connectWebSocket from "./websocket.js";
+import { connectWebSocket } from "./websocket.js";
 import showToast from "../utils/toast.js";
 import showLoadingSpinner from "../utils/spinner.js";
 import { startTokenRefreshing } from "./tokenRefreshing.js";
-import { getUserId } from "./getUserId.js";
-
-export let is_2fa_enabled = false;
 
 async function loginUser(username, password)
 {
@@ -16,6 +13,7 @@ async function loginUser(username, password)
 		const response = await fetch("/api/users/login/", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
+			credentials: "include",
 			body: JSON.stringify({ username, password }),
 		});
 	
@@ -60,7 +58,7 @@ export default async function handleLogin(event)
 	}
 	else
 	{
-		handleSuccessfulLogIn(data);
+		await handleSuccessfulLogIn(data);
 	} 
 }
 
@@ -157,10 +155,7 @@ async function handleVerificationCode(challengeToken, verificationCode)
 		const result = await response.json();
 
 		if (response.ok)
-		{
-			is_2fa_enabled = true;
-			handleSuccessfulLogIn(result);
-		}
+			await handleSuccessfulLogIn(result);
 		else
 			showToast(result.error || result.detail || "Error occurred. Please try again later.", "error");
 	}
@@ -175,13 +170,11 @@ async function handleVerificationCode(challengeToken, verificationCode)
 	}
 }
 
-function handleSuccessfulLogIn(data)
+async function handleSuccessfulLogIn(data)
 {
-	localStorage.setItem("access_token", data.access_token);
-	console.log("Access token: ", data.access_token);
-	localStorage.setItem("refresh_token", data.refresh_token);
-	localStorage.setItem("user_id", getUserId());
-	connectWebSocket();
+	localStorage.setItem('access_token', data.access_token);
+	localStorage.setItem('user_id', data.user_id);
+	await connectWebSocket();
 	startTokenRefreshing();
 	renderHeader();
 	navigateTo("/home");

@@ -1,7 +1,9 @@
 import navigateTo from "../navigation/navigateTo.js";
 import { handleInformationsUpdate } from "../users/handleInformationsUpdate.js";
+import { fetchWithAuth } from "../utils/fetchWithAuth.js";
 
-export default function renderUpdateInformations() {
+export default function renderUpdateInformations()
+{
     console.log("- function: renderUpdateProfile()");
     const main = document.getElementById("main");
 
@@ -44,32 +46,20 @@ export default function renderUpdateInformations() {
     document.getElementById("returnUpdate").addEventListener("click", () => navigateTo("/settings"));
 }
 
-async function loadUserData() {
+async function loadUserData()
+{
     console.log("- function: loadUserData()");
-
-	// Get userId
-	const userId = localStorage.getItem("user_id");
-	if (!userId){
-        console.error("❌ No userID found.");
-		return;
-	}
-
-	// Get access token to fetch user data
-	const accessToken = localStorage.getItem("access_token");
-    if (!accessToken) {
-        console.error("❌ No access token found.");
-        return;
-    }
 
     // Select avatar preview elements in my html
     const avatarPreview = document.getElementById("avatarPreview");
 
-    try {
+    try
+    {
         // fetch user datas (email, username, avatar)
-		const response = await fetch(`/api/users/profile/${userId}/`, {
+		const response = await fetchWithAuth(`/api/users/profile/${localStorage.getItem('user_id')}/`, {
             method: "GET",
             headers: {
-                "Authorization": `Bearer ${accessToken}`
+                "Content-Type": "application/json",
             },
         });
 

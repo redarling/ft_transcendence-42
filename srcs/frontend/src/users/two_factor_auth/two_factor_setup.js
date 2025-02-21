@@ -2,6 +2,7 @@ import showToast from "../../utils/toast.js";
 import showLoadingSpinner from "../../utils/spinner.js";
 import { renderTOTPPage, renderWaitingCodePage } from "./setup_pages.js";
 import navigateTo from "../../navigation/navigateTo.js";
+import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
 
 export default async function TwoFASetup()
 {
@@ -98,9 +99,7 @@ function createPayload(type)
 }
 
 async function handleTwoFASetup(payload)
-{
-    const token = localStorage.getItem("access_token");
-    
+{    
     if (!payload)
     {
         showToast("Invalid 2FA setup method.", "error");
@@ -118,11 +117,10 @@ async function handleTwoFASetup(payload)
         showLoadingSpinner(true);
 
         const url = `/api/users/2fa/setup/`;
-        const response = await fetch(url, {
+        const response = await fetchWithAuth(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(payload),
         });

@@ -1,11 +1,14 @@
 import navigateTo from "../navigation/navigateTo.js";
 import { handleDataExport } from "../users/handleDataExport.js";
 import handleAccountDeletion from "../users/handleAccountDeletion.js";
-import { is_2fa_enabled } from "../users/handleLogin.js";
+import showLoadingSpinner from "../utils/spinner.js";
+import { fetchWithAuth } from "../utils/fetchWithAuth.js";
 
-export default function renderSettings()
+export default async function renderSettings()
 {
     const main = document.getElementById("main");
+
+    const is_2fa_enabled = await is2FAenabled();
 
     main.innerHTML = `
         <div class="container" style="padding-top: 50px; max-width: 600px; margin: 0 auto;">
@@ -21,7 +24,7 @@ export default function renderSettings()
         </div>
     `;
 
-    if (is_2fa_enabled)
+    if (!is_2fa_enabled)
         document.getElementById("2FA").addEventListener("click", () => navigateTo("/2fa-setup"));
     else
         document.getElementById("2FA").addEventListener("click", () => navigateTo("/2fa-remove"));
@@ -29,4 +32,38 @@ export default function renderSettings()
     document.getElementById("updateInformations").addEventListener("click", () => navigateTo("/update-informations"));
     document.getElementById("downloadData").addEventListener("click", async () => {await handleDataExport();});    
     document.getElementById("deleteAccount").addEventListener("click", () => handleAccountDeletion());
+}
+
+async function is2FAenabled()
+{
+    try
+    {
+        showLoadingSpinner(true);
+
+        const response = await fetchWithAuth("/api/users/is-2fa-enabled/", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const result = await response.json();
+        
+        if (response.ok)
+        {
+            showLoadingSpinner(false);
+            return result.is_2fa_enabled;
+        }
+        else
+            throw new Error(result.error || result.detail || "An unknown error occurred");
+    }
+    catch (error)
+    {
+        console.error(error);
+        return false;
+    }
+    finally
+    {
+        showLoadingSpinner(false);
+    }
 }

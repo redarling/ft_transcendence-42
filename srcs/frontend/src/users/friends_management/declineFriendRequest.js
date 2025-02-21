@@ -1,16 +1,12 @@
-export default async function declineFriendRequest(friendId) {
-    const accessToken = localStorage.getItem("access_token");
-    if (!accessToken) {
-        console.error("No access token available");
-        return;
-    }
+import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
 
+export default async function declineFriendRequest(friendId)
+{
     try {
-        const response = await fetch("https://transcendence-pong:7443/api/users/friendship/", {
+        const response = await fetchWithAuth("/api/users/friendship/", {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`
             },
             body: JSON.stringify({ friend_id: friendId, action: "decline" })
         });

@@ -1,27 +1,18 @@
 import navigateTo from "../navigation/navigateTo.js";
 import showToast from "../utils/toast.js";
 import showLoadingSpinner from "../utils/spinner.js";
+import { fetchWithAuth } from "../utils/fetchWithAuth.js";
 
 export async function handleDataExport()
 {
-    const accessToken = localStorage.getItem("access_token");
-
-    if (!accessToken)
-    {
-        navigateTo("/home");
-        showToast("An error occurred. Please, try again.", "error");
-        return;
-    }
-
     try
     {
         showLoadingSpinner(true);
 
-        const response = await fetch("/api/users/data-export/", {
+        const response = await fetchWithAuth("/api/users/data-export/", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`
             },
         });
 

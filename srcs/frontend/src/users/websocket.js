@@ -1,47 +1,85 @@
 import { handleLogout } from "./handleLogout.js";
+import { refreshToken } from "./tokenRefreshing.js";
 
-export let socket = null;
+let socket = null;
+let reconnectTimeout = null;
 
-function openWebSocket(accessToken)
+export function connectWebSocket()
 {
-	console.log("- function: openWebSocket()")
-	socket = new WebSocket(`wss://transcendence-pong:7443/ws/status/?token=${accessToken}`);
+    console.log("- function: connectWebSocket()");
 
-    socket.onopen = () => {
-		console.log("✅ WebSocket Connected!");
-		socket.send(JSON.stringify({ type: "pong" }));
-    };
+    return new Promise((resolve, reject) => {
+        if (socket)
+        {
+            console.warn("⚠️ Closing existing WebSocket before reconnecting...");
+            socket.close();
+        }
 
-    socket.onmessage = (event) => {
-        console.log("📩 Sending pong:", event.data);
-		socket.send(JSON.stringify({ type: "pong" }));
-	};
+        socket = new WebSocket(`wss://transcendence-pong:7443/ws/status/?token=${localStorage.getItem('access_token')}`);
 
-    socket.onerror = (error) => {
-        console.error("⚠️ WebSocket Error:", error);
-    };
+        socket.onopen = () => {
+            console.log("✅ WebSocket Connected!");
+            socket.send(JSON.stringify({ type: "pong" }));
+            resolve();
+        };
 
-    socket.onclose = (event) => {
-        console.warn("❌ WebSocket Disconnected:", event.reason);
-		// Handle authentication failure
-		if (event.code === 1006) {
-			console.error("⚠️ Possible authentication issue (token expired or invalid)");
-		} 
-		else if (event.code === 4401) {
-			console.error("🔒 Unauthorized: Invalid or expired token");
-		}
-		
-		socket = null;
-		handleLogout();
-	};
+        socket.onmessage = (event) => {
+            socket.send(JSON.stringify({ type: "pong" }));
+        };
+
+        socket.onerror = (error) => {
+            console.error("⚠️ WebSocket Error:", error);
+            reject(error);
+        };
+
+        socket.onclose = async (event) => {
+            console.warn("❌ WebSocket Disconnected:", event.reason);
+
+            if (event.code === 1006 || event.code === 4401)
+            {
+                console.error("🔒 Token expired or invalid. Trying to refresh...");
+                
+                const refreshed = await refreshToken();
+                if (refreshed)
+                {
+                    console.log("🔄 Token refreshed! Reconnecting WebSocket...");
+                    connectWebSocket().catch(console.error);
+                }
+                else
+                {
+                    console.error("🚪 Refresh token failed! Logging out...");
+                    if (localStorage.getItem('access_token'))
+                        handleLogout();
+                }
+            } 
+            else
+            {
+                if (localStorage.getItem('access_token'))
+                {
+                    console.warn("🌐 Connection lost. Reconnecting in 5 seconds...");
+                    scheduleReconnect();
+                }
+            }
+        };
+    });
 }
 
-export default function connectWebSocket()
+function scheduleReconnect()
 {
-	console.log("- function: connectWebSocket()")
-	const accessToken = localStorage.getItem("access_token");
-    if (!accessToken)
-		return ;
-	openWebSocket(accessToken);
+    if (reconnectTimeout)
+        clearTimeout(reconnectTimeout);
+
+    reconnectTimeout = setTimeout(() => {
+        connectWebSocket().catch(console.error);
+    }, 5000);
 }
 
+export function resetSocket()
+{
+    if (socket && socket.readyState === WebSocket.OPEN)
+    {
+        console.log("❌ Closing WebSocket...");
+        socket.close();
+    }
+    socket = null;
+}

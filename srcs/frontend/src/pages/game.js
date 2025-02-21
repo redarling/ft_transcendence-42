@@ -11,21 +11,16 @@ export let botDifficulty;
 
 export default function renderGame()
 {
-    const token = localStorage.getItem("access_token");
-    if (token)
+    try
     {
-        try
-        {
-            const matchData = checkActiveMatch(token);
-            if (matchData && matchData.active)
-            {
-                connectToWebSocket(token, matchData.match_group);
-            }
-        } catch(error)
-        {
-            navigateTo("/home");
-            showToast(error, "error");
-        }
+        const matchData = checkActiveMatch(localStorage.getItem('access_token'));
+        if (matchData && matchData.active)
+            connectToWebSocket(localStorage.getItem('access_token'), matchData.match_group);
+    }
+    catch(error)
+    {
+        navigateTo("/home");
+        showToast(error, "error");
     }
 
     const matchToastEl = document.getElementById('match-ongoing-toast');

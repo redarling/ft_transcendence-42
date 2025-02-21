@@ -2,6 +2,7 @@ import showToast from "../../utils/toast.js";
 import showLoadingSpinner from "../../utils/spinner.js";
 import navigateTo from "../../navigation/navigateTo.js";
 import TwoFASetup from "./two_factor_setup.js";
+import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
 
 export function renderTOTPPage(qr_code, uri)
 {
@@ -141,19 +142,12 @@ async function handleVerificationCode(verificationCode)
 {
     try
     {
-        const token = localStorage.getItem('access_token');
-        if (!token)
-        {
-            throw new Error('Unauthorized.');
-        }
-
         showLoadingSpinner(true);
 
-        const response = await fetch("/api/users/2fa/verify/", {
+        const response = await fetchWithAuth("/api/users/2fa/verify/", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({ code: verificationCode })
         });

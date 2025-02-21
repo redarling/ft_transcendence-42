@@ -13,8 +13,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         if User.objects.filter(username=value).exists():
             raise ValidationError("This username is already taken.")
         
-        if value in ['BYE', 'bye', 'deleted_user']:
+        if value in ['BYE', 'bye']:
             raise ValidationError("This username is not allowed.")
+        forbidden_substring = "deleted_user"
+        if forbidden_substring in value.lower():
+            raise ValidationError(f"The username cannot contain '{forbidden_substring}'.")
         return value
 
     def validate_email(self, value):

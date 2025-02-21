@@ -2,7 +2,7 @@ import sendFriendRequest from "../friends_management/sendFriendRequest.js";
 
 export default function UserHeaderComponent(userName, avatarPicturePath, connected, joinedDate) {
     const userMatchHistorySection = document.querySelector('#userHeader');
-    const currentUserId = localStorage.getItem("user_id");
+    const currentUserId = localStorage.getItem('user_id');
     const profileUrl = window.location.href;
     const profileUserId = profileUrl.match(/\/profile\/(\d+)\//)?.[1];
 
@@ -22,7 +22,8 @@ export default function UserHeaderComponent(userName, avatarPicturePath, connect
         </div>
     `;
 
-    if (profileUserId !== currentUserId) {
+    if (profileUserId !== currentUserId)
+    {
         document.getElementById("friendRequestButton").addEventListener("click", () => { sendFriendRequest(profileUserId); });
     }
 }
