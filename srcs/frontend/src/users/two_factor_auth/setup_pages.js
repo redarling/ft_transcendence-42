@@ -52,8 +52,8 @@ export function renderTOTPPage(qr_code, uri)
         showToast("Copied to clipboard!", "success");
     });
 
-    document.getElementById("home-button").addEventListener("click", () => {
-        navigateTo("/home");
+    document.getElementById("home-button").addEventListener("click", async () => {
+        await navigateTo("/home");
     });
 }
 
@@ -156,7 +156,7 @@ async function handleVerificationCode(verificationCode)
 
         if (response.ok)
         {
-            navigateTo("/home");
+            await navigateTo("/home");
             showToast("2FA setup successful!", "success");
         }
         else

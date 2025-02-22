@@ -28,8 +28,8 @@ export default function handleAccountDeletion()
         deleteButton.disabled = confirmInput.value.trim().toLowerCase() !== "confirm";
     });
 
-    document.getElementById("back-button").addEventListener("click", () => {
-        navigateTo("/settings");
+    document.getElementById("back-button").addEventListener("click", async () => {
+        await navigateTo("/settings");
     });
 
     deleteButton.addEventListener("click", async () => {
@@ -63,7 +63,7 @@ async function fetchAccountDeletion()
     }
     catch (error)
     {
-        navigateTo("/home");
+        await navigateTo("/home");
         showToast("An error occurred. Please, try again.", "error");
     }
     finally

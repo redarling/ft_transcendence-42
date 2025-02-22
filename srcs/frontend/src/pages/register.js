@@ -46,7 +46,7 @@ export default function renderRegister()
     const privacyCheckbox = document.getElementById("privacyPolicy");
     const registerButton = registerForm.querySelector("button[type='submit']");
 
-    document.getElementById("goToLogin").addEventListener("click", () => navigateTo("/login"));
+    document.getElementById("goToLogin").addEventListener("click", async () => await navigateTo("/login"));
 
     document.getElementById("privacyLink").setAttribute("href", "/privacy-policy");
     document.getElementById("privacyLink").setAttribute("target", "_blank");

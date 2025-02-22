@@ -2,10 +2,11 @@ import renderHeader from "./components/header.js";
 import renderFooter from "./components/footer.js";
 import { connectWebSocket } from "./users/websocket.js";
 import router from "./navigation/router.js"
+import isAuthenticated from "./utils/isAuthenticated.js";
 
-function renderStaticElements()
+async function renderStaticElements()
 {
-	renderHeader();
+	await renderHeader();
 	renderFooter();
 }
 
@@ -20,26 +21,28 @@ function createDivBlocks()
 	`
 }
 
-function updateDomContent()
+async function updateDomContent()
 {
 	console.log("- function: updateDomContent()")
 	createDivBlocks();
-	renderStaticElements();
-	router();
+	await renderStaticElements();
+	await router();
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
 	console.log("- function: Dom content loaded");
     try
 	{
-        if (localStorage.getItem('access_token'))
-            await connectWebSocket();
+		if (await isAuthenticated())
+			await connectWebSocket();
     }
 	catch (error)
 	{
         console.error("❌ WebSocket connection failed:", error);
     }
-	updateDomContent();
+	await updateDomContent();
 });
 
-window.addEventListener("popstate", router);
+window.addEventListener("popstate", async () => {
+    await router();
+});

@@ -25,8 +25,8 @@ export default async function TwoFARemove()
         await handleTwoFARemove();
     });
 
-    backButton.addEventListener("click", () => {
-        navigateTo("/settings");
+    backButton.addEventListener("click", async () => {
+        await navigateTo("/settings");
     });
 }
 
@@ -168,7 +168,7 @@ async function handleVerificationCode(verificationCode)
 
         if (response.ok)
         {
-            navigateTo("/home");
+            await navigateTo("/home");
             showToast("2FA disabled successfuly!", "success");
         }
         else

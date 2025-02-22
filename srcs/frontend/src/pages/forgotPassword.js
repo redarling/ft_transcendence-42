@@ -35,8 +35,8 @@ export default function renderForgotPassword()
         await ForgotPasswordRequest(email);
     });
 
-    document.getElementById("back-button").addEventListener("click", () => {
-        navigateTo("/login");
+    document.getElementById("back-button").addEventListener("click", async () => {
+        await navigateTo("/login");
     });
 }
 

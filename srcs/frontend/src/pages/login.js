@@ -23,7 +23,7 @@ export default function renderLogin()
 			</div>
 			`;
 			
-    document.getElementById("goToRegister").addEventListener("click", () => navigateTo("/register"));
-    document.getElementById("goToForgotPassword").addEventListener("click", () => navigateTo("/forgot-password"));
+    document.getElementById("goToRegister").addEventListener("click", async () => await navigateTo("/register"));
+    document.getElementById("goToForgotPassword").addEventListener("click", async () => await navigateTo("/forgot-password"));
     document.getElementById("loginForm").addEventListener("submit", handleLogin);
 }

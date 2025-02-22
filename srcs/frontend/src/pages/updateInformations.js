@@ -43,7 +43,7 @@ export default function renderUpdateInformations()
     `;
 	loadUserData();
     document.getElementById("updateProfileForm").addEventListener("submit", handleInformationsUpdate);
-    document.getElementById("returnUpdate").addEventListener("click", () => navigateTo("/settings"));
+    document.getElementById("returnUpdate").addEventListener("click", async () => await navigateTo("/settings"));
 }
 
 async function loadUserData()

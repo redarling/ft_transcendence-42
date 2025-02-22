@@ -80,16 +80,15 @@ class UserLoginAPIView(APIView):
             "type": "access",
             "session_id": session_id
         }
-        access_token = generate_jwt(access_payload, expiration_minutes=15, session_id=session_id)  # 15 minutes
-        
-        # Refresh token (7 days)
+        access_token = generate_jwt(access_payload, expiration_minutes=15, session_id=session_id)  # 15 min
+
         refresh_payload = {
             "user_id": user.id,
             "type": "refresh",
             "session_id": session_id
         }
         refresh_token = generate_jwt(refresh_payload, expiration_minutes=7 * 24 * 60, session_id=session_id)  # 7 days
-        
+
         response = Response({"access_token": access_token, "user_id": user.id}, status=status.HTTP_200_OK)
 
         response.set_cookie(
@@ -151,7 +150,7 @@ class UserLogoutAPIView(APIView):
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
         if not refresh_token:
-            return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Refresh token is required."}, status=status.HTTP_401_UNAUTHORIZED)
         
         try:
             payload = decode_jwt(refresh_token)

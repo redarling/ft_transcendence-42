@@ -15,11 +15,12 @@ export default function showToast(message, type)
     toast.appendChild(closeButton);
 
     const toastContainer = document.getElementById("toast-container");
-    toastContainer.appendChild(toast);
+    
+    if (!toastContainer)
+        return;
 
     setTimeout(() => {
-        if (document.body.contains(toast)) {
+        if (document.body.contains(toast))
             toast.remove();
-        }
     }, 3500);
 }

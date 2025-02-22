@@ -24,7 +24,7 @@ export default async function handleRegister(event)
 
 		if (response.ok)
 		{
-			navigateTo('/login');
+			await navigateTo('/login');
 			showToast(result.message, "success");
 		}
 		else if (result.error || result.detail)

@@ -13,7 +13,7 @@ export default function render404() {
     `;
 
     const homeBtn = document.getElementById("goHomeBtn");
-    homeBtn.addEventListener("click", () => {
-        navigateTo("/home");
+    homeBtn.addEventListener("click", async () => {
+        await navigateTo("/home");
     });
 }

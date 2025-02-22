@@ -75,12 +75,12 @@ export default async function renderUserProfile(userId)
         showLoadingSpinner(false);
         if (error === "404")
         {
-            navigateTo("/404");    
+            await navigateTo("/404");    
         }
         else
         {
             showToast(error, "error");
-            navigateTo("/home");
+            await navigateTo("/home");
         }
     }
 }

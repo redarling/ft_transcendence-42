@@ -43,8 +43,8 @@ export default async function TwoFASetup()
         await handleTwoFASetup(createPayload(selectedType));
     });
 
-    backButton.addEventListener("click", () => {
-        navigateTo("/settings");
+    backButton.addEventListener("click", async () => {
+        await navigateTo("/settings");
     });
 }
 

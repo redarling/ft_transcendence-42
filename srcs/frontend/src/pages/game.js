@@ -9,17 +9,17 @@ import { checkActiveMatch, connectToWebSocket } from '../online_gaming/recoveryS
 export let againstBot;
 export let botDifficulty;
 
-export default function renderGame()
+export default async function renderGame()
 {
     try
     {
-        const matchData = checkActiveMatch(localStorage.getItem('access_token'));
+        const matchData = await checkActiveMatch(localStorage.getItem('access_token'));
         if (matchData && matchData.active)
-            connectToWebSocket(localStorage.getItem('access_token'), matchData.match_group);
+            await connectToWebSocket(localStorage.getItem('access_token'), matchData.match_group);
     }
     catch(error)
     {
-        navigateTo("/home");
+        await navigateTo("/home");
         showToast(error, "error");
     }
 
@@ -98,8 +98,8 @@ export default function renderGame()
         </div>
     `;
 
-    document.getElementById("tournamentButton").addEventListener("click", () => {
-        navigateTo("/tournaments");
+    document.getElementById("tournamentButton").addEventListener("click", async () => {
+        await navigateTo("/tournaments");
     });
 
     const playAgainstBotButton = document.getElementById('localBotPlayBtn');
@@ -125,24 +125,23 @@ export default function renderGame()
         quitButton.innerText = 'Quit';
         mainDiv.appendChild(quitButton);
 
-        quitButton.addEventListener('click', () => {
-            if (game) {
+        quitButton.addEventListener('click', async () => {
+            if (game)
                 game.clear();
-            }
-            renderHeader();
-            renderGame();
+            await renderHeader();
+            await renderGame();
             renderFooter();
         });
 
         againstBot = isThereBot;
-        if (againstBot) {
-            if (difficultyEasyRadio.checked) {
+        if (againstBot)
+        {
+            if (difficultyEasyRadio.checked)
                 botDifficulty = 1;
-            } else if (difficultyMediumRadio.checked) {
+            else if (difficultyMediumRadio.checked)
                 botDifficulty = 2;
-            } else if (difficultyHardRadio.checked) {
+            else if (difficultyHardRadio.checked)
                 botDifficulty = 3;
-            }
         }
         game = new Game();
         game.loop();
@@ -153,7 +152,7 @@ export default function renderGame()
 
     // Event listener for matchmaking button
     const matchmakingButton = document.getElementById('matchmakingBtn');
-    matchmakingButton.addEventListener('click', () => {
-        findMatch();
+    matchmakingButton.addEventListener('click', async () => {
+        await findMatch();
     });
 }

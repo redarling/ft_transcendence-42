@@ -77,8 +77,8 @@ export async function handleForgotPassword(email)
         await fetchForgotPassword(email, verificationCode);
     });
 
-    backButton.addEventListener("click", () => {
-        navigateTo("/login");
+    backButton.addEventListener("click", async () => {
+        await navigateTo("/login");
     });
 
     inputs[0].focus();

@@ -20,21 +20,22 @@ import renderUpdateInformations from "../pages/updateInformations.js";
 import renderFriends from "../pages/friends.js"
 import isAuthenticated from "../utils/isAuthenticated.js";
 import showToast from "../utils/toast.js";
+import { checkSocket } from "../users/websocket.js";
 
 async function protectRoute(protectedRoutes = [], guestOnlyRoutes = [])
 {
     const path = window.location.pathname;
 
-    if (protectedRoutes.includes(path) && !isAuthenticated())
+    if (protectedRoutes.includes(path) && !await isAuthenticated())
 	{
-        navigateTo("/login");
+        await navigateTo("/login");
         showToast("You must be logged in to access this page.", "info");
         return true;
     }
 
-    if (guestOnlyRoutes.includes(path) && isAuthenticated())
+    if (guestOnlyRoutes.includes(path) && await isAuthenticated())
 	{
-        navigateTo("/home");
+        await navigateTo("/home");
         showToast("You are already logged in.", "info");
         return true;
     }
@@ -74,16 +75,16 @@ export default async function router()
     const segments = path.split("/").filter(Boolean);
     console.log("The path is:", path);
 
-	if (isAuthenticated())
+	if (await isAuthenticated())
 		await recoverySystem();
 
     if (segments.length === 2 && segments[0] === "profile" && segments[1])
 	{
-		if (isAuthenticated())
+		if (await isAuthenticated())
         	renderUserProfile(segments[1]);
 		else
 		{
-			navigateTo("/login");
+			await navigateTo("/login");
 			showToast("You must be logged in to access this page.", "error");
 		}
     }
@@ -98,7 +99,7 @@ async function recoverySystem()
 {
 	try
 	{
-        if (localStorage.getItem('access_token'))
+        if (await isAuthenticated() && checkSocket())
 		{
             const matchData = await checkActiveMatch();
             if (matchData && matchData.active)

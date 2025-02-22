@@ -41,7 +41,7 @@ export async function handleDataExport()
     }
     catch (error)
     {
-        navigateTo("/home");
+        await navigateTo("/home");
         showToast("An error occurred. Please, try again.", "error");
     }
     finally

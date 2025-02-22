@@ -81,7 +81,7 @@ export default async function renderTournaments()
     `;
 
     renderFooter();
-    renderHeader();
+    await renderHeader();
 
     document.getElementById("createTournamentBtn").addEventListener("click", () => createTournamentModal());
     document.getElementById("searchTournamentBtn").addEventListener("click", () => searchTournament());

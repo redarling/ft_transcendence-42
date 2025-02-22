@@ -46,7 +46,7 @@ async function leaveTournament(socket, tournamentId)
         else
         {
             socket.send(JSON.stringify({event: 'user_left'}));
-            renderHeader();
+            await renderHeader();
             renderTournaments();
         }
     }

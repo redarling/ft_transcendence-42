@@ -72,7 +72,7 @@ export async function handleResetPassword(challenge)
         });
     });
 
-    document.getElementById("back-button").addEventListener("click", () => navigateTo("/login"));
+    document.getElementById("back-button").addEventListener("click", async () => await navigateTo("/login"));
 
     document.getElementById("resetForm").addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -100,7 +100,7 @@ async function fetchResetPassword(challenge, password)
         if (response.ok)
         {
             showLoadingSpinner(false);
-            navigateTo("/login");
+            await navigateTo("/login");
             showToast("Password reset successfully. Please, login.", "success");
         }
         else

@@ -2,9 +2,9 @@ import navigateTo from "../navigation/navigateTo.js";
 import { handleLogout } from "../users/handleLogout.js";
 import isAuthenticated from "../utils/isAuthenticated.js";
 
-export default function renderHeader()
+export default async function renderHeader()
 {
-    const auth = isAuthenticated();
+    const auth = await isAuthenticated();
 
     const header = document.getElementById("header");
 
@@ -53,16 +53,16 @@ export default function renderHeader()
     const homeHeaderButton = document.getElementById("homeHeaderButton");
 
     if (logoHeaderButton)
-        logoHeaderButton.addEventListener("click", () => navigateTo("/home"));
+        logoHeaderButton.addEventListener("click", async () => await navigateTo("/home"));
 
     if (homeHeaderButton)
-        homeHeaderButton.addEventListener("click", () => navigateTo("/home"));
+        homeHeaderButton.addEventListener("click", async () => await navigateTo("/home"));
 
     const gameHeaderButton = document.getElementById("gameHeaderButton");
     if (gameHeaderButton)
     {
-        gameHeaderButton.addEventListener("click", () => {
-                navigateTo("/game");
+        gameHeaderButton.addEventListener("click", async () => {
+                await navigateTo("/game");
         });
     }
 
@@ -70,9 +70,9 @@ export default function renderHeader()
     if (authHeaderButton)
     {
         if (auth)
-            authHeaderButton.addEventListener("click", handleLogout);
+            authHeaderButton.addEventListener("click", async () => await handleLogout());
         else
-            authHeaderButton.addEventListener("click", () => navigateTo("/login"));
+            authHeaderButton.addEventListener("click", async () => await navigateTo("/login"));
     }
 
     if (auth)
@@ -80,12 +80,12 @@ export default function renderHeader()
         const settingsHeaderButton = document.getElementById("settingsHeaderButton");
         if (settingsHeaderButton)
         {
-            settingsHeaderButton.addEventListener("click", () => navigateTo("/settings"));
+            settingsHeaderButton.addEventListener("click", async () => await navigateTo("/settings"));
         }
         const profileHeaderButton = document.getElementById("profileHeaderButton");
         if (profileHeaderButton)
         {
-            profileHeaderButton.addEventListener("click", () => navigateTo(`/profile/${localStorage.getItem('user_id')}/`));
+            profileHeaderButton.addEventListener("click", async () => await navigateTo(`/profile/${localStorage.getItem('user_id')}/`));
         }
     }
 }

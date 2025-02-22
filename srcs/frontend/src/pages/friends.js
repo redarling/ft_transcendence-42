@@ -43,7 +43,7 @@ export default function renderFriends()
         event.preventDefault();
         toggleTab("friendRequests", "friendRequestTab");
     });
-    document.getElementById("returnFriends").addEventListener("click", () => navigateTo("/settings"));
+    document.getElementById("returnFriends").addEventListener("click", async () => await navigateTo("/settings"));
 
     loadFriends();
     loadFriendRequests();
@@ -99,7 +99,7 @@ async function loadFriends()
             <span class="badge ${friend.online_status ? 'bg-success' : 'bg-secondary'}">${friend.online_status ? 'Online' : 'Offline'}</span>
             <button class="btn btn-danger btn-sm" onclick="removeFriend('${friend.id}')">&times;</button>
         `;
-        li.querySelector(".username").addEventListener("click", () => navigateTo(`/profile/${friend.id}/`));
+        li.querySelector(".username").addEventListener("click", async () => await navigateTo(`/profile/${friend.id}/`));
         friendsContainer.appendChild(li);
     });
 }
@@ -146,7 +146,7 @@ async function loadFriendRequests()
                 <button class="btn btn-danger btn-sm decline-btn" data-id="${friend.id}">&times;</button>
             </div>
         `;
-        li.querySelector(".username").addEventListener("click", () => navigateTo(`/profile/${friend.id}/`));
+        li.querySelector(".username").addEventListener("click", async () => await navigateTo(`/profile/${friend.id}/`));
         requestsContainer.appendChild(li);
     });
 

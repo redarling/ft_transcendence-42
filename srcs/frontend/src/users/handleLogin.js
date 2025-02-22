@@ -3,7 +3,6 @@ import renderHeader from "../components/header.js";
 import { connectWebSocket } from "./websocket.js";
 import showToast from "../utils/toast.js";
 import showLoadingSpinner from "../utils/spinner.js";
-import { startTokenRefreshing } from "./tokenRefreshing.js";
 
 async function loginUser(username, password)
 {
@@ -131,8 +130,8 @@ async function render2FAForm(challengeToken)
 		await handleVerificationCode(challengeToken, verificationCode);
 	});
 
-	backButton.addEventListener("click", () => {
-		navigateTo("/login");
+	backButton.addEventListener("click", async () => {
+		await navigateTo("/login");
 	});
 
 	inputs[0].focus();
@@ -175,7 +174,6 @@ async function handleSuccessfulLogIn(data)
 	localStorage.setItem('access_token', data.access_token);
 	localStorage.setItem('user_id', data.user_id);
 	await connectWebSocket();
-	startTokenRefreshing();
-	renderHeader();
-	navigateTo("/home");
+	await renderHeader();
+	await navigateTo("/home");
 }

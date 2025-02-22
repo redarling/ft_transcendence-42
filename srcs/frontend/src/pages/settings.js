@@ -26,12 +26,12 @@ export default async function renderSettings()
     `;
 
     if (!is_2fa_enabled)
-        document.getElementById("2FA").addEventListener("click", () => navigateTo("/2fa-setup"));
+        document.getElementById("2FA").addEventListener("click", async () => await navigateTo("/2fa-setup"));
     else
-        document.getElementById("2FA").addEventListener("click", () => navigateTo("/2fa-remove"));
+        document.getElementById("2FA").addEventListener("click", async () => await navigateTo("/2fa-remove"));
 
-    document.getElementById("friendList").addEventListener("click", () => navigateTo("/friends"));
-    document.getElementById("updateInformations").addEventListener("click", () => navigateTo("/update-informations"));
+    document.getElementById("friendList").addEventListener("click", async () => await navigateTo("/friends"));
+    document.getElementById("updateInformations").addEventListener("click", async () => await navigateTo("/update-informations"));
     document.getElementById("downloadData").addEventListener("click", async () => {await handleDataExport();});    
     document.getElementById("deleteAccount").addEventListener("click", () => handleAccountDeletion());
 }

@@ -80,8 +80,8 @@ export default function renderHome()
 
 	if (playNowBtn)
 	{
-		playNowBtn.addEventListener("click", () => {
-			navigateTo("/game");
+		playNowBtn.addEventListener("click", async () => {
+			await navigateTo("/game");
 		});
 	}
 }

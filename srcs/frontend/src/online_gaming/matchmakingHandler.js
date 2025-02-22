@@ -28,7 +28,7 @@ export async function findMatch()
     };
 
     // Server's message event handler
-    socket.onmessage = (message) => {
+    socket.onmessage = async (message) => {
         try
         {
             const data = JSON.parse(message.data);
@@ -36,17 +36,17 @@ export async function findMatch()
             switch (data.event)
             {
                 case "searching":
-                    renderSearchingPage(socket);
+                    await renderSearchingPage(socket);
                     break;
 
                 case "error":
-                    renderErrorPage(data.message);
+                    await renderErrorPage(data.message);
                     break;
 
                 case "match_start":
                     if (!playerId)
                     {
-                        renderErrorPage("Failed to start the match. Please try again.");
+                        await renderErrorPage("Failed to start the match. Please try again.");
                         return;
                     }
                     const player1Username = data.match_data.player1_username;
@@ -60,7 +60,7 @@ export async function findMatch()
                     if (data.message)
                         playerId = data.message;  
                     else 
-                        renderErrorPage("Failed to start the match. Please try again.");
+                        await renderErrorPage("Failed to start the match. Please try again.");
                     break;
 
                 default:
@@ -75,24 +75,24 @@ export async function findMatch()
     };
 
     // Close event handler
-    socket.onclose = (event) => {
+    socket.onclose = async (event) => {
         console.warn("WebSocket closed:", event);
         if (!event.wasClean)
         {
             // If socket was closed unexpectedly, notify the user
-            renderErrorPage("Connection lost. Please try again.");
+            await renderErrorPage("Connection lost. Please try again.");
         }
         else
         {
             // If socket closed normally, e.g that the search was cancelled
-            renderGame();
+            await renderGame();
         }
     };
 
     // Error event handler
-    socket.onerror = (error) => {
+    socket.onerror = async (error) => {
         showToast("Failed to connect to the server. Please try again later.", "error");
         console.error("WebSocket error:", error);
-        renderErrorPage("An unexpected error occurred. Please try again later.");
+        await renderErrorPage("An unexpected error occurred. Please try again later.");
     };
 }

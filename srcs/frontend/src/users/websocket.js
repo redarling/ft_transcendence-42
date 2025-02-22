@@ -15,7 +15,16 @@ export function connectWebSocket()
             socket.close();
         }
 
-        socket = new WebSocket(`wss://transcendence-pong:7443/ws/status/?token=${localStorage.getItem('access_token')}`);
+        const token = localStorage.getItem('access_token');
+        
+        if (!token || token == "undefined")
+        {
+            console.error("🔒 No token found! Can't connect WebSocket.")
+            reject("No token found");
+            return;
+        }
+
+        socket = new WebSocket(`wss://transcendence-pong:7443/ws/status/?token=${token}`);
 
         socket.onopen = () => {
             console.log("✅ WebSocket Connected!");
@@ -34,7 +43,7 @@ export function connectWebSocket()
 
         socket.onclose = async (event) => {
             console.warn("❌ WebSocket Disconnected:", event.reason);
-
+        
             if (event.code === 1006 || event.code === 4401)
             {
                 console.error("🔒 Token expired or invalid. Trying to refresh...");
@@ -48,19 +57,22 @@ export function connectWebSocket()
                 else
                 {
                     console.error("🚪 Refresh token failed! Logging out...");
-                    if (localStorage.getItem('access_token'))
-                        handleLogout();
-                }
-            } 
-            else
-            {
-                if (localStorage.getItem('access_token'))
-                {
-                    console.warn("🌐 Connection lost. Reconnecting in 5 seconds...");
-                    scheduleReconnect();
+                    if (socket)
+                    {
+                        socket.onclose = null;
+                        socket.close();
+                        socket = null;
+                    }
+                    await handleLogout();
                 }
             }
+            else
+            {
+                console.warn("🌐 Connection lost. Reconnecting in 5 seconds...");
+                scheduleReconnect();
+            }
         };
+                
     });
 }
 
@@ -82,4 +94,9 @@ export function resetSocket()
         socket.close();
     }
     socket = null;
+}
+
+export function checkSocket()
+{
+    return socket && socket.readyState === WebSocket.OPEN;
 }

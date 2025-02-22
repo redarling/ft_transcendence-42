@@ -4,7 +4,7 @@ import renderGame from '../pages/game.js';
 import { Game } from '../game/onlineGame.js';
 import showToast from '../utils/toast.js';
 
-function renderPageTemplate({ header = true, footer = true, content = '' })
+async function renderPageTemplate({ header = true, footer = true, content = '' })
 {
     const   main = document.getElementById("main");
     main.innerHTML = '';
@@ -12,7 +12,7 @@ function renderPageTemplate({ header = true, footer = true, content = '' })
     if (header)
     {
         document.getElementById('header').innerHTML = '';
-        renderHeader();
+        await renderHeader();
     }
 
     if (footer)
@@ -25,7 +25,7 @@ function renderPageTemplate({ header = true, footer = true, content = '' })
 }
 
 // Search match waiting page
-export function renderSearchingPage(socket)
+export async function renderSearchingPage(socket)
 {
     const content = `
         <div class="container-fluid matchmaking-container d-flex flex-column align-items-center justify-content-center text-center">
@@ -39,7 +39,7 @@ export function renderSearchingPage(socket)
         </div>
     `;
 
-    renderPageTemplate({ content });
+    await renderPageTemplate({ content });
 
 
     const cancelSearchButton = document.getElementById('cancelSearchBtn');
@@ -52,7 +52,7 @@ export function renderSearchingPage(socket)
 }
 
 // Error page
-export function renderErrorPage(message)
+export async function renderErrorPage(message)
 {
     const content = `
         <div class="container-fluid error-container d-flex flex-column align-items-center justify-content-center text-center">
@@ -62,7 +62,7 @@ export function renderErrorPage(message)
         </div>
     `;
 
-    renderPageTemplate({ content });
+    await renderPageTemplate({ content });
 
     const returnHomeButton = document.getElementById('returnHomeBtn');
     returnHomeButton.addEventListener('click', () => {
@@ -70,8 +70,8 @@ export function renderErrorPage(message)
     });
 }
 
-export function renderMatch(socket, playerId, player1Username, player2Username, player1Avatar, player2Avatar, isCountdown) {
-
+export function renderMatch(socket, playerId, player1Username, player2Username, player1Avatar, player2Avatar, isCountdown)
+{
     document.getElementById('main').innerHTML = '';
     document.getElementById('header').innerHTML = '';
     document.getElementById('footer').innerHTML = '';
@@ -146,15 +146,14 @@ export function renderMatch(socket, playerId, player1Username, player2Username, 
 }
 
 // Check if tournament ?
-export function handleMatchOver(winner, player1Score, player2Score, playerId)
+export async function handleMatchOver(winner, player1Score, player2Score, playerId)
 {
     const isWinner = winner === playerId;
-    if (isWinner) {
+    if (isWinner)
         showToast("You won!", "success");
-    } else {
+    else
         showToast("You lost!", "error");
-    }
-    renderHeader();
+    await renderHeader();
     renderGame();
     renderFooter();
 }
