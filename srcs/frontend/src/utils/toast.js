@@ -19,6 +19,8 @@ export default function showToast(message, type)
     if (!toastContainer)
         return;
 
+    toastContainer.appendChild(toast);
+    
     setTimeout(() => {
         if (document.body.contains(toast))
             toast.remove();

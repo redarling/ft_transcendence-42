@@ -83,8 +83,8 @@ class User(AbstractUser):
     def deactivate_user(self):
         from games.models import TournamentParticipant
         self.is_active = False
-        TournamentParticipant.objects.filter(user=self).update(tournament_alias='deleted_user')
         self.username = f"deleted_user_{self.pk}"
+        TournamentParticipant.objects.filter(user=self).update(tournament_alias=self.username)
         self.email = None
         self.avatar = "https://i.imgur.com/1QyvYbd.jpeg"
         self.active_session_id = None

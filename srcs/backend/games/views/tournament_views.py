@@ -65,6 +65,11 @@ class JoinTournamentAPIView(APIView):
         tournament_id = request.data.get("tournament_id")
         tournament_alias = request.data.get("tournament_alias")
 
+        forbidden_substring = "deleted_user"
+        if forbidden_substring in tournament_alias.lower():
+            return Response({"detail": "The alias cannot contain 'deleted_user'."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
         tournament = get_object_or_404(Tournament, id=tournament_id)
 
         if tournament.status != 'pending':
