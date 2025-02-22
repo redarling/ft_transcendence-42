@@ -4,8 +4,6 @@ import declineFriendRequest from "../users/friends_management/declineFriendReque
 import navigateTo from "../navigation/navigateTo.js";
 import { fetchWithAuth } from "../utils/fetchWithAuth.js";
 import showToast from "../utils/toast.js";
-import { joinTournamentModal } from "./tournaments/join.js"
-import { AreYouSureModal } from "../tournament_gaming/utils.js";
 
 export default function renderFriends()
 {
@@ -22,9 +20,6 @@ export default function renderFriends()
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" id="friendRequestTab">Requests</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="invitationsTab">Tournament invitations</a>
                 </li>
             </ul>
 
@@ -48,26 +43,19 @@ export default function renderFriends()
         event.preventDefault();
         toggleTab("friendRequests", "friendRequestTab");
     });
-    document.getElementById("invitationsTab").addEventListener("click", (event) => {
-        event.preventDefault();
-        toggleTab("invitations", "invitationsTab");
-    });
 
     loadFriends();
     loadFriendRequests();
-    loadTournamentInvitations();
 }
 
 function toggleTab(tabId, tabButtonId)
 {
     document.getElementById("friendList").classList.add("d-none");
     document.getElementById("friendRequests").classList.add("d-none");
-    document.getElementById("invitations").classList.add("d-none");
     document.getElementById(tabId).classList.remove("d-none");
 
     document.getElementById("friendListTab").classList.remove("active");
     document.getElementById("friendRequestTab").classList.remove("active");
-    document.getElementById("invitationsTab").classList.remove("active");
     document.getElementById(tabButtonId).classList.add("active");
 }
 
@@ -156,28 +144,6 @@ async function getFriendRequests()
     }
 }
 
-async function getTournamentInvitations()
-{
-    try
-    {
-        const response = await fetchWithAuth("/api/games/tournament-invitation-list/", {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            }
-        });
-
-        if (!response.ok)
-            throw new Error("Failed to fetch invitations.");
-        const data = await response.json();
-        return data;
-    }
-    catch (error)
-    {
-        showToast(error, "error");
-        return [];
-    }
-}
 
 export async function loadFriendRequests()
 {
@@ -223,42 +189,6 @@ export async function loadFriendRequests()
         button.addEventListener("click", (event) => {
             const friendId = event.target.getAttribute("data-id");
             declineFriendRequest(friendId);
-        });
-    });
-}
-
-async function loadTournamentInvitations() {
-    const invitationsContainer = document.getElementById("invitationsContainer");
-    invitationsContainer.innerHTML = "";
-
-    let invitations = await getTournamentInvitations();
-
-    if (!Array.isArray(invitations) || invitations.length === 0) {
-        invitationsContainer.innerHTML = "<p class='text-center text-muted'>No invitations found.</p>";
-        return;
-    }
-
-    invitations.forEach(invitation => {
-        const li = document.createElement("li");
-        li.className = "list-group-item d-flex justify-content-between align-items-center";
-        li.innerHTML = `
-            <div class="col d-flex align-items-center">
-                <span class="username me-2" data-userid="${invitation.tournament_id}">${invitation.invited_by}</span>
-            </div>
-            <div class="col d-flex align-items-center justify-content-end">
-                <span>${invitation.title}</span>
-                <div class="vr mx-3"></div>
-                <button class="btn btn-success btn-sm tournament-invitation-accept-btn me-2" data-id="${invitation.tournament_id}">join</button>
-            </div>
-        `;
-        li.querySelector(".username").addEventListener("click", () => navigateTo(`/profile/${invitation.inviter_id}/`));
-        invitationsContainer.appendChild(li);
-    });
-
-    document.querySelectorAll(".tournament-invitation-accept-btn").forEach(button => {
-        button.addEventListener("click", (event) => {
-            const tournamentId = event.target.getAttribute("data-id");
-            joinTournamentModal(tournamentId);
         });
     });
 }
