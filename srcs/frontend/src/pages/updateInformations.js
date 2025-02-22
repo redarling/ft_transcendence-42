@@ -38,7 +38,7 @@ export default function renderUpdateInformations()
                 <button type="submit" class="btn btn-success w-100">Save Changes</button>
             </form>
             
-            <button class="btn btn-secondary w-100 mt-3" id="returnUpdate">Return</button>
+            <button class="btn btn-secondary w-100 mt-3" id="returnUpdate">Back</button>
         </div>
     `;
 	loadUserData();
@@ -63,7 +63,8 @@ async function loadUserData()
             },
         });
 
-        if (response.ok) {
+        if (response.ok)
+        {
             const user = await response.json();
 
             // Set username, email fields + display avatar
@@ -72,7 +73,8 @@ async function loadUserData()
 			avatarPreview.src = user.avatar;
 			avatarPreview.style.display = "block";
         } 
-		else {
+		else
+        {
             console.warn("⚠️ Failed to fetch user data. Response:", await response.json());
         }
     } 

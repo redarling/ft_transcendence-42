@@ -4,6 +4,7 @@ import declineFriendRequest from "../users/friends_management/declineFriendReque
 import navigateTo from "../navigation/navigateTo.js";
 import { fetchWithAuth } from "../utils/fetchWithAuth.js";
 import showToast from "../utils/toast.js";
+import showLoadingSpinner from "../utils/spinner.js";
 
 export default function renderFriends()
 {
@@ -21,6 +22,9 @@ export default function renderFriends()
                 <li class="nav-item">
                     <a class="nav-link" id="friendRequestTab">Requests</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="friendSearchTab">Search new friends</a>
+                </li>
             </ul>
 
             <div id="friendList" class="friend-content">
@@ -29,8 +33,12 @@ export default function renderFriends()
             <div id="friendRequests" class="friend-content d-none">
                 <ul id="requestsContainer" class="list-group mt-3"></ul>
             </div>
-            <div id="invitations" class="friend-content d-none">
-                <ul id="invitationsContainer" class="list-group mt-3"></ul>
+            <div id="friendSearch" class="friend-content d-none">
+                <div class="input-group mt-3">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Enter username...">
+                    <button class="btn btn-primary" id="searchButton">Search</button>
+                </div>
+                <ul id="searchResultsContainer" class="list-group mt-3"></ul>
             </div>
         </div>
     `;
@@ -43,6 +51,15 @@ export default function renderFriends()
         event.preventDefault();
         toggleTab("friendRequests", "friendRequestTab");
     });
+    document.getElementById("friendSearchTab").addEventListener("click", (event) => {
+        event.preventDefault();
+        toggleTab("friendSearch", "friendSearchTab");
+    });
+
+    document.getElementById("searchButton").addEventListener("click", async () => {
+        const query = document.getElementById("searchInput").value.trim();
+        await loadSearchResults(query);
+    });
 
     loadFriends();
     loadFriendRequests();
@@ -52,13 +69,14 @@ function toggleTab(tabId, tabButtonId)
 {
     document.getElementById("friendList").classList.add("d-none");
     document.getElementById("friendRequests").classList.add("d-none");
+    document.getElementById("friendSearch").classList.add("d-none");
     document.getElementById(tabId).classList.remove("d-none");
 
     document.getElementById("friendListTab").classList.remove("active");
     document.getElementById("friendRequestTab").classList.remove("active");
+    document.getElementById("friendSearchTab").classList.remove("active");
     document.getElementById(tabButtonId).classList.add("active");
 }
-
 
 async function getFriends()
 {
@@ -152,8 +170,8 @@ export async function loadFriendRequests()
 
     const requests = await getFriendRequests();
 
-
-    if (!Array.isArray(requests) || requests.length === 0) {
+    if (!Array.isArray(requests) || requests.length === 0)
+    {
         requestsContainer.innerHTML = "<p class='text-center text-muted'>No friend requests found.</p>";
         return;
     }
@@ -192,3 +210,62 @@ export async function loadFriendRequests()
         });
     });
 }
+
+async function loadSearchResults(searchQuery)
+{
+    const searchContainer = document.getElementById("searchResultsContainer");
+    searchContainer.innerHTML = "";
+
+    if (!searchQuery)
+    {
+        searchContainer.innerHTML = "<p class='text-center text-muted'>Please enter a username to search.</p>";
+        return;
+    }
+
+    try
+    {
+        showLoadingSpinner(true);
+        const response = await fetchWithAuth(`/api/users/search-profile/?search=${encodeURIComponent(searchQuery)}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+        const users = await response.json();
+
+        if (!response.ok)
+        {
+            searchContainer.innerHTML = `<p class='text-center text-danger'>${users.error || "An error occurred."}</p>`;
+            return;
+        }
+
+        if (!Array.isArray(users) || users.length === 0)
+        {
+            searchContainer.innerHTML = "<p class='text-center text-muted'>No users found matching the search query.</p>";
+            return;
+        }
+
+        users.forEach(user => {
+            const li = document.createElement("li");
+            li.className = "list-group-item d-flex justify-content-between align-items-center";
+            li.innerHTML = `
+                <div class="col d-flex align-items-center">
+                    <img src="${user.avatar}" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;" />
+                    <span class="username me-2" data-userid="${user.id}">${user.username}</span>
+                </div>
+            `;
+            li.querySelector(".username").addEventListener("click", async () => await navigateTo(`/profile/${user.id}/`));
+            searchContainer.appendChild(li);
+        });
+    }
+    catch (error)
+    {
+        console.error(error);
+        searchContainer.innerHTML = "<p class='text-center text-danger'>An error occurred. Please try again later.</p>";
+    }
+    finally
+    {
+        showLoadingSpinner(false);
+    }
+}
+

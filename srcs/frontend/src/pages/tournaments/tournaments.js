@@ -6,6 +6,7 @@ import invitationsList from './invitations.js';
 import { checkActiveTournament } from '../../online_gaming/recoverySystem.js'
 import showToast from '../../utils/toast.js';
 import { tournamentHandler } from "../../tournament_gaming/tournamentHandler.js";
+import navigateTo from '../../navigation/navigateTo.js';
 
 export default async function renderTournaments()
 {
@@ -80,10 +81,8 @@ export default async function renderTournaments()
         </div>
     `;
 
-    renderFooter();
-    await renderHeader();
-
-    document.getElementById("createTournamentBtn").addEventListener("click", () => createTournamentModal());
-    document.getElementById("searchTournamentBtn").addEventListener("click", () => searchTournament());
-    document.getElementById("myInvitationsBtn").addEventListener("click", () => invitationsList());
+    document.getElementById("createTournamentBtn").addEventListener("click", async () => await createTournamentModal());
+    document.getElementById("searchTournamentBtn").addEventListener("click", async () => await searchTournament());
+    document.getElementById("myInvitationsBtn").addEventListener("click", async () => await invitationsList());
+    document.getElementById("backButton").addEventListener("click", async () => await navigateTo("/game"));
 }

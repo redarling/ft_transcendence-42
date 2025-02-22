@@ -45,8 +45,6 @@ export default async function renderUserProfile(userId)
                 </div>
             </div>
         `;
-
-        console.log("user profile : ", userProfile);
     
         UserHeaderComponent(
             userId,

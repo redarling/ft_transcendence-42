@@ -12,6 +12,7 @@
     gap: 10px;
     z-index: 9999;
     animation: fadeIn 0.3s ease-in-out;
+    pointer-events: auto;
     font-size: 14px;
 }
 
