@@ -1,8 +1,11 @@
 import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
+import showToast from "../../utils/toast.js";
+import { loadFriendRequests } from "../../pages/friends.js"
 
 export default async function declineFriendRequest(friendId)
 {
-    try {
+    try
+    {
         const response = await fetchWithAuth("/api/users/friendship/", {
             method: "PATCH",
             headers: {
@@ -16,9 +19,9 @@ export default async function declineFriendRequest(friendId)
             throw new Error(data.message || "Failed to decline friend request");
         }
 
-        console.log("Friend request declined:", data);
+        showToast("Friend request successfully denied.", "success");
         loadFriendRequests(); // Refresh the friend request list
     } catch (error) {
-        console.error("Error declining friend request:", error);
+        showToast(error, "error");
     }
 }

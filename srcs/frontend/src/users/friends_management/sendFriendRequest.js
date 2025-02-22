@@ -1,4 +1,5 @@
 import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
+import showToast from "../../utils/toast.js";
 
 export default async function sendFriendRequest(friendId)
 {
@@ -23,8 +24,8 @@ export default async function sendFriendRequest(friendId)
             }
             throw new Error(data.message || "Failed to send friend request");
         }
-
-        console.log("Friend request sent successfully:", data);
+        
+        showToast("Friend request sent successfully.", "success");
         const button = document.getElementById("friendRequestButton");
         if (button) {
             button.disabled = true;
@@ -33,6 +34,6 @@ export default async function sendFriendRequest(friendId)
     }
     catch (error)
     {
-        console.error("Error sending friend request:", error);
+        showToast(error, "error");
     }
 }

@@ -1,13 +1,12 @@
 import removeFriend from "../users/friends_management/removeFriend.js";
 import acceptFriendRequest from "../users/friends_management/acceptFriendRequest.js";
 import declineFriendRequest from "../users/friends_management/declineFriendRequest.js";
-import renderUserProfile from "./profile.js";
 import navigateTo from "../navigation/navigateTo.js";
 import { fetchWithAuth } from "../utils/fetchWithAuth.js";
+import showToast from "../utils/toast.js";
 
 export default function renderFriends()
 {
-    console.log("- function: renderFriends()");
     const main = document.getElementById("main");
 
     main.innerHTML = `
@@ -55,7 +54,7 @@ export default function renderFriends()
 
     loadFriends();
     loadFriendRequests();
-    loadInvitations();
+    // loadInvitations();
 }
 
 function toggleTab(tabId, tabButtonId)
@@ -89,29 +88,47 @@ async function getFriends()
     }
     catch (error)
     {
-        console.error("Error fetching friends list:", error);
+        showToast(error, "error");
         return [];
     }
 }
 
-async function loadFriends()
+export async function loadFriends()
 {
     const friendsContainer = document.getElementById("friendsContainer");
     friendsContainer.innerHTML = "";
 
     const friends = await getFriends();
 
-    friends.forEach(friend => {
+    if (!Array.isArray(friends) || friends.length === 0) {
+        friendsContainer.innerHTML = "<p class='text-center text-muted'>No friend found.</p>";
+        return;
+    }
+
+    friends.forEach(requestObj => {
+        const friend = requestObj.user;
         const li = document.createElement("li");
         li.className = "list-group-item d-flex justify-content-between align-items-center";
         li.innerHTML = `
-            <img src="${friend.avatar}" class="avatar-small"> 
-            <span class="username" data-userid="${friend.id}">${friend.username}</span>
-            <span class="badge ${friend.online_status ? 'bg-success' : 'bg-secondary'}">${friend.online_status ? 'Online' : 'Offline'}</span>
-            <button class="btn btn-danger btn-sm" onclick="removeFriend('${friend.id}')">&times;</button>
+        <div class="col d-flex align-items-center">
+            <span class="badge ${friend.online_status ? 'bg-success' : 'bg-secondary'} me-2">${friend.online_status ? 'Online' : 'Offline'}</span>
+            <img src="${friend.avatar}" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;" />
+            <span class="username me-2" data-userid="${friend.id}">${friend.username}</span>
+        </div>
+        <div class="col d-flex align-items-center justify-content-end">
+            <button class="btn btn-danger btn-sm remove-btn" data-id="${friend.id}">remove</button>
+        </div>
         `;
         li.querySelector(".username").addEventListener("click", () => navigateTo(`/profile/${friend.id}/`));
         friendsContainer.appendChild(li);
+    });
+
+    // Attach event listeners to dynamically created buttons
+    document.querySelectorAll(".remove-btn").forEach(button => {
+        button.addEventListener("click", (event) => {
+            const friendId = event.target.getAttribute("data-id");
+            removeFriend(friendId); //TODO
+        });
     });
 }
 
@@ -125,6 +142,7 @@ async function getFriendRequests()
                 "Content-Type": "application/json",
             }
         });
+
         if (!response.ok)
             throw new Error("Failed to fetch friend requests");
         const data = await response.json();
@@ -132,42 +150,25 @@ async function getFriendRequests()
     }
     catch (error)
     {
-        console.error("Error fetching friend requests:", error);
+        showToast(error, "error");
         return [];
     }
 }
 
-async function loadFriendRequests()
+export async function loadFriendRequests()
 {
     const requestsContainer = document.getElementById("requestsContainer");
     requestsContainer.innerHTML = "";
 
     const requests = await getFriendRequests();
 
-    // PLACEHOLDER
-
-    requests.push({
-        friend: {
-            avatar: "https://i.imgur.com/5eMAuXg.jpeg",
-            username: "bobibob",
-            online_status: true,
-            id: 69
-        }
-    });
-
-    requests.push({
-        friend: {
-            avatar: "https://i.imgur.com/5eMAuXg.jpeg",
-            username: "bobibob2",
-            online_status: false,
-            id: 42
-        }
-    });
-    // ---------------
-
+    if (!Array.isArray(requests) || requests.length === 0) {
+        requestsContainer.innerHTML = "<p class='text-center text-muted'>No friend requests found.</p>";
+        return;
+    }
 
     requests.forEach(requestObj => {
-        const friend = requestObj.friend;
+        const friend = requestObj.user;
         const li = document.createElement("li");
         li.className = "list-group-item d-flex justify-content-between align-items-center";
         li.innerHTML = `
@@ -201,51 +202,57 @@ async function loadFriendRequests()
     });
 }
 
-async function loadInvitations() {
-    const invitationsContainer = document.getElementById("invitationsContainer");
-    invitationsContainer.innerHTML = "";
+// async function loadInvitations() {
+//     const invitationsContainer = document.getElementById("invitationsContainer");
+//     invitationsContainer.innerHTML = "";
 
-    const invitations = await getFriendRequests();
+//     const invitations = await getFriendRequests();
 
 
-    invitations.push({
-        invitation: {
-            avatar: "https://i.imgur.com/5eMAuXg.jpeg",
-            username: "bobibob",
-            online_status: true,
-            id: 69,
-            type: "1V1"
-        }
-    });
+//     invitations.push({
+//         invitation: {
+//             avatar: "https://i.imgur.com/5eMAuXg.jpeg",
+//             username: "bobibob",
+//             online_status: true,
+//             id: 69,
+//             type: "1V1"
+//         }
+//     });
 
-    invitations.push({
-        invitation: {
-            avatar: "https://i.imgur.com/5eMAuXg.jpeg",
-            username: "bobibob2",
-            online_status: false,
-            id: 42,
-            type: "Tournament"
-        }
-    });
+//     invitations.push({
+//         invitation: {
+//             avatar: "https://i.imgur.com/5eMAuXg.jpeg",
+//             username: "bobibob2",
+//             online_status: false,
+//             id: 42,
+//             type: "Tournament"
+//         }
+//     });
 
-    invitations.forEach(requestObj => {
-        const invitation = requestObj.invitation;
-        const li = document.createElement("li");
-        li.className = "list-group-item d-flex justify-content-between align-items-center";
-        li.innerHTML = `
-            <div class="col d-flex align-items-center">
-                <span class="badge ${invitation.online_status ? 'bg-success' : 'bg-secondary'} me-2">${invitation.online_status ? 'Online' : 'Offline'}</span>
-                <img src="${invitation.avatar}" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;" />
-                <span class="username me-2" data-userid="${invitation.id}">${invitation.username}</span>
-            </div>
-            <div class="col d-flex align-items-center justify-content-end">
-                <span>${invitation.type}</span>
-                <div class="vr mx-3"></div>
-                <button class="btn btn-success btn-sm accept-btn me-2" data-id="${invitation.id}">accept</button>
-                <button class="btn btn-danger btn-sm decline-btn" data-id="${invitation.id}">decline</button>
-            </div>
-        `;
-        li.querySelector(".username").addEventListener("click", () => navigateTo(`/profile/${invitation.id}/`));
-        invitationsContainer.appendChild(li);
-    });
-}
+//     if (!Array.isArray(invitations) || invitations.length === 0) {
+//         invitationsContainer.innerHTML = "<p class='text-center text-muted'>No invitations found.</p>";
+//         return;
+//     }
+
+//     invitations.forEach(requestObj => {
+//         const invitation = requestObj.invitation;
+//         const li = document.createElement("li");
+//         li.className = "list-group-item d-flex justify-content-between align-items-center";
+//         li.innerHTML = `
+//             <div class="col d-flex align-items-center">
+//                 <span class="badge ${invitation.online_status ? 'bg-success' : 'bg-secondary'} me-2">${invitation.online_status ? 'Online' : 'Offline'}</span>
+//                 <img src="${invitation.avatar}" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;" />
+//                 <span class="username me-2" data-userid="${invitation.id}">${invitation.username}</span>
+//             </div>
+//             <div class="col d-flex align-items-center justify-content-end">
+//                 <span>${invitation.type}</span>
+//                 <div class="vr mx-3"></div>
+//                 <button class="btn btn-success btn-sm accept-btn me-2" data-id="${invitation.id}">accept</button>
+//                 <button class="btn btn-danger btn-sm decline-btn" data-id="${invitation.id}">decline</button>
+//             </div>
+//         `;
+//         li.querySelector(".username").addEventListener("click", () => navigateTo(`/profile/${invitation.id}/`));
+//         invitationsContainer.appendChild(li);
+//     });
+    
+// }

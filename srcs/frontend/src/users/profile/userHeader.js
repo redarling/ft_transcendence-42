@@ -1,10 +1,8 @@
 import sendFriendRequest from "../friends_management/sendFriendRequest.js";
 
-export default function UserHeaderComponent(userName, avatarPicturePath, connected, joinedDate) {
+export default function UserHeaderComponent(profileUserId, userName, avatarPicturePath, connected, joinedDate, friendshipStatus) {
     const userMatchHistorySection = document.querySelector('#userHeader');
     const currentUserId = localStorage.getItem('user_id');
-    const profileUrl = window.location.href;
-    const profileUserId = profileUrl.match(/\/profile\/(\d+)\//)?.[1];
 
     userMatchHistorySection.innerHTML = `
         <div class="d-flex p-3 align-items-center">
@@ -16,13 +14,14 @@ export default function UserHeaderComponent(userName, avatarPicturePath, connect
                     ${connected ? 'Online' : 'Offline'}
                 </span>
                 <div class="mt-2">
-                    ${profileUserId !== currentUserId ? '<button id="friendRequestButton" class="btn btn-sm btn-primary">Add Friend</button>' : ''}
+                    ${friendshipStatus !== 'accepted' && profileUserId !== currentUserId ? `<button id="friendRequestButton" class="btn btn-sm btn-primary" ${friendshipStatus === 'pending' ? 'disabled' : ''}>${friendshipStatus === 'requested' ? 'Request Sent' : 'Add Friend'}</button>` : ''}
                 </div>
             </div>
         </div>
     `;
-
-    if (profileUserId !== currentUserId)
+    //button.disabled = true;
+    //button.textContent = "Request Sent";
+    if (friendshipStatus !== 'accepted' && profileUserId !== currentUserId)
     {
         document.getElementById("friendRequestButton").addEventListener("click", () => { sendFriendRequest(profileUserId); });
     }

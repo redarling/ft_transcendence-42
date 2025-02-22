@@ -112,11 +112,11 @@ class UserShortSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'avatar', 'online_status']
 
 class FriendSerializer(serializers.ModelSerializer):
-    friend = UserShortSerializer()
+    user = UserShortSerializer()
 
     class Meta:
         model = Friend
-        fields = ['friend']
+        fields = ['user']
 
 class TwoFactorActivationSerializer(serializers.Serializer):
     method = serializers.ChoiceField(choices=[('totp', 'TOTP'), ('sms', 'SMS'), ('email', 'Email')])
