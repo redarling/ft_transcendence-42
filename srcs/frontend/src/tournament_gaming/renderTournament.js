@@ -75,7 +75,7 @@ function renderParticipantsList(participants)
         const participantElement = document.createElement('div');
         participantElement.className = 'participant-item d-flex align-items-center mb-2';
         participantElement.innerHTML = `
-            <img src="${participant.avatar}" alt="${participant.username}" class="avatar" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
+            <img src="${participant.avatar}" alt="${participant.username}" class="avatar" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
             <span class="username" style="color: white;">${participant.username} (${participant.alias})</span>
         `;
         participantsList.appendChild(participantElement);

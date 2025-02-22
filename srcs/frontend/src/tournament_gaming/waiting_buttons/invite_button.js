@@ -17,6 +17,7 @@ export default async function inviteButton(tournamentId)
     try
     {
         const friends = await fetchFriendsList(tournamentId);
+        console.log(friends);
         renderFriendsList(friends, friendsList, tournamentId);
     }
     catch (error)
