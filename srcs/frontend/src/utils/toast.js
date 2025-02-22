@@ -8,8 +8,11 @@ export default function showToast(message, type)
 
     const closeButton = document.createElement('button');
     closeButton.className = "btn-close";
-    closeButton.textContent = "×";
-    closeButton.onclick = () => toast.remove();
+    closeButton.innerHTML = "&times;";
+    closeButton.onclick = (event) => {
+        event.stopPropagation();
+        toast.remove();
+    };
 
     toast.appendChild(messageSpan);
     toast.appendChild(closeButton);

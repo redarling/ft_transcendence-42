@@ -26,3 +26,8 @@
     --bs-table-hover-color: #F8F9FA;
     --bs-table-hover-bg: #242424;
 }
+
+.username {
+    cursor: pointer;
+}
+
