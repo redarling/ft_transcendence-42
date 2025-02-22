@@ -13,6 +13,7 @@ export default async function renderUserProfile(userId)
 
     try
     {
+        console.log("userId: ", userId);
         const userProfile = await fetchData(`/api/users/profile/${userId}/`);
         const userStats = await fetchData(`/api/users/stats/${userId}/`);
         const matchHistory = await fetchData(`/api/games/match-history/${userId}/`);
@@ -44,12 +45,16 @@ export default async function renderUserProfile(userId)
                 </div>
             </div>
         `;
+
+        console.log("user profile : ", userProfile);
     
         UserHeaderComponent(
+            userId,
             userProfile.username,
             userProfile.avatar,
             userProfile.online_status,
-            userStats.registered_at);
+            userStats.registered_at,
+            userProfile.friendship_status);
         
         if (matchHistory.length > 0)
         {
@@ -68,7 +73,6 @@ export default async function renderUserProfile(userId)
                 matchHistory,
                 matchesStats);
         }
-
     }
     catch (error)
     {
@@ -99,5 +103,5 @@ async function fetchData(requestUrl)
         throw new Error(response.status);
     }
 
-    return response.json(); // Parse and return the JSON data
+    return response.json();
 }

@@ -61,7 +61,7 @@ export default async function router()
         "/contact-us": renderContactUs,
         "/forgot-password": renderForgotPassword,
         "/update-informations": renderUpdateInformations,
-        "/friends": renderFriends,
+        "/friends": renderFriends
     };
 
     if (await protectRoute(["/game", "/settings", "/friends", 

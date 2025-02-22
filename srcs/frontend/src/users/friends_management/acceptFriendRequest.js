@@ -1,4 +1,6 @@
 import { fetchWithAuth } from "../../utils/fetchWithAuth.js";
+import { loadFriendRequests, loadFriends } from "../../pages/friends.js"
+import showToast from "../../utils/toast.js";
 
 export default async function acceptFriendRequest(friendId)
 {
@@ -13,13 +15,15 @@ export default async function acceptFriendRequest(friendId)
         });
 
         const data = await response.json();
+        
         if (!response.ok) {
             throw new Error(data.message || "Failed to accept friend request");
         }
 
-        console.log("Friend request accepted:", data);
+        showToast("Friend request successfully accepted.", "success");
         loadFriendRequests(); // Refresh the friend request list
+        loadFriends();
     } catch (error) {
-        console.error("Error accepting friend request:", error);
+        showToast(error, "error");
     }
 }

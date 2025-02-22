@@ -210,6 +210,7 @@ class UserProfileAPIView(RetrieveAPIView):
                 user = User.objects.get(id=user_id)
                 if not user.is_active:
                     raise NotFound(detail="User not found.")
+                return user
             except User.DoesNotExist:
                 raise NotFound(detail="User not found.")
         return self.request.user
@@ -285,7 +286,7 @@ class FriendListAPIView(ListAPIView):
         friendships = Friend.objects.filter((Q(user=user) | Q(friend=user)) & Q(status='accepted'))
 
         return [
-            {'friend': friendship.friend if friendship.user == user else friendship.user}
+            {'user': friendship.friend if friendship.user == user else friendship.user}
             for friendship in friendships
         ]
 
@@ -297,8 +298,8 @@ class FriendshipAPIView(APIView):
         """
         Send a friend request.
         """
-        user = request.user
-        friend_id = request.data.get('friend_id')
+        user = request.user                       # User who sent the friend request
+        friend_id = request.data.get('friend_id') # User who receive the friend request
 
         if not friend_id:
             return Response({'error': 'Friend ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -344,16 +345,16 @@ class FriendshipAPIView(APIView):
                 (Q(user=friend) & Q(friend=user)), status='accepted')
             friendship.delete()
             return Response({'message': 'Friendship deleted.'}, status=status.HTTP_200_OK)
-        
+
         except Friend.DoesNotExist:
             return Response({'error': 'Friendship does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def patch(self, request):
         """
         Accept or decline a friend request.
         """
-        user = request.user
-        friend_id = request.data.get('friend_id')
+        user = request.user # User who received the friendship request
+        friend_id = request.data.get('friend_id') # User who sent the friendship request
         action = request.data.get('action')  # 'accept' or 'decline'
 
         if not friend_id or not action:
@@ -367,8 +368,7 @@ class FriendshipAPIView(APIView):
         try:
             friendship = Friend.objects.get(user=friend, friend=user, status='pending')
         except Friend.DoesNotExist:
-            return Response({'error': 'Friendship request not found.'}, status=status.HTTP_404_NOT_FOUND)
-
+            return Response({'error': 'Friendship request not found.'}, status=status.HTTP_404_NOT_FOUND) # PB HERE FOR SOME REASONS
         if action == 'accept':
             friendship.accept_friend()
             return Response({'message': 'Friendship request accepted.'}, status=status.HTTP_200_OK)
@@ -383,13 +383,15 @@ class FriendRequestsAPIView(ListAPIView):
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
-        return Friend.objects.filter(friend=user, status='pending')
+        queryset = Friend.objects.filter(friend=user, status='pending')
+        return queryset
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
         if queryset.count() == 0:
-            return Response({"error": "No friend requests found."}, status=status.HTTP_404_NOT_FOUND)
-
+            return Response({"message": "No friend requests found."}, status=status.HTTP_200_OK)
+        
         serializer = self.get_serializer(queryset, many=True)
+        
         return Response(serializer.data)
