@@ -153,7 +153,7 @@ export default function UserMatchHistoryComponent(userName, matches, matchesStat
     let matchHistory = [];
     for (let i = 0; i < matches.length; ++i) {
 
-        const date = new Date(Date.now(matches[i].finished_at));
+        const date = new Date(matches[i].match.finished_at);
         const winnerName = matches[i].match.winner_username;
         const context = matches[i].match.match_type;
 

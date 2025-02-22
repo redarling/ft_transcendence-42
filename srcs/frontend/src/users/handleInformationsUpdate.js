@@ -1,4 +1,5 @@
 import { fetchWithAuth } from "../utils/fetchWithAuth.js";
+import showToast from "../utils/toast.js"
 
 export async function handleInformationsUpdate(event)
 {
@@ -18,7 +19,7 @@ export async function handleInformationsUpdate(event)
     if (avatarUrl) {
         const isValidImage = await checkImageExists(avatarUrl);
         if (!isValidImage) {
-            alert("❌ The provided Imgur URL is not a valid image. Please enter a correct direct Imgur image URL.");
+            showToast("The provided Imgur URL is not a valid image. Please enter a correct direct Imgur image URL.", "error");
             return;
         }
     }
@@ -45,7 +46,7 @@ export async function handleInformationsUpdate(event)
 
         if (!response.ok) {
             console.warn("⚠️ Failed to update profile:", response.status);
-            alert("❌ Update failed. Please try again.");
+            showToast(" Update failed. Please try again.", "error");
             return;
         }
 
@@ -55,11 +56,10 @@ export async function handleInformationsUpdate(event)
 
         // Update avatar preview if changed
         updateAvatarPreview(avatarUrl);
-        alert("✅ Profile updated successfully!");
+        showToast("Profile updated successfully!", "success");
     } 
     catch (error) {
         console.error("❌ Error updating profile:", error);
-        alert("Network error. Please try again.");
     }
 }
 

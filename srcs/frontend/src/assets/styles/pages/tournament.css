@@ -40,14 +40,6 @@
     margin-bottom: 10px;
 }
 
-.btn-close {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 0;
-}
-
 .btn-close:hover {
     color: red;
 }

@@ -19,8 +19,6 @@ export default function UserHeaderComponent(profileUserId, userName, avatarPictu
             </div>
         </div>
     `;
-    //button.disabled = true;
-    //button.textContent = "Request Sent";
     if (friendshipStatus !== 'accepted' && profileUserId !== currentUserId)
     {
         document.getElementById("friendRequestButton").addEventListener("click", () => { sendFriendRequest(profileUserId); });

@@ -33,11 +33,11 @@ export default async function renderUserProfile(userId)
                 <div class="row justify-content-md-center">
                     <div class="col col-md-10">
 						<section id="userHeader"></section>
-						<hr class="hr" style="color: white;" />
+						<hr class="hr mb-4 mt-4" style="color: white;" />
 						${matchHistory.length > 0 ? `
 						
 						<section id="userStats"></section>
-						<hr class="hr" style="color: white;" />
+						<hr class="hr mb-4 mt-4" style="color: white;" />
 						
 						<section id="userMatchHistory"></section>
 						` : '<p class="text-light" style="text-align: center;">This user has not played any matches yet.</p>'}
