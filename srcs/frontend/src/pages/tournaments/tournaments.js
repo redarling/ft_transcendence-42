@@ -84,5 +84,4 @@ export default async function renderTournaments()
     document.getElementById("createTournamentBtn").addEventListener("click", async () => await createTournamentModal());
     document.getElementById("searchTournamentBtn").addEventListener("click", async () => await searchTournament());
     document.getElementById("myInvitationsBtn").addEventListener("click", async () => await invitationsList());
-    document.getElementById("backButton").addEventListener("click", async () => await navigateTo("/game"));
 }

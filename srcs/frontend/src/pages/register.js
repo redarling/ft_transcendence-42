@@ -16,12 +16,12 @@ export default function renderRegister()
 
                     <div class="input-group mb-2">
                         <input type="password" id="password" class="form-control" placeholder="Password" required>
-                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password">Show</button>
+                        <button class="btn btn-secondary toggle-password" type="button" data-target="password">Show</button>
                     </div>
 
                     <div class="input-group mb-2">
                         <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm Password" required>
-                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirmPassword">Show</button>
+                        <button class="btn btn-secondary toggle-password" type="button" data-target="confirmPassword">Show</button>
                     </div>
 
                     <div class="form-check mb-2">

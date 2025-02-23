@@ -12,7 +12,7 @@ export default async function renderHeader()
         <nav class="navbar navbar-expand-lg navbar-light bg-body-tertiary" role="navigation">
             <div class="container-fluid">
                 <a class="navbar-brand" aria-label="Pong - Home" id="logoHeaderButton">
-                    <img src="./src/assets/images/logo/t_black.png" height="50" width="50" />
+                    <img src="/src/assets/images/logo/t_black.png" height="50" width="50" />
                     Pong
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 

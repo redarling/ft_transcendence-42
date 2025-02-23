@@ -12,7 +12,7 @@ export default async function createTournamentModal()
         <div class="modal-content">
             <div class="modal-header d-flex justify-content-between align-items-center">
                 <h5 class="modal-title">Create Tournament</h5>
-                <button type="button" class="btn-close" id="closeModalBtn" aria-label="Close">×</button>
+                <button type="button" class="btn-close" id="closeModalBtn" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="createTournamentForm">

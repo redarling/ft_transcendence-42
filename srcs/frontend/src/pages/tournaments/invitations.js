@@ -33,7 +33,7 @@ function createInvitationsModal()
         <div class="modal-content">
             <div class="modal-header d-flex justify-content-between align-items-center">
                 <h5 class="modal-title">My Invitations</h5>
-                <button type="button" class="btn-close" id="closeModalBtn" aria-label="Close">×</button>
+                <button type="button" class="btn-close" id="closeModalBtn" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div id="invitationsList" class="search-results"></div>
