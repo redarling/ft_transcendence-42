@@ -24,7 +24,6 @@ export default async function handleRegister(event)
 
 		if (response.ok)
 		{
-			console.log("Registration successful:", result);
 			await navigateTo('/login');
 			showToast(result.message, "success");
 		}
