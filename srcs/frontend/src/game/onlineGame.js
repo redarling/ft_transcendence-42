@@ -239,6 +239,7 @@ export class Game {
         {
             this.clear();
             this.#matchOver = true;
+            this.#socket.close();
             handleMatchOver(message.winner, message.player1_score, message.player2_score, this.#playerId);
         }
         else if (message.event == "disconnection")

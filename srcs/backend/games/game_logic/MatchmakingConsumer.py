@@ -55,7 +55,7 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
             if self.match_group:
                 try:
                     await send_group_message(self.match_group, {"event": "disconnection", "message": "User disconnected"})
-                    await remove_player_from_group(self.match_group, f"player_{self.user.id}")
+                    await remove_player_from_group(f"player_{self.user.id}", self.channel_name)
                     await remove_player_from_group(self.match_group, self.channel_name)
                 except Exception as e:
                     logger.error(f"Failed to remove user {self.user} from match group: {e}")

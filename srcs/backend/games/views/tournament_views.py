@@ -17,7 +17,7 @@ import logging
 from asgiref.sync import async_to_sync
 from games.blockchain_score_storage.deployment import deploy_smart_contract
 from games.game_logic.recovery_key_manager import RecoveryKeyManager
-from .recovery_views import CheckActiveTournamentAPIView
+from .recovery_views import CheckActiveTournamentAPIView, CheckActiveMatchAPIView
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +68,7 @@ class JoinTournamentAPIView(APIView):
 
 
         check_tournament_api = CheckActiveTournamentAPIView()
+        check_match_api = CheckActiveMatchAPIView()
 
         response = async_to_sync(check_tournament_api.get_active_tournament_id)(user)
 
@@ -75,6 +76,12 @@ class JoinTournamentAPIView(APIView):
             return Response({"detail": "You are already participating in a tournament."},
                             status=status.HTTP_400_BAD_REQUEST)
         
+        response = async_to_sync(check_match_api.get_match_data)(user)
+
+        if response.status_code == 200 and response.data.get("active"):
+            return Response({"detail": "You are already having an active match."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         forbidden_substring = "deleted_user"
         if forbidden_substring in tournament_alias.lower():
             return Response({"detail": "The alias cannot contain 'deleted_user'."},
