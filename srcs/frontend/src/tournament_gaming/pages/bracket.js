@@ -143,19 +143,6 @@ function createMatchCard()
                 </div>
             </div>
         </div>
-        <div class="modal fade" data-bs-backdrop="static" id="readyUpModal" tabindex="-1">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header d-flex flex-column justify-content-center">
-                <h1 class="modal-title text-center">Your match is ready !</h1>
-                <p>The match will begin automatically once both players are ready</p>
-              </div>
-              <div class="modal-body">
-                <button id="readyUpButton" type="button" class="btn btn-success">Ready</button>
-              </div>
-            </div>
-          </div>
-        </div>
     `;
     matchCardIndex++;
     return matchElement;

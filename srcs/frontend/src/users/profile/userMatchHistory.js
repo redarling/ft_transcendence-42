@@ -153,7 +153,7 @@ export default function UserMatchHistoryComponent(userName, matches, matchesStat
     let matchHistory = [];
     for (let i = 0; i < matches.length; ++i) {
 
-        const date = new Date(Date.now(matches[i].finished_at));
+        const date = new Date(matches[i].match.finished_at);
         const winnerName = matches[i].match.winner_username;
         const context = matches[i].match.match_type;
 
@@ -163,6 +163,8 @@ export default function UserMatchHistoryComponent(userName, matches, matchesStat
 
         const leftPlayerStats = matchesStats[i][0].player_username === userName ? matchesStats[i][0] : matchesStats[i][1];
         const rightPlayerStats = matchesStats[i][0].player_username !== userName ? matchesStats[i][0] : matchesStats[i][1];
+
+
 
         matchHistory.push({
             id: i,
@@ -175,16 +177,20 @@ export default function UserMatchHistoryComponent(userName, matches, matchesStat
                 name: leftPlayerStats.player_username,
                 score: leftPlayerStats.points_scored,
                 timesHit: leftPlayerStats.total_hits,
-                ratio: rightPlayerStats.points_scored > 0 ? (rightPlayerStats.points_scored / leftPlayerStats.points_scored).toFixed(2) : 0
+                ratio: rightPlayerStats.points_scored > 0 ? (leftPlayerStats.points_scored / rightPlayerStats.points_scored).toFixed(2) : leftPlayerStats.points_scored
             },
     
             rightPlayerData: {
                 name: rightPlayerStats.player_username,
                 score: rightPlayerStats.points_scored,
                 timesHit: rightPlayerStats.total_hits,
-                ratio: leftPlayerStats.points_scored > 0 ? (leftPlayerStats.points_scored / rightPlayerStats.points_scored).toFixed(2) : 0
+                ratio: leftPlayerStats.points_scored > 0 ? (rightPlayerStats.points_scored / leftPlayerStats.points_scored).toFixed(2) : rightPlayerStats.points_scored
             }
         });
+
+        console.log("ratio: ", matchHistory[i].rightPlayerData.ratio);
+        console.log("leftPlayerStats.points_scored: ", leftPlayerStats.points_scored);
+        console.log("leftPlayerStats.points_scored: ", leftPlayerStats.points_scored);
 
         addMatchToMatchHistoryTable(matchHistory[i]);
     }
