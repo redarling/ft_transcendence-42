@@ -49,6 +49,8 @@ class UpdateLastActivityMiddleware:
         '/api/games/match/finish/',
         '/api/games/tournament/round/create-match/',
         '/api/games/tournament/update-status/',
+        '/api/games/check-active-match/',
+        '/api/games/check-active-tournament/',
     ]
 
     def __init__(self, get_response):
