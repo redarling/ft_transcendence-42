@@ -247,7 +247,7 @@ export class Game {
     // Main game loop
     loop() {
         let lastTime = 0;
-        const animate = (time) => {
+        const animate = async (time) => {
             const delta = time - lastTime;
 
             if (delta > INTERVAL) {
@@ -255,8 +255,8 @@ export class Game {
 
                 if (this.#score.getScoreLeft() === MAX_SCORE || this.#score.getScoreRight() === MAX_SCORE) {
                     this.clear();
-                    renderHeader();
-                    renderGame();
+                    await renderHeader();
+                    await renderGame();
                     renderFooter();
                     if (againstBot) {
                         if (this.#score.getScoreLeft() === MAX_SCORE) {

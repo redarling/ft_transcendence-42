@@ -5,6 +5,7 @@ export async function checkActiveMatch()
 {
     try
     {
+        console.log("- function: checkActiveMatch");
         const response = await fetchWithAuth("/api/games/check-active-match/", {
             method: "GET",
             headers: {
@@ -29,6 +30,7 @@ export async function checkActiveTournament()
 {
     try
     {
+        console.log("- function: checkActiveTournament");
         const response = await fetchWithAuth("/api/games/check-active-tournament/", {
             method: "GET",
             headers: {

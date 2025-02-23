@@ -1,7 +1,6 @@
 import { renderErrorPage, renderMatch, renderSearchingPage } from './renderPages.js';
 import renderGame from '../pages/game.js';
 import showToast from '../utils/toast.js';
-import navigateTo from '../navigation/navigateTo.js';
 
 export async function findMatch()
 {

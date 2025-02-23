@@ -1,37 +1,9 @@
-import renderFooter from '../../components/footer.js';
-import renderHeader from '../../components/header.js';
 import createTournamentModal from './create.js';
 import searchTournament from './search.js';
 import invitationsList from './invitations.js';
-import { checkActiveTournament } from '../../online_gaming/recoverySystem.js'
-import showToast from '../../utils/toast.js';
-import { tournamentHandler } from "../../tournament_gaming/tournamentHandler.js";
-import navigateTo from '../../navigation/navigateTo.js';
 
 export default async function renderTournaments()
 {
-    try
-    {
-        const tournament = await checkActiveTournament(localStorage.getItem('access_token'));
-        if (tournament && tournament.active)
-        {
-            const tournamentWebSocketLink = `wss://transcendence-pong:7443/ws/tournament/${tournament.tournament_id}/`;
-            await tournamentHandler(tournamentWebSocketLink, token, tournament.tournament_id);
-        }
-    }
-    catch (error)
-    {
-        showToast(error, "error");
-    }
-
-    const tournamentToastEl = document.getElementById('tournament-ongoing-toast');
-    
-    if (tournamentToastEl)
-    {
-        const tournamentToast = new bootstrap.Toast(tournamentToastEl);
-        tournamentToast.hide();
-    }
-
     const main = document.getElementById("main");
 
     main.innerHTML = `

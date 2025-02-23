@@ -13,10 +13,6 @@ import asyncio
 
 logger = logging.getLogger(__name__)
 
-#TODO:  1) Match: collision bugs(?)
-#       2) Consumer: check for possible improvements, disconnection 'Attempt to send on a closed protocol' error
-#       3) Client: ball prediction, optimization
-
 class MatchmakingConsumer(AsyncWebsocketConsumer):
     queue = MatchmakingQueue()
 
@@ -99,11 +95,13 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         """
         if self.queue.is_player_in_queue(str(self.user.id)):
             await self.send_json_message("error", "Already in matchmaking")
+            await self.close()
             return
 
         match_data = await check_active_match(self.user)
         if match_data["active"]:
             await self.send_json_message("error", "You are already in a match")
+            await self.close()
             return
         
         logger.info("User started matchmaking: %s", self.user.id)

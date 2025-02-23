@@ -3,34 +3,12 @@ import renderHeader from '../components/header.js';
 import { Game } from '../game/game.js';
 import { findMatch } from '../online_gaming/matchmakingHandler.js';
 import navigateTo from "../navigation/navigateTo.js"
-import showToast from '../utils/toast.js';
-import { checkActiveMatch, connectToWebSocket } from '../online_gaming/recoverySystem.js'
 
 export let againstBot;
 export let botDifficulty;
 
 export default async function renderGame()
 {
-    try
-    {
-        const matchData = await checkActiveMatch(localStorage.getItem('access_token'));
-        if (matchData && matchData.active)
-            await connectToWebSocket(localStorage.getItem('access_token'), matchData.match_group);
-    }
-    catch(error)
-    {
-        await navigateTo("/home");
-        showToast(error, "error");
-    }
-
-    const matchToastEl = document.getElementById('match-ongoing-toast');
-    
-    if (matchToastEl)
-    {
-        const matchToast = new bootstrap.Toast(matchToastEl);
-        matchToast.hide();
-    }
-
 	const main = document.getElementById("main");
     main.innerHTML = `
         <div class="container-fluid game-mode-container">
