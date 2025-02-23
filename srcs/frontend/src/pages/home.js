@@ -9,7 +9,7 @@ export default function renderHome()
 		<section class="text-center bg-light py-5 rounded shadow">
 			<h1 class="display-4 fw-bold">Welcome to Transcendence Pong!</h1>
 			<p class="lead text-muted">Experience the ultimate online Pong battles with friends or with ai opponent.</p>
-			<a href="game" class="btn btn-primary btn-lg mt-3" id="playNowBtn">Play Now</a>
+			<a class="btn btn-primary btn-lg mt-3" id="playNowBtn">Play Now</a>
 		</section>
 
 		<!-- Features Section -->
