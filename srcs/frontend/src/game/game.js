@@ -69,10 +69,6 @@ const SCORE_FONT_DEPTH = 0.2;
 const SCORE_FONT_COLOR = 0xffffff;
 const MAX_SCORE = 11;
 
-const keyPressed = new Set();
-window.addEventListener('keydown', (e) => keyPressed.add(e.key));
-window.addEventListener('keyup', (e) => keyPressed.delete(e.key));
-
 export class Game {
 
     // ThreeJS Scene
@@ -87,6 +83,10 @@ export class Game {
     #score;
     // -------------
     #ai;
+    // -------------
+    #keyPressed;
+    #keyDownHandler;
+    #keyUpHandler;
 
     constructor() {
         this.initScene();
@@ -141,6 +141,13 @@ export class Game {
         if (againstBot === true) {
             this.#ai = new AI(this.#paddleRight, this.#ball, botDifficulty);
         }
+
+        this.#keyPressed = new Set();
+        this.#keyDownHandler = (e) => this.#keyPressed.add(e.key);
+        this.#keyUpHandler = (e) => this.#keyPressed.delete(e.key);
+
+        window.addEventListener('keydown', this.#keyDownHandler);
+        window.addEventListener('keyup', this.#keyUpHandler);
     }
 
     initScene() {
@@ -185,11 +192,11 @@ export class Game {
     }
 
     refreshPaddlePos(paddle, bindUp, bindDown) {
-        if (keyPressed.has(bindUp)) { // Move the paddle up
+        if (this.#keyPressed.has(bindUp)) { // Move the paddle up
             if (paddle.getPosZ() - (PADDLE_DIMENSION_Z / 2) > -(FIELD_DIMENSION_Z / 2)) {
                 paddle.moveUp(); // change to simulating keyboard
             }
-        } else if (keyPressed.has(bindDown)) { // Move the paddle up
+        } else if (this.#keyPressed.has(bindDown)) { // Move the paddle up
             if (paddle.getPosZ() + (PADDLE_DIMENSION_Z / 2) < FIELD_DIMENSION_Z / 2) {
                 paddle.moveDown(); // change to simulating keyboard
             }
@@ -235,6 +242,8 @@ export class Game {
     }
 
     clear() {
+        window.removeEventListener('keydown', this.#keyDownHandler);
+        window.removeEventListener('keyup', this.#keyUpHandler);
         this.#renderer.setAnimationLoop(null); // stop animation loop
         this.#ball.dispose(); // dispose the ressources (ball hit sound)
         this.#renderer.clear();

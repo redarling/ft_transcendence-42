@@ -59,9 +59,7 @@ const SCORE_FONT_SIZE = 1;
 const SCORE_FONT_DEPTH = 0.2;
 const SCORE_FONT_COLOR = 0xffffff;
 
-const keyPressed = new Set();
-window.addEventListener('keydown', (e) => keyPressed.add(e.key));
-window.addEventListener('keyup', (e) => keyPressed.delete(e.key));
+
 
 export class Game {
     #scene;
@@ -78,6 +76,9 @@ export class Game {
     #playerId;
     #withCountdown;
     #interpolationTargets;
+    #keyPressed;
+    #keyDownHandler;
+    #keyUpHandler;
 
     constructor(socket, playerId, withCountdown = true) {
         this.#socket = socket;
@@ -147,6 +148,13 @@ export class Game {
         }
         else
             this.#countdown = null;
+
+        this.#keyPressed = new Set();
+        this.#keyDownHandler = (e) => this.#keyPressed.add(e.key);
+        this.#keyUpHandler = (e) => this.#keyPressed.delete(e.key);
+
+        window.addEventListener('keydown', this.#keyDownHandler);
+        window.addEventListener('keyup', this.#keyUpHandler);
     }
 
     initScene() {
@@ -183,11 +191,11 @@ export class Game {
     
         if (this.lastActionSentTime === undefined || now - this.lastActionSentTime >= 5)
         {
-            if (keyPressed.has(bindUp))
+            if (this.#keyPressed.has(bindUp))
             {
                 this.sendPlayerAction("up");
             }
-            else if (keyPressed.has(bindDown))
+            else if (this.#keyPressed.has(bindDown))
             {
                 this.sendPlayerAction("down");
             }
@@ -241,6 +249,8 @@ export class Game {
             this.#matchOver = true;
             this.#socket.close();
             handleMatchOver(message.winner, message.player1_score, message.player2_score, this.#playerId);
+            console.log("returned from online game");
+            return;
         }
         else if (message.event == "disconnection")
         {
@@ -309,6 +319,8 @@ export class Game {
 
     clear()
     {
+        window.removeEventListener('keydown', this.#keyDownHandler);
+        window.removeEventListener('keyup', this.#keyUpHandler);
         this.#renderer.setAnimationLoop(null);
         this.#ball.dispose();
         this.#renderer.clear();

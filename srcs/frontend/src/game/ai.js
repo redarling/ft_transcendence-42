@@ -63,10 +63,10 @@ export class AI {
         let noiseLevel = 0;
         switch (this.#difficulty) {
             case 1:
-                noiseLevel = 0.7;
+                noiseLevel = 0.9;
                 break;
             case 2:
-                noiseLevel = 0.4;
+                noiseLevel = 0.5;
                 break;
             case 3:
                 noiseLevel = 0;
