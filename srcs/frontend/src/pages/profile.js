@@ -13,7 +13,6 @@ export default async function renderUserProfile(userId)
 
     try
     {
-        console.log("userId: ", userId);
         const userProfile = await fetchData(`/api/users/profile/${userId}/`);
         const userStats = await fetchData(`/api/users/stats/${userId}/`);
         const matchHistory = await fetchData(`/api/games/match-history/${userId}/`);
@@ -40,7 +39,7 @@ export default async function renderUserProfile(userId)
 						<hr class="hr" style="color: white;" />
 						
 						<section id="userMatchHistory"></section>
-						` : '<p class="text-light" style="text-align: center;">This user has not played any matches yet.</p>'}
+						` : '<p class="text-light" style="text-align: center;">No data available</p>'}
                     </div>
                 </div>
             </div>

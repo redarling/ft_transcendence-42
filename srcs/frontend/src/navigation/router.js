@@ -75,13 +75,12 @@ export default async function router()
     const segments = path.split("/").filter(Boolean);
     console.log("The path is:", path);
 
-	if (await isAuthenticated())
-		await recoverySystem();
+	await recoverySystem();
 
     if (segments.length === 2 && segments[0] === "profile" && segments[1])
 	{
 		if (await isAuthenticated())
-        	renderUserProfile(segments[1]);
+        	await renderUserProfile(segments[1]);
 		else
 		{
 			await navigateTo("/login");
