@@ -17,7 +17,7 @@
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/asyvash/ft_transcendence-42
+   git clone https://github.com/redarling/ft_transcendence-42
 
 2. Navigate to the project directory:
    ```sh
