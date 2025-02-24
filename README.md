@@ -25,7 +25,7 @@
 
 3. Compile the project:
    ```sh
-   cd transcendence
+   make
 
 ## 💻 Usage
 
@@ -38,13 +38,20 @@
 
 ## 🖼️ Project Gallery
 
-| Gameplay | Tournament | Stats Dashboard |
-|----------|-----------|-----------------|
-| <img src="img/ezgif-1ecd15898aa90f.gif" alt="Gameplay GIF" width="300"> | <img src="img/tournament.png" alt="Tournament" width="300"> | <img src="img/stats.png" alt="Stats" width="300"> |
+### 🎮 Gameplay
+<img src="img/ezgif-1ecd15898aa90f.gif" alt="Gameplay GIF" width="600">
 
-| Two-Factor Authentication (Step 1) | Two-Factor Authentication (Step 2) |
-|------------------------------------|------------------------------------|
-| <img src="img/twofa.png" alt="2FA Step 1" width="300"> | <img src="img/twofa2.png" alt="2FA Step 2" width="300"> |
+### 🏆 Tournament
+<img src="img/tournament.png" alt="Tournament" width="600">
+
+### 📊 Stats Dashboard
+<img src="img/stats.png" alt="Stats Dashboard" width="600">
+
+### 🔐 Two-Factor Authentication (Step 1)
+<img src="img/twofa.png" alt="2FA Step 1" width="600">
+
+### 🔐 Two-Factor Authentication (Step 2)
+<img src="img/twofa2.png" alt="2FA Step 2" width="600">
 
 🏗️ Tech Stack
 
